@@ -1,5 +1,8 @@
 import os
+import subprocess
 from setuptools import setup
+
+VERSION=subprocess.check_output(["git", "describe", "--tags"]).strip()
 
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
     README = readme.read()
@@ -9,13 +12,14 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-mongolog',
-    version='0.1',
+    version=VERSION,
     packages=['mongolog'],
     include_package_data=True,
     license='GPL V3',
     description='A simple mongo based logger',
     long_description=README,
     url='https://github.com/gnulnx/django-mongolog',
+    download_url='https://github.com/gnulnx/django-mongolog/tree/%s'%(VERSION),
     author='John Furr',
     author_email='john.furr@gmail.com',
     classifiers=[
