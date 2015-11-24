@@ -26,6 +26,6 @@ for cmd in Commands:
 	subprocess.check_output(cmd.split())
 
 
-print "listdir: ", os.listdir("dist")
 ## Now copy the file over
-#	"cp ./dist/%s  %s" % (os.listdir("dist")[0], COPY_PATH),
+cmd = "cp ./dist/%s  %s" % (os.listdir("dist")[0], COPY_PATH)
+subprocess.check_output(cmd.split())
