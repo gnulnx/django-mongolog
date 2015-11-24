@@ -49,7 +49,7 @@ Quick start
     try:
         raise ValueError("Bad Value")
     except ValueError as e:
-        logger.exception("This is the worse exception ever")
+        logger.exception("This is the worste exception ever")
 
 5) Now log into your mongo shell::
 
