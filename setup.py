@@ -15,7 +15,7 @@ setup(
     license='GPL V3',
     description='A simple mongo based logger',
     long_description=README,
-    #url='http://www.example.com/',
+    url='https://github.com/gnulnx/django-mongolog',
     author='John Furr',
     author_email='john.furr@gmail.com',
     classifiers=[
