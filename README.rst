@@ -33,3 +33,27 @@ Quick start
         },
     }
 
+3) Start you management shell::
+
+    ./manage.py shell
+
+4) Create a a couple of log entries::
+    
+    import logging
+    logger = logging.getLogger(__name__)
+
+    logger.debug("A debug message")
+    logger.info("An info message")
+    logger.warning("A Serious warning")
+    logger.error("We have an ERROR")
+    try:
+        raise ValueError("Bad Value")
+    except ValueError as e:
+        logger.exception("This is the worse exception ever")
+
+5) Now log into your mongo shell::
+
+    mongo
+    > use mongologger
+    > db.mongologger.find().pretty()
+
