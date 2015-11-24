@@ -14,8 +14,7 @@ class MongoLoggerHandler(logging.StreamHandler):
         ret_items = []
         for item in items:
             if isinstance(item, AttributeError):
-                # This is because of exc_info when logger.exception("asdf") is used
-                item = item.message
+                item = unicode(item.message)
             ret_items.append(unicode(item))
         return ret_items
 
@@ -33,7 +32,6 @@ class MongoLoggerHandler(logging.StreamHandler):
         """
         record = self.process_record(record)
         try:
-            print record.__dict__
             log_record = {
                 'threadName': record.threadName,
                 'name': record.name,
@@ -53,7 +51,7 @@ class MongoLoggerHandler(logging.StreamHandler):
                 'message': record.message,
                 'funcName': record.funcName,
                 'relativeCreated': record.relativeCreated,
-                'levelname': record.levelname,
+                'level': record.levelname,
                 'msecs': record.msecs
             }    
             db.mongologger.insert(log_record)
