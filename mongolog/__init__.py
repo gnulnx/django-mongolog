@@ -1,0 +1,1 @@
+from mongologger import MongoLogger
