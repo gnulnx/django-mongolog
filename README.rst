@@ -15,14 +15,14 @@ Quick start
         'mongolog',
     )
 
-2. Add a handler to your LOGGING::
+2. Add the MongoLoggerHandler to your LOGGING config::
 
     LOGGING = {
         'handler': {
             'mongologger': {
-                'level': 'DEBUG',
-                'class': 'mongolog.mongologger.MongoLoggerHandler',
-            },
+            'level': 'WARN',
+            'class': 'mongolog.MongoLoggerHandler',
+            'connection': 'mongodb://localhost:27017/'
         },
         'loggers': {
             'django': {
