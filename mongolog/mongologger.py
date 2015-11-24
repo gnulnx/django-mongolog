@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import logging
-import pymongo
 
 # This stuff needs to be moved to settings variables
 from pymongo import MongoClient
@@ -14,15 +13,15 @@ class MongoLoggerHandler(logging.StreamHandler):
     def process_tuple(self, items):
         ret_items = []
         for item in items:
-            if type(item) == AttributeError:
+            if isinstance(item, AttributeError):
                 # This is because of exc_info when logger.exception("asdf") is used
                 item = item.message
-            ret_items.append(str(item))
+            ret_items.append(unicode(item))
         return ret_items
 
     def process_record(self, record):
         for k, v in record.__dict__.items():
-            if type(v) == tuple:
+            if isinstance(v, tuple):
                 v = self.process_tuple(v)
             record.__dict__[k] = v
         return record
