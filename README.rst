@@ -16,6 +16,7 @@ Quick start
     )
 
 2. Add a handler to your LOGGING::
+
     LOGGING = {
         'handler': {
             'mongologger': {
