@@ -12,13 +12,14 @@ if not COPY_PATH:
 	raise ValueError("You muse set MONGOLOG_COPY_PATH")
 
 Commands = (
+    "rm -rf dist",
 	"python setup.py sdist",
-	"cp dist/django-mongolog-0.1.3.tar.gz  %s" % COPY_PATH,
+	"cp ./dist/%s  %s" % (os.listdir("dist")[0], COPY_PATH),
 )
 
 
 for cmd in Commands:
-	print "running %", cmd
+	print "running:", " ".join(cmd.split())
 	subprocess.check_output(cmd.split())
 
 
