@@ -1,4 +1,4 @@
-class MongoLoggerException(Exception):
+class MongoLogError(Exception):
 	"""
 	A general exception class for the MongoLogger
 	"""

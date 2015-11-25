@@ -2,7 +2,7 @@
 from logging import Handler, NOTSET
 from pymongo import MongoClient
 
-from mongolog.exceptions import MongoLoggerException
+from mongolog.exceptions import MongoLogError
 
 
 class MongoLogHandler(Handler):
@@ -55,7 +55,7 @@ class MongoLogHandler(Handler):
         self.db.mongologger.insert(log_record)
 
     def format(self, record):
-        raise MongoLoggerException("format is not defined")
+        raise MongoLogError("format is not defined")
 
     def process_tuple(self, items):
         ret_items = []
