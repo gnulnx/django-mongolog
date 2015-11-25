@@ -19,7 +19,7 @@ class MongoLogHandler(Handler):
             self.connection = 'mongodb://localhost:27017/'
 
         client = MongoClient(self.connection)
-        self.db = client.mongologger
+        self.db = client.mongolog
 
         return super(MongoLogHandler, self).__init__(level)
 
@@ -52,7 +52,7 @@ class MongoLogHandler(Handler):
             'level': record.levelname,
             'msecs': record.msecs
         }    
-        self.db.mongologger.insert(log_record)
+        self.db.mongolog.insert(log_record)
 
     def format(self, record):
         raise MongoLogError("format is not defined")

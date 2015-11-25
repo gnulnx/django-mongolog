@@ -21,14 +21,14 @@ hint:  See github for better formating:  https://github.com/gnulnx/django-mongol
 
     LOGGING = {
         'handler': {
-            'mongologger': {
+            'mongolog': {
             'level': 'WARN',
-            'class': 'mongolog.MongoLoggerHandler',
+            'class': 'mongolog.MongoLogHandler',
             'connection': 'mongodb://localhost:27017/'
         },
         'loggers': {
             'django': {
-                'handlers': ['console', 'mongologger'],
+                'handlers': ['console', 'mongolog'],
                 'level': 'DEBUG',
                 'propagate': True
             },
@@ -56,8 +56,8 @@ hint:  See github for better formating:  https://github.com/gnulnx/django-mongol
 5) Now log into your mongo shell::
 
     mongo
-    > use mongologger
-    > db.mongologger.find().sort({created: -1}).limit(5).pretty()
+    > use mongolog
+    > db.mongolog.find().sort({created: -1}).limit(5).pretty()
 
     If you setup your logger with level 'WARN' like the example then
     you should now see three log entries corresponding to the warning, 
