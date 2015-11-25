@@ -5,7 +5,7 @@ from pymongo import MongoClient
 from mongolog.exceptions import MongoLoggerException
 
 
-class MongoLoggerHandler(Handler):
+class MongoLogHandler(Handler):
     """
     A handler class which allows logging to use mongo db as the backend
     """
@@ -21,7 +21,7 @@ class MongoLoggerHandler(Handler):
         client = MongoClient(self.connection)
         self.db = client.mongologger
 
-        return super(MongoLoggerHandler, self).__init__(level)
+        return super(MongoLogHandler, self).__init__(level)
 
     def emit(self, record):
         """ 
