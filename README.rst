@@ -8,7 +8,7 @@ with standard python/django logging
 Quick start
 -----------
 
-1. Add "polls" to your INSTALLED_APPS setting like this::
+1. Add "mongolog" to your INSTALLED_APPS setting like this::
 
     INSTALLED_APPS = (
         ...
