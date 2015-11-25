@@ -2,10 +2,10 @@
 from logging import Handler, NOTSET
 from pymongo import MongoClient
 
-from mongolog.exceptions import MongoLoggerException
+from mongolog.exceptions import MongoLogError
 
 
-class MongoLoggerHandler(Handler):
+class MongoLogHandler(Handler):
     """
     A handler class which allows logging to use mongo db as the backend
     """
@@ -19,9 +19,9 @@ class MongoLoggerHandler(Handler):
             self.connection = 'mongodb://localhost:27017/'
 
         client = MongoClient(self.connection)
-        self.db = client.mongologger
+        self.db = client.mongolog
 
-        return super(MongoLoggerHandler, self).__init__(level)
+        return super(MongoLogHandler, self).__init__(level)
 
     def emit(self, record):
         """ 
@@ -52,10 +52,10 @@ class MongoLoggerHandler(Handler):
             'level': record.levelname,
             'msecs': record.msecs
         }    
-        self.db.mongologger.insert(log_record)
+        self.db.mongolog.insert(log_record)
 
     def format(self, record):
-        raise MongoLoggerException("format is not defined")
+        raise MongoLogError("format is not defined")
 
     def process_tuple(self, items):
         ret_items = []

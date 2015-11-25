@@ -1,1 +1,1 @@
-from mongologger import MongoLoggerHandler
+from handlers import MongoLogHandler
