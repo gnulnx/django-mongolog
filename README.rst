@@ -1,6 +1,5 @@
-=====
 MongoLog
-=====
+========
 
 MongoLog is a simple mongo based log handler that can be used easly used
 with standard python/django logging
@@ -8,7 +7,7 @@ with standard python/django logging
 Quick start
 -----------
 
-hint:  See github for better formating:  https://github.com/gnulnx/django-mongolog
+**Note:** If you are viewing this from PyPI you may find copy and paste works better from the github `README <https://github.com/gnulnx/django-mongolog/>`__  
 
 1. Add "mongolog" to your INSTALLED_APPS setting like this::
 
@@ -22,9 +21,10 @@ hint:  See github for better formating:  https://github.com/gnulnx/django-mongol
     LOGGING = {
         'handler': {
             'mongolog': {
-            'level': 'WARN',
-            'class': 'mongolog.MongoLogHandler',
-            'connection': 'mongodb://localhost:27017/'
+                'level': 'WARN',
+                'class': 'mongolog.MongoLogHandler',
+                'connection': 'mongodb://localhost:27017/'
+            },
         },
         'loggers': {
             'django': {
@@ -57,7 +57,7 @@ hint:  See github for better formating:  https://github.com/gnulnx/django-mongol
 
     mongo
     > use mongolog
-    > db.mongolog.find().sort({created: -1}).limit(5).pretty()
+    > db.mongolog.find().sort({created: 1}).limit(5).pretty()
 
     If you setup your logger with level 'WARN' like the example then
     you should now see three log entries corresponding to the warning, 
