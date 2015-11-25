@@ -3,9 +3,7 @@ import os
 import subprocess
 import collections
 
-#from setup import VERSION
-
-COPY_PATH=os.path.os.path.expanduser(
+COPY_PATH=os.path.expanduser(
 	os.path.abspath(
 		os.environ.get("MONGOLOG_COPY_PATH", None)
 	)
