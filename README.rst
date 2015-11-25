@@ -8,6 +8,8 @@ with standard python/django logging
 Quick start
 -----------
 
+hint:  See github for better formating:  https://github.com/gnulnx/django-mongolog
+
 1. Add "mongolog" to your INSTALLED_APPS setting like this::
 
     INSTALLED_APPS = (
