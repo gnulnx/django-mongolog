@@ -58,4 +58,6 @@ Quick start
     > db.mongologger.find().sort({created: -1}).limit(5).pretty()
 
     If you setup your logger with level 'WARN' like the example then
-    you should now see three log entries corresponding to the warning, error, and exception log statements.  However, you will not see the debug and info statements unless you adjust the level down to 'DEBUG'.
+    you should now see three log entries corresponding to the warning, 
+    error, and exception log statements.  However, you will not see the 
+    debug and info statements unless you adjust the level down to 'DEBUG'.
