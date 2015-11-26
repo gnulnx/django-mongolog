@@ -58,13 +58,6 @@ class MongoLogHandler(Handler):
                 'func': record.funcName,
                 'filename': record.filename,
             }
-            #'module': record.module,
-            #'filename': record.filename,
-            #'path': record.pathname,
-            #'lineno': record.lineno,
-            #'message': record.getMessage(),
-            #'funcName': record.funcName,
-            
         }    
         if record.exc_info:
             log_record['exception'] = {
