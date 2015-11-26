@@ -50,19 +50,20 @@ class MongoLogHandler(Handler):
                 'name': record.levelname,
                 'num': record.levelno,
             },
-            'msg': {
-                'txt': record.getMessage(),
+            'info': {
+                'msg': record.getMessage(),
                 'path': record.pathname,
                 'module': record.module,
-                'lineno': record.lineno,
+                'line': record.lineno,
                 'func': record.funcName,
                 'filename': record.filename,
-            }
+            },
         }    
+        # Add exception info
         if record.exc_info:
             log_record['exception'] = {
                 'info': record.exc_info,
-                'trace': record.exc_text
+                'trace': record.exc_text,
             }
         self.db.mongolog.insert(log_record)
 
