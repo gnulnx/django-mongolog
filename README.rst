@@ -57,7 +57,7 @@ Quick start
 
     mongo
     > use mongolog
-    > db.mongolog.find().sort({created: 1}).limit(5).pretty()
+    > db.getCollection('mongolog').find({}).sort({'time.utc': -1}).limit(3)
 
     If you setup your logger with level 'WARN' like the example then
     you should now see three log entries corresponding to the warning, 
