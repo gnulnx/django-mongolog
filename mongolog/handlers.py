@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from logging import Handler, NOTSET
 from pymongo import MongoClient
+from datetime import datetime
 
 from mongolog.exceptions import MongoLogError
 
@@ -29,29 +30,40 @@ class MongoLogHandler(Handler):
         https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
         """
         record = self.process_record(record)
-        
+        # Logrecord Attributes: https://docs.python.org/2/library/logging.html#logrecord-attributes
         log_record = {
-            'threadName': record.threadName,
+            # name of the logger
             'name': record.name,
-            'thread': record.thread,
-            'created': record.created,
-            'process': record.process,
-            'processName': record.processName,
-            'args': record.args,  # tuple
-            'module': record.module,
-            'filename': record.filename,
-            'levelno': record.levelno,
-            'exc_text': record.exc_text,
-            'pathname': record.pathname,
-            'lineno': record.lineno,
-            'msg': record.msg,
-            'exc_info': record.exc_info,
-            'message': record.message,
-            'funcName': record.funcName,
-            'relativeCreated': record.relativeCreated,
-            'level': record.levelname,
-            'msecs': record.msecs
+            'thread': {
+                'num': record.thread,
+                'name': record.threadName,
+            },
+            'time': {
+                'utc': datetime.utcnow(),
+                'loc': datetime.now(),
+            },
+            'process': {
+                'num': record.process,
+                'name': record.processName,
+            },
+            'level': {
+                'name': record.levelname,
+                'num': record.levelno,
+            },
+            'msg': {
+                'txt': record.getMessage(),
+                'path': record.pathname,
+                'module': record.module,
+                'lineno': record.lineno,
+                'func': record.funcName,
+                'filename': record.filename,
+            }
         }    
+        if record.exc_info:
+            log_record['exception'] = {
+                'info': record.exc_info,
+                'trace': record.exc_text
+            }
         self.db.mongolog.insert(log_record)
 
     def format(self, record):
