@@ -1,15 +1,13 @@
 MongoLog
 ========
 
-MongoLog is a simple mongo based log handler that can be used easly used
+MongoLog is a simple Mongo based log handler that can be easly used
 with standard python/django logging
 
 Quick start
------------
+----------- 
 
-**Note:** If you are viewing this from PyPI you may find copy and paste works better from the github `README <https://github.com/gnulnx/django-mongolog/>`__  
-
-1. Add "mongolog" to your INSTALLED_APPS setting like this::
+1. Add "mongolog" to your INSTALLED_APPS like this::
 
     INSTALLED_APPS = (
         ...
