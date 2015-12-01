@@ -16,14 +16,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-from logging import Handler, NOTSET
-from pymongo import MongoClient
+from logging import Handler, StreamHandler, NOTSET
 from datetime import datetime
 
+import pymongo 
+
 from mongolog.exceptions import MongoLogError
+from mongolog.models import LogRecord
 
 
-class MongoLogHandler(Handler):
+class MongoLogHandler(StreamHandler):
     """
     A handler class which allows logging to use mongo db as the backend
     """
@@ -36,7 +38,7 @@ class MongoLogHandler(Handler):
             # Set a defaul connection key
             self.connection = 'mongodb://localhost:27017/'
 
-        client = MongoClient(self.connection)
+        client = pymongo.MongoClient(self.connection)
         self.db = client.mongolog
 
         return super(MongoLogHandler, self).__init__(level)
@@ -48,7 +50,7 @@ class MongoLogHandler(Handler):
         """
         record = self.process_record(record)
         # Logrecord Attributes: https://docs.python.org/2/library/logging.html#logrecord-attributes
-        log_record = {
+        log_record = LogRecord({
             # name of the logger
             'name': record.name,
             'thread': {
@@ -68,21 +70,25 @@ class MongoLogHandler(Handler):
                 'num': record.levelno,
             },
             'info': {
-                'msg': record.getMessage(),
+                'msg': record.msg,
                 'path': record.pathname,
                 'module': record.module,
                 'line': record.lineno,
                 'func': record.funcName,
                 'filename': record.filename,
             },
-        }    
+        })    
         # Add exception info
         if record.exc_info:
             log_record['exception'] = {
                 'info': record.exc_info,
                 'trace': record.exc_text,
             }
-        self.db.mongolog.insert(log_record)
+
+        if int(pymongo.version[0]) < 3:
+            self.db.mongolog.insert(log_record)
+        else: 
+            self.db.mongolog.insert_one(log_record)
 
     def format(self, record):
         raise MongoLogError("format is not defined")
