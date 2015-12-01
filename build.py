@@ -11,8 +11,6 @@ COPY_PATH=os.path.expanduser(
 if not COPY_PATH:
 	raise ValueError("You muse set MONGOLOG_COPY_PATH")
 
-print "listdir: ", os.listdir("dist")
-
 Commands = (
     "rm -rf dist",
 	"python setup.py sdist",
