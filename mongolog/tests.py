@@ -15,6 +15,29 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+import unittest
 from django.test import TestCase
+import logging
+
+logger = logging.getLogger(__name__)
+
+class TestStringMethods(TestCase):
+
+  def test_log_classes(self):
+      self.assertEqual('INFO', logger.info("INFO"))
+
+  def test_isupper(self):
+      self.assertTrue('FOO'.isupper())
+      self.assertFalse('Foo'.isupper())
+
+  def test_split(self):
+      s = 'hello world'
+      self.assertEqual(s.split(), ['hello', 'world'])
+      # check that s.split fails when the separator is not a string
+      with self.assertRaises(TypeError):
+          s.split(2)
+
+if __name__ == '__main__':
+    unittest.main()
 
 # Create your tests here.
