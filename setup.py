@@ -14,6 +14,9 @@ setup(
     name='django-mongolog',
     version=VERSION,
     packages=['mongolog'],
+    install_requires=(
+        'django>=1.7.10',
+    ),
     include_package_data=True,
     license='GPL V3',
     description='A simple mongo based logger',
