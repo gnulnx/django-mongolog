@@ -55,18 +55,18 @@ class MongoLogHandler(Handler):
 
     def connect_pymongo3(self):
         try:
-            client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5)
-            info = client.server_info()
+            self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5)
+            info = self.client.server_info()
         except pymongo.errors.ServerSelectionTimeoutError as e:
             msg = "Unable to connect to mongo with (%s)" % self.connection
             logger.exception(msg)
             raise pymongo.errors.ServerSelectionTimeoutError(msg)
         
-        self.db = client.mongolog
+        self.db = self.client.mongolog
 
     def connect_pymongo2(self):
         # TODO Determine proper try/except logic for pymongo 2.7 driver
-        client = pymongo.MongoClient(self.connection)
+        self.client = pymongo.MongoClient(self.connection)
         info = client.server_info()
         self.db = client.mongolog
         
