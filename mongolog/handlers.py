@@ -24,6 +24,9 @@ import pymongo
 from mongolog.exceptions import MongoLogError
 from mongolog.models import LogRecord
 
+import logging
+logger = logging.getLogger('django')
+
 
 class MongoLogHandler(StreamHandler):
     """
@@ -38,7 +41,14 @@ class MongoLogHandler(StreamHandler):
             # Set a defaul connection key
             self.connection = 'mongodb://localhost:27017/'
 
-        client = pymongo.MongoClient(self.connection)
+        try:
+            client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5)
+            info = client.server_info()
+        except pymongo.errors.ServerSelectionTimeoutError as e:
+            msg = "Unable to connect to mongo with (%s)" % self.connection
+            logger.exception(msg)
+            raise pymongo.errors.ServerSelectionTimeoutError(msg)
+        
         self.db = client.mongolog
 
         return super(MongoLogHandler, self).__init__(level)

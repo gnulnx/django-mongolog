@@ -21,21 +21,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class TestStringMethods(TestCase):
+class TestLogLevels(TestCase):
 
-  def test_log_classes(self):
-      self.assertEqual('INFO', logger.info("INFO"))
-
-  def test_isupper(self):
-      self.assertTrue('FOO'.isupper())
-      self.assertFalse('Foo'.isupper())
-
-  def test_split(self):
-      s = 'hello world'
-      self.assertEqual(s.split(), ['hello', 'world'])
-      # check that s.split fails when the separator is not a string
-      with self.assertRaises(TypeError):
-          s.split(2)
+    #def setUp(self):
+    #    # First we have to setup a test pymongo database...which is trivial
+        
+        
+    def test_info(self):
+        self.assertEqual('INFO', logger.info("INFO"))
 
 if __name__ == '__main__':
     unittest.main()
