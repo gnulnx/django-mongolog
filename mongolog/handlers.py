@@ -24,8 +24,11 @@ import pymongo
 from mongolog.exceptions import MongoLogError
 from mongolog.models import LogRecord
 
+import logging
+logger = logging.getLogger('django')
 
-class MongoLogHandler(StreamHandler):
+
+class MongoLogHandler(Handler):
     """
     A handler class which allows logging to use mongo db as the backend
     """
@@ -38,11 +41,35 @@ class MongoLogHandler(StreamHandler):
             # Set a defaul connection key
             self.connection = 'mongodb://localhost:27017/'
 
-        client = pymongo.MongoClient(self.connection)
-        self.db = client.mongolog
+        self.connect()
 
         return super(MongoLogHandler, self).__init__(level)
 
+    def connect(self):
+        major_version = int(pymongo.version.split(".")[0])
+
+        if major_version == 3:
+            self.connect_pymongo3()
+        elif major_version == 2:
+            self.connect_pymongo2()
+
+    def connect_pymongo3(self):
+        try:
+            client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5)
+            info = client.server_info()
+        except ValueError as e: #pymongo.errors.ServerSelectionTimeoutError as e:
+            msg = "Unable to connect to mongo with (%s)" % self.connection
+            logger.exception(msg)
+            raise pymongo.errors.ServerSelectionTimeoutError(msg)
+        
+        self.db = client.mongolog
+
+    def connect_pymongo2(self):
+        # TODO Determine proper try/except logic for pymongo 2.7 driver
+        client = pymongo.MongoClient(self.connection)
+        info = client.server_info()
+        self.db = client.mongolog
+        
     def emit(self, record):
         """ 
         record = LogRecord

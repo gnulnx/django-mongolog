@@ -16,6 +16,7 @@ setup(
     packages=['mongolog'],
     install_requires=(
         'django>=1.7.10',
+        'pymongo>=2.7',
     ),
     include_package_data=True,
     license='GPL V3',
