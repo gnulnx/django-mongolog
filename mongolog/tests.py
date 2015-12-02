@@ -21,39 +21,84 @@ import logging
 
 from mongolog.handlers import MongoLogHandler
 
+# Must instantiate root logger in order to access the correct 
+# monglog collection from the MongoLogHandler
+logger = logging.getLogger()
+
+
 class TestLogLevels(TestCase):
+    """
+    All log tests should log a dictionary with a 'test' key
+    logger.info({
+        'test': True, 
+        'msg': 'special message'
+    })
+
+    This key will allow us to easily clean test entries out of the 
+    database.
+
+    NOTE: You can add any other key you want for testing purposes
+    """
+
+    # The basic key that should be part of every log messgage
+    test_key = 'info.msg.test'
 
     def setUp(self):
-        self.get_mongo_db()
+        self.collection = self.get_monglog_collection()
+
+        # Check for an preexsting mongolog test entries
+        self.remove_test_entries()
 
     def tearDown(self):
-        self.client.drop_database(self.db)
+        self.remove_test_entries()
 
-    def get_mongo_db(self):
+    def get_monglog_collection(self):
         """
-        First try to get the MongoClient from the settings configuration.
-        If that fails then try a default connect.
-
-        Once we have a client we create a test database:  mongolog__test
+        Get the collection used by the first MongoLogHandler 
+        found in the root loggers list of handlers. 
         """
-        # Get the RootLogger so we can get access to the current mongo connect
-        
-        self.logger = logging.getLogger()
-        for handler in self.logger.handlers:
+        for handler in logger.handlers:
             if isinstance(handler, MongoLogHandler):
-                self.handler = handler
-                self.logger.debug("Using MongoLogHandler from settings")
-                self.client = handler.client
+                self.collection = handler.collection
                 break
 
-        if not hasattr(self, 'client'):
-            self.client = pymongo.MongoClient('mongodb://localhost:27017')
+        if not hasattr(self, 'collection'):
+            raise ValueError("Perhaps you didn't a monglog handler?", self.handler.__dict__)
 
-        self.db = self.client.mongolog__test
-        return self.db
-        
+        return self.collection
+
+    def remove_test_entries(self):
+        """
+        Remove all current test entries
+        Called in setUp and tearDown
+        """
+        self.collection.delete_many({self.test_key: True})
+
+        # Ensure that we don't have any test entries
+        self.assertEqual(0, self.collection.find({self.test_key: True}).count())
+
+    
     def test_info(self):
-        self.assertEqual('INFO', self.logger.info("INFO"))
+        logger.info({'test': True, 'msg': 'INFO TEST'})
+        self.assertEqual(
+            1,
+            self.collection.find({
+                self.test_key: True, 
+                'info.msg.msg': 'INFO TEST',
+                'level.name': 'INFO'
+            }).count()
+        )
+
+    def test_debug(self):
+        logger.debug({'test': True, 'msg': 'DEBUG TEST'})
+        self.assertEqual(
+            1,
+            self.collection.find({
+                self.test_key: True, 
+                'info.msg.msg': 'DEBUG TEST',
+                'level.name': 'DEBUG'
+            }).count()
+        )
 
 if __name__ == '__main__':
     unittest.main()
