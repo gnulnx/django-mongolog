@@ -63,12 +63,14 @@ class MongoLogHandler(Handler):
             raise pymongo.errors.ServerSelectionTimeoutError(msg)
         
         self.db = self.client.mongolog
+        self.collection = self.db.mongolog
 
     def connect_pymongo2(self):
         # TODO Determine proper try/except logic for pymongo 2.7 driver
         self.client = pymongo.MongoClient(self.connection)
         info = client.server_info()
         self.db = client.mongolog
+        self.collection = self.db.mongolog
         
     def emit(self, record):
         """ 
@@ -113,9 +115,9 @@ class MongoLogHandler(Handler):
             }
 
         if int(pymongo.version[0]) < 3:
-            self.db.mongolog.insert(log_record)
+            self.collection.insert(log_record)
         else: 
-            self.db.mongolog.insert_one(log_record)
+            self.collection.insert_one(log_record)
 
     def format(self, record):
         raise MongoLogError("format is not defined")
