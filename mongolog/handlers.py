@@ -57,7 +57,7 @@ class MongoLogHandler(Handler):
         try:
             client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5)
             info = client.server_info()
-        except ValueError as e: #pymongo.errors.ServerSelectionTimeoutError as e:
+        except pymongo.errors.ServerSelectionTimeoutError as e:
             msg = "Unable to connect to mongo with (%s)" % self.connection
             logger.exception(msg)
             raise pymongo.errors.ServerSelectionTimeoutError(msg)
