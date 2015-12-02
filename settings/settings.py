@@ -27,7 +27,7 @@ LOGGING = {
         'mongolog': {
             'level': 'DEBUG',
             'class': 'mongolog.MongoLogHandler',
-            'connection': 'mongodb://localhost:27018/'
+            'connection': 'mongodb://localhost:27018'
         },
     },
     'loggers': {
