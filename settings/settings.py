@@ -27,7 +27,7 @@ LOGGING = {
         'mongolog': {
             'level': 'DEBUG',
             'class': 'mongolog.MongoLogHandler',
-            'connection': 'mongodb://localhost:27018',
+            'connection': 'mongodb://localhost:27017',
             'w': 1,
             'j': False,
             # record can be simple/verbose.  Default is verbose
