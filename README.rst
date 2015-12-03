@@ -37,7 +37,7 @@ Quick start
 
     ./manage.py shell
 
-4) Create a a couple of log entries::
+4) Create a couple of log entries::
     
     import logging
     logger = logging.getLogger(__name__)
