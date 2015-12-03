@@ -45,8 +45,8 @@ class MongoLogHandler(Handler):
         self.time_zone = time_zone
 
         if not self.connection:
-            print "'connection' key not provided in logging config"
-            print "Will try to connect with default"
+            print("'connection' key not provided in logging config")
+            print("Will try to connect with default")
 
             # Set a defaul connection key
             self.connection = 'mongodb://localhost:27017/'
@@ -175,8 +175,8 @@ class MongoLogHandler(Handler):
         ret_items = []
         for item in items:
             if isinstance(item, AttributeError):
-                item = unicode(item.message)
-            ret_items.append(unicode(item))
+                item = str(item.message)
+            ret_items.append(str(item))
         return ret_items
 
     def process_record(self, record):
