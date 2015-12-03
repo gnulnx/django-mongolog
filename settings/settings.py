@@ -32,7 +32,7 @@ LOGGING = {
     },
     'loggers': {
         '': {
-            'handlers': ['console', 'mongolog'],
+            'handlers': ['mongolog'],
             'level': 'DEBUG',
             'propagate': True
         },
