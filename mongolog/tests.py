@@ -140,18 +140,18 @@ class TestLogLevels(TestCase):
         rec = self.collection.find_one(query)
         self.assertEqual(
             set(rec.keys()), 
-            set([u'info', u'name', u'thread', u'level', u'process', u'time', u'_id'])
+            set(['info', 'name', 'thread', 'level', 'process', 'time', '_id'])
         )
 
         self.assertEqual(
             set(rec['time'].keys()),
-            set([u'utc', u'loc'])
+            set(['utc', 'loc'])
         )
 
-        for key in [u'process', 'level', 'thread']:
+        for key in ['process', 'level', 'thread']:
           self.assertEqual(
                 set(rec[key].keys()),
-                set([u'num', u'name'])
+                set(['num', 'name'])
             )
 
         self.assertEqual(rec['thread']['name'], "MainThread")
@@ -190,15 +190,13 @@ class TestLogLevels(TestCase):
 
         self.assertEqual(
             set(rec.keys()), 
-            set([u'info', u'name', u'thread', u'level', u'process', u'time', u'_id', u'exception'])
+            set(['info', 'name', 'thread', 'level', 'process', 'time', '_id', 'exception'])
         )
 
         self.assertEqual(
             set(rec['exception'].keys()),
-            set([u'info', u'trace'])  
+            set(['info', 'trace'])  
         )
 
 if __name__ == '__main__':
     unittest.main()
-
-# Create your tests here.
