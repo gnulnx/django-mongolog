@@ -59,7 +59,9 @@ class TestLogLevels(TestCase):
         """
         for handler in logger.handlers:
             if isinstance(handler, MongoLogHandler):
-                self.collection = handler.collection
+                self.handler = handler
+                self.collection = self.handler.collection
+                #self.handler.setLevel("ERROR")
                 break
 
         if not hasattr(self, 'collection'):
@@ -79,6 +81,8 @@ class TestLogLevels(TestCase):
 
     
     def test_info(self):
+        # set level=DEBUG and log a message and retrieve it.
+        self.handler.setLevel("INFO")
         logger.info({'test': True, 'msg': 'INFO TEST'})
         self.assertEqual(
             1,
@@ -88,6 +92,70 @@ class TestLogLevels(TestCase):
                 'level.name': 'INFO'
             }).count()
         )
+
+        # Bump the log level up to INFO and show that
+        # we do log another message because we are using the
+        # logger.info(...) method
+        self.handler.setLevel("INFO")
+        logger.info({'test': True, 'msg': 'INFO TEST'})
+        self.assertEqual(
+            2,
+            self.collection.find({
+                self.test_key: True, 
+                'info.msg.msg': 'INFO TEST',
+                'level.name': 'INFO'
+            }).count()
+        )
+
+        # Show that at level=ERROR no new message is logged
+        self.handler.setLevel("ERROR")
+        logger.info({'test': True, 'msg': 'INFO TEST'})
+        self.assertEqual(
+            2,  # count same as previous count
+            self.collection.find({
+                self.test_key: True, 
+                'info.msg.msg': 'INFO TEST',
+                'level.name': 'INFO'
+            }).count()
+        )
+
+    def test_logstructure(self):
+        """
+        Test the basic structure of a log record
+        """
+        self.handler.setLevel("WARNING")
+        log_msg = {'test': True, 'msg': 'WARNING', 'msg2': 'DANGER'}
+        query = {
+            self.test_key: log_msg['test'], 
+            'info.msg.msg': log_msg['msg'],
+            'info.msg.msg2': log_msg['msg2'],
+            'level.name': 'WARNING'
+        }
+        logger.warn(log_msg)
+        self.assertEqual(1, self.collection.find(query).count())
+
+        rec = self.collection.find_one(query)
+        self.assertEqual(
+            set(rec.keys()), 
+            set([u'info', u'name', u'thread', u'level', u'process', u'time', u'_id'])
+        )
+
+        self.assertEqual(
+            set(rec['time'].keys()),
+            set([u'utc', u'loc'])
+        )
+
+        for key in [u'process', 'level', 'thread']:
+          self.assertEqual(
+                set(rec[key].keys()),
+                set([u'num', u'name'])
+            )
+
+        self.assertEqual(rec['thread']['name'], "MainThread")
+
+        self.assertEqual(rec['info']['filename'], "tests.py")
+
+        self.assertEqual(rec['process']['name'], "MainProcess")
 
     def test_debug(self):
         logger.debug({'test': True, 'msg': 'DEBUG TEST'})
