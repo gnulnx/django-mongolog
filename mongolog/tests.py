@@ -81,9 +81,10 @@ class TestLogLevels(TestCase):
         self.assertEqual(0, self.collection.find({self.test_key: True}).count())
 
     
-    def test_info(self):
+    def test_info_verbose(self):
         # set level=DEBUG and log a message and retrieve it.
         self.handler.setLevel("INFO")
+        self.handler.set_record_type("verbose")
         logger.info({'test': True, 'msg': 'INFO TEST'})
         self.assertEqual(
             1,
@@ -120,11 +121,12 @@ class TestLogLevels(TestCase):
             }).count()
         )
 
-    def test_logstructure(self):
+    def test_logstructure_verbose(self):
         """
         Test the basic structure of a log record
         """
         self.handler.setLevel("WARNING")
+        self.handler.set_record_type("verbose")
         log_msg = {'test': True, 'msg': 'WARNING', 'msg2': 'DANGER'}
         query = {
             self.test_key: log_msg['test'], 
@@ -158,7 +160,8 @@ class TestLogLevels(TestCase):
 
         self.assertEqual(rec['process']['name'], "MainProcess")
 
-    def test_debug(self):
+    def test_debug_verbose(self):
+        self.handler.set_record_type("verbose")
         logger.debug({'test': True, 'msg': 'DEBUG TEST'})
         self.assertEqual(
             1,
@@ -169,7 +172,8 @@ class TestLogLevels(TestCase):
             }).count()
         )
 
-    def test_exception(self):
+    def test_exception_verbose(self):
+        self.handler.set_record_type("verbose")
         try:
             raise ValueError()
         except ValueError:

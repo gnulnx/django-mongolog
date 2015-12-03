@@ -27,7 +27,14 @@ LOGGING = {
         'mongolog': {
             'level': 'DEBUG',
             'class': 'mongolog.MongoLogHandler',
-            'connection': 'mongodb://localhost:27018'
+            'connection': 'mongodb://localhost:27018',
+            'w': 1,
+            'j': False,
+            # record can be simple/verbose.  Default is verbose
+            'record_type': 'simple',
+
+            # utc/local.  Only used with record_type=simple
+            'time_zone': 'local',
         },
     },
     'loggers': {

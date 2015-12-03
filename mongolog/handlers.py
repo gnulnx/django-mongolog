@@ -32,8 +32,18 @@ class MongoLogHandler(Handler):
     """
     A handler class which allows logging to use mongo db as the backend
     """
-    def __init__(self, level=NOTSET, connection=None):
+
+    record_types = ['simple', 'verbose']
+
+    def __init__(self, level=NOTSET, connection=None, w=1, j=False, record_type="verbose", time_zone="local"):
         self.connection = connection
+
+        # Choose between verbose and simpel log record types
+        self.record_type = record_type
+        
+        # Used to determine which time setting is used in the simple record_type
+        self.time_zone = time_zone
+
         if not self.connection:
             print "'connection' key not provided in logging config"
             print "Will try to connect with default"
@@ -71,13 +81,17 @@ class MongoLogHandler(Handler):
         info = self.client.server_info()
         self.db = self.client.mongolog
         self.collection = self.db.mongolog
-        
-    def emit(self, record):
-        """ 
-        record = LogRecord
-        https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
+    
+    def set_record_type(self, rtype):
         """
-        record = self.process_record(record)
+        Used to set record type on fly...for example during testing
+        """
+        if rtype not in self.record_types:
+            raise ValueError("type must be one of %s" % self.record_types)
+
+        self.record_type = rtype
+
+    def verbose_record(self, record):
         # Logrecord Attributes: https://docs.python.org/2/library/logging.html#logrecord-attributes
         log_record = LogRecord({
             # name of the logger
@@ -113,6 +127,46 @@ class MongoLogHandler(Handler):
                 'info': record.exc_info,
                 'trace': record.exc_text,
             }
+
+        return log_record
+
+    def simple_record(self, record):
+        log_record = LogRecord({
+            # name of the logger
+            'name': record.name,
+            'thread': record.thread,  # thread number
+            'time': datetime.utcnow() if self.time_zone == 'utc' else datetime.now(),
+            'process': record.process,  # process number
+            'level': record.levelname,
+            'msg': record.msg,
+            'info': {
+                'path': record.pathname,
+                'module': record.module,
+                'line': record.lineno,
+                'func': record.funcName,
+                'filename': record.filename,
+            },
+        })    
+        # Add exception info
+        if record.exc_info:
+            log_record['exception'] = {
+                'info': record.exc_info,
+                'trace': record.exc_text,
+            }
+
+        return log_record
+
+    def emit(self, record):
+        """ 
+        record = LogRecord
+        https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
+        """
+        record = self.process_record(record)
+        # Logrecord Attributes: https://docs.python.org/2/library/logging.html#logrecord-attributes
+        if self.record_type == "verbose":
+            log_record = self.verbose_record(record)
+        elif self.record_type == "simple":
+            log_record = self.simple_record(record)
 
         if int(pymongo.version[0]) < 3:
             self.collection.insert(log_record)
