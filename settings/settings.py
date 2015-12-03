@@ -27,18 +27,18 @@ LOGGING = {
         'mongolog': {
             'level': 'DEBUG',
             'class': 'mongolog.MongoLogHandler',
-            'connection': 'mongodb://localhost:27018/'
+            'connection': 'mongodb://localhost:27018'
         },
     },
     'loggers': {
         '': {
-            'handlers': ['console', 'mongolog'],
+            'handlers': ['mongolog'],
             'level': 'DEBUG',
             'propagate': True
         },
         'django': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': True
         }
     },

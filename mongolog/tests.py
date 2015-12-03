@@ -19,16 +19,180 @@ import unittest
 from django.test import TestCase
 import logging
 
-logger = logging.getLogger(__name__)
+from mongolog.handlers import MongoLogHandler
+
+# Must instantiate root logger in order to access the correct 
+# monglog collection from the MongoLogHandler
+logger = logging.getLogger()
+
 
 class TestLogLevels(TestCase):
+    """
+    All log tests should log a dictionary with a 'test' key
+    logger.info({
+        'test': True, 
+        'msg': 'special message'
+    })
 
-    #def setUp(self):
-    #    # First we have to setup a test pymongo database...which is trivial
-        
-        
+    This key will allow us to easily clean test entries out of the 
+    database.
+
+    NOTE: You can add any other key you want for testing purposes
+    """
+
+    # The basic key that should be part of every log messgage
+    test_key = 'info.msg.test'
+
+    def setUp(self):
+        self.collection = self.get_monglog_collection()
+
+        # Check for an preexsting mongolog test entries
+        self.remove_test_entries()
+
+    def tearDown(self):
+        self.remove_test_entries()
+
+    def get_monglog_collection(self):
+        """
+        Get the collection used by the first MongoLogHandler 
+        found in the root loggers list of handlers. 
+        """
+        for handler in logger.handlers:
+            if isinstance(handler, MongoLogHandler):
+                self.handler = handler
+                self.handler.setLevel("DEBUG")
+                self.collection = self.handler.collection
+                #self.handler.setLevel("ERROR")
+                break
+
+        if not hasattr(self, 'collection'):
+            raise ValueError("Perhaps you didn't a monglog handler?", self.handler.__dict__)
+
+        return self.collection
+
+    def remove_test_entries(self):
+        """
+        Remove all current test entries
+        Called in setUp and tearDown
+        """
+        self.collection.delete_many({self.test_key: True})
+
+        # Ensure that we don't have any test entries
+        self.assertEqual(0, self.collection.find({self.test_key: True}).count())
+
+    
     def test_info(self):
-        self.assertEqual('INFO', logger.info("INFO"))
+        # set level=DEBUG and log a message and retrieve it.
+        self.handler.setLevel("INFO")
+        logger.info({'test': True, 'msg': 'INFO TEST'})
+        self.assertEqual(
+            1,
+            self.collection.find({
+                self.test_key: True, 
+                'info.msg.msg': 'INFO TEST',
+                'level.name': 'INFO'
+            }).count()
+        )
+
+        # Bump the log level up to INFO and show that
+        # we do log another message because we are using the
+        # logger.info(...) method
+        self.handler.setLevel("INFO")
+        logger.info({'test': True, 'msg': 'INFO TEST'})
+        self.assertEqual(
+            2,
+            self.collection.find({
+                self.test_key: True, 
+                'info.msg.msg': 'INFO TEST',
+                'level.name': 'INFO'
+            }).count()
+        )
+
+        # Show that at level=ERROR no new message is logged
+        self.handler.setLevel("ERROR")
+        logger.info({'test': True, 'msg': 'INFO TEST'})
+        self.assertEqual(
+            2,  # count same as previous count
+            self.collection.find({
+                self.test_key: True, 
+                'info.msg.msg': 'INFO TEST',
+                'level.name': 'INFO'
+            }).count()
+        )
+
+    def test_logstructure(self):
+        """
+        Test the basic structure of a log record
+        """
+        self.handler.setLevel("WARNING")
+        log_msg = {'test': True, 'msg': 'WARNING', 'msg2': 'DANGER'}
+        query = {
+            self.test_key: log_msg['test'], 
+            'info.msg.msg': log_msg['msg'],
+            'info.msg.msg2': log_msg['msg2'],
+            'level.name': 'WARNING'
+        }
+        logger.warn(log_msg)
+        self.assertEqual(1, self.collection.find(query).count())
+
+        rec = self.collection.find_one(query)
+        self.assertEqual(
+            set(rec.keys()), 
+            set([u'info', u'name', u'thread', u'level', u'process', u'time', u'_id'])
+        )
+
+        self.assertEqual(
+            set(rec['time'].keys()),
+            set([u'utc', u'loc'])
+        )
+
+        for key in [u'process', 'level', 'thread']:
+          self.assertEqual(
+                set(rec[key].keys()),
+                set([u'num', u'name'])
+            )
+
+        self.assertEqual(rec['thread']['name'], "MainThread")
+
+        self.assertEqual(rec['info']['filename'], "tests.py")
+
+        self.assertEqual(rec['process']['name'], "MainProcess")
+
+    def test_debug(self):
+        logger.debug({'test': True, 'msg': 'DEBUG TEST'})
+        self.assertEqual(
+            1,
+            self.collection.find({
+                self.test_key: True, 
+                'info.msg.msg': 'DEBUG TEST',
+                'level.name': 'DEBUG'
+            }).count()
+        )
+
+    def test_exception(self):
+        try:
+            raise ValueError()
+        except ValueError:
+            logger.exception({'test': True, 'msg': 'EXCEPTION TEST'})
+
+        query = {
+            self.test_key: True, 
+            'info.msg.msg': 'EXCEPTION TEST',
+            'level.name': 'ERROR'
+        }
+        self.assertEqual(1,self.collection.find(query).count())
+
+        rec = self.collection.find_one(query)
+
+        self.assertEqual(
+            set(rec.keys()), 
+            set([u'info', u'name', u'thread', u'level', u'process', u'time', u'_id', u'exception'])
+        )
+
+        self.assertEqual(
+            set(rec['exception'].keys()),
+            set([u'info', u'trace'])  
+        )
 
 if __name__ == '__main__':
     unittest.main()
