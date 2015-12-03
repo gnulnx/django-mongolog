@@ -60,6 +60,7 @@ class TestLogLevels(TestCase):
         for handler in logger.handlers:
             if isinstance(handler, MongoLogHandler):
                 self.handler = handler
+                self.handler.setLevel("DEBUG")
                 self.collection = self.handler.collection
                 #self.handler.setLevel("ERROR")
                 break
@@ -166,6 +167,31 @@ class TestLogLevels(TestCase):
                 'info.msg.msg': 'DEBUG TEST',
                 'level.name': 'DEBUG'
             }).count()
+        )
+
+    def test_exception(self):
+        try:
+            raise ValueError()
+        except ValueError:
+            logger.exception({'test': True, 'msg': 'EXCEPTION TEST'})
+
+        query = {
+            self.test_key: True, 
+            'info.msg.msg': 'EXCEPTION TEST',
+            'level.name': 'ERROR'
+        }
+        self.assertEqual(1,self.collection.find(query).count())
+
+        rec = self.collection.find_one(query)
+
+        self.assertEqual(
+            set(rec.keys()), 
+            set([u'info', u'name', u'thread', u'level', u'process', u'time', u'_id', u'exception'])
+        )
+
+        self.assertEqual(
+            set(rec['exception'].keys()),
+            set([u'info', u'trace'])  
         )
 
 if __name__ == '__main__':
