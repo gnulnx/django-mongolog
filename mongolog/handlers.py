@@ -139,20 +139,15 @@ class MongoLogHandler(Handler):
             'process': record.process,  # process number
             'level': record.levelname,
             'msg': record.msg,
-            'info': {
-                'path': record.pathname,
-                'module': record.module,
-                'line': record.lineno,
-                'func': record.funcName,
-                'filename': record.filename,
-            },
+            'path': record.pathname,
+            'module': record.module,
+            'line': record.lineno,
+            'func': record.funcName,
+            'filename': record.filename,
         })    
         # Add exception info
         if record.exc_info:
-            log_record['exception'] = {
-                'info': record.exc_info,
-                'trace': record.exc_text,
-            }
+            log_record['exception'] = record.exc_text,
 
         return log_record
 
