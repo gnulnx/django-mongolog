@@ -7,9 +7,9 @@ v0.3.0
 
     * Support log string concatenation.  aka logger.error("%s", "astring").
     * Support dictionary based messages.  :)
-    * Converted projec to a full django project
+    * Converted project to a full django project
     * Added this CHANGELOG:  #14
-    
+    * Basic log tests # 15
 
 v0.2.0
 ------
