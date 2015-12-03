@@ -17,6 +17,7 @@ setup(
     install_requires=(
         'django>=1.7.10',
         'pymongo>=2.7',
+        'coverage',
     ),
     include_package_data=True,
     license='GPL V3',
