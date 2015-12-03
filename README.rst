@@ -33,7 +33,7 @@ Quick start
         },
     }
 
-3) Start you management shell::
+3) Start your management shell::
 
     ./manage.py shell
 
