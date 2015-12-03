@@ -1,3 +1,3 @@
 django>=1.7.10,
 pymongo>=2.7,
-coverage==3.8
+coverage==3.7.1
