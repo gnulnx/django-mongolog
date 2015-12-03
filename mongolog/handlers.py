@@ -68,8 +68,8 @@ class MongoLogHandler(Handler):
     def connect_pymongo2(self):
         # TODO Determine proper try/except logic for pymongo 2.7 driver
         self.client = pymongo.MongoClient(self.connection)
-        info = client.server_info()
-        self.db = client.mongolog
+        info = self.client.server_info()
+        self.db = self.client.mongolog
         self.collection = self.db.mongolog
         
     def emit(self, record):

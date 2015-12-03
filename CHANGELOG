@@ -8,6 +8,7 @@ v0.3.0
     * Support log string concatenation.  aka logger.error("%s", "astring").
     * Support dictionary based messages.  :)
     * Converted project to a full django project
+    # support for pymongo driver 2.7 and greater
     * Added this CHANGELOG:  #14
     * Basic log tests # 15
 
