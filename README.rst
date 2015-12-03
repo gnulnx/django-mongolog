@@ -44,12 +44,12 @@ Quick start
 
     logger.debug("A debug message")
     logger.info("An info message")
-    logger.warning("A Serious warning")
-    logger.error("We have an ERROR")
+    logger.warning("A warning message")
+    logger.error("An error message")
     try:
         raise ValueError("Bad Value")
     except ValueError as e:
-        logger.exception("This is the worste exception ever")
+        logger.exception("An exception message")
 
 5) Now log into your mongo shell::
 
@@ -60,4 +60,4 @@ Quick start
     If you setup your logger with level 'WARN' like the example then
     you should now see three log entries corresponding to the warning, 
     error, and exception log statements.  However, you will not see the 
-    debug and info statements unless you adjust the level down to 'DEBUG'.
+    debug and info statements unless you adjust the mongolog handler level down to 'DEBUG'.
