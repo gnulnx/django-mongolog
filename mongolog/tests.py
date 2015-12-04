@@ -72,30 +72,15 @@ class TestLogLevels(unittest.TestCase):
     test_key = 'info.msg.test'
 
     def setUp(self):
-        self.collection = self.get_monglog_collection()
+        self.handler = MongoLogHandler.handler()
+        self.handler.setLevel("DEBUG")
+        self.collection = self.handler.collection
 
-        # Check for an preexsting mongolog test entries
+        # Check for any preexsting mongolog test entries
         self.remove_test_entries()
 
     def tearDown(self):
         self.remove_test_entries()
-
-    def get_monglog_collection(self):
-        """
-        Get the collection used by the first MongoLogHandler 
-        found in the root loggers list of handlers. 
-        """
-        for handler in logger.handlers:
-            if isinstance(handler, MongoLogHandler):
-                self.handler = handler
-                self.handler.setLevel("DEBUG")
-                self.collection = self.handler.collection
-                break
-
-        if not hasattr(self, 'collection'):
-            raise ValueError("Perhaps you didn't a monglog handler?", self.handler.__dict__)
-
-        return self.collection
 
     def test_str_unicode_mongologhandler(self):
         self.assertEqual(self.handler.connection, u"%s" % self.handler)

@@ -64,6 +64,27 @@ class MongoLogHandler(Handler):
     def __str__(self):
         return self.__unicode__()
 
+    @staticmethod
+    def handler():
+        """
+        Return the first MongoLogHander found in the current loggers
+        list of handlers
+        """
+        logger = logging.getLogger('')
+        for handler in logger.handlers:
+            if isinstance(handler, MongoLogHandler):
+                return handler
+                break
+        return None
+
+    @staticmethod
+    def collection():
+        """
+        Return the collection being used by the MongLogHandler returned from handler()
+        """
+        handler = MongoLogHandler.handler()
+        return handler.collection if handler else None
+
     def connect(self):
         major_version = int(pymongo.version.split(".")[0])
 
@@ -78,7 +99,7 @@ class MongoLogHandler(Handler):
             info = self.client.server_info()
         except pymongo.errors.ServerSelectionTimeoutError as e:
             msg = "Unable to connect to mongo with (%s)" % self.connection
-            logger.exception(msg)
+            logger.exception({'note': 'mongolog', 'msg': msg})
             raise pymongo.errors.ServerSelectionTimeoutError(msg)
         
         self.db = self.client.mongolog
@@ -195,9 +216,12 @@ class MongoLogHandler(Handler):
             try:
                 test = json.dumps(v)
                 record.__dict__[k] = v
-            except TypeError as e:
+            except (TypeError, Exception) as e:
                 if "is not JSON serializable" in str(e):
-                    logger.exception("Failed to log message(%s) converting to str" % str(e))
+                    logger.exception({
+                        'note': 'mongolog',
+                        'msg': "Failed to log message(%s) converting to str" % str(e),
+                    })
                     record.__dict__[k] = str(v)
                 else:
                     raise
