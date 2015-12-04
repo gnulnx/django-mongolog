@@ -11,8 +11,16 @@ python:
 #  - "3.5-dev" # 3.5 development branch
 #  - "nightly" # currently points to 3.6-dev
 env:
-  - PYMONGO="==2.4" DJANGO="==0.5"
-  - PYMONGO=">=2.4" DJANGO=">=0.5" 
+  # mongolog should support any version of django that uses normal python logging
+  # around version 0.3.1 we confirmed support all the way back to django==0.5
+  # It is probably worth periodically checking this support, but in order to 
+  # remove load from the travis-ci server the django version won't be supported
+  # other than what is in requirements.txt
+  #
+  #- PYMONGO="==2.4" DJANGO="==0.5"
+  #- PYMONGO=">=2.4" DJANGO=">=0.5" 
+  - PYMONGO="==2.4"
+  - PYMONGO=">=2.4"
 # command to install dependencies
 services:
   - mongodb
@@ -24,7 +32,6 @@ install:
   - pip freeze
 # command to run tests
 script: coverage run --source=./ manage.py test 
-#script: python manage.py test
 after_success: 
   - coverage report
   - coveralls
