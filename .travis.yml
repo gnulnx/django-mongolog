@@ -11,8 +11,8 @@ python:
 #  - "3.5-dev" # 3.5 development branch
 #  - "nightly" # currently points to 3.6-dev
 env:
-  - PYMONGO_VERSION="==2.2"
-  - PYMONGO_VERSION=">=2.2"
+  - PYMONGO_VERSION="==2.4"
+  - PYMONGO_VERSION=">=2.4"
 # command to install dependencies
 services:
   - mongodb
