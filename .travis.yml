@@ -11,8 +11,8 @@ python:
 #  - "3.5-dev" # 3.5 development branch
 #  - "nightly" # currently points to 3.6-dev
 env:
-  - PYMONGO_VERSION="==2.3"
-  - PYMONGO_VERSION=">=2.3"
+  - PYMONGO_VERSION="==2.4" DJANGO_VERSION="==1.4"
+  - PYMONGO_VERSION=">=2.4" DJANGO_VERSION=">=1.4" 
 # command to install dependencies
 services:
   - mongodb
@@ -20,6 +20,7 @@ install:
   - pip install -r requirements.txt
   - pip install coveralls
   - pip install pymongo$PYMONGO_VERSION
+  - pip install django$VERSION
   - pip freeze
 # command to run tests
 script: coverage run --source=./ manage.py test 
