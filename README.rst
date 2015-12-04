@@ -4,6 +4,8 @@ MongoLog
 MongoLog is a simple Mongo based log handler that can be easly used
 with standard python/django logging
 
+.. image:: https://coveralls.io/repos/gnulnx/django-mongolog/badge.svg?branch=master&service=github :target: https://coveralls.io/github/gnulnx/django-mongolog?branch=master
+
 Quick start
 ----------- 
 
