@@ -6,8 +6,8 @@ language: python
 python:
 #  - "2.6"  # Just to old to support
   - "2.7"
-  - "3.2"  # django does not support
-  - "3.3"  # django does not support
+  #- "3.2"  # mongolog will work, but django does not support
+  #- "3.3"  # mongolog will work, django does not support
   - "3.4"
   - "3.5"
 #  - "3.5-dev" # 3.5 development branch
