@@ -28,3 +28,4 @@ script: coverage run --source=./ manage.py test
 after_success: 
   - coverage report
   - coveralls
+  - pip freeze
