@@ -13,7 +13,7 @@ python:
 env:
   # Test out support for lowest/highest pymongo/django combos
   - PYMONGO="==2.4" DJANGO="==0.5"
-  - PYMONGO=">=3.0" DJANGO=">=1.9" 
+  #- PYMONGO=">=3.0" DJANGO=">=1.9" 
 # command to install dependencies
 services:
   - mongodb
