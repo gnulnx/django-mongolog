@@ -6,25 +6,29 @@ language: python
 python:
 #  - "2.6"  # Just to old to support
   - "2.7"
+  #- "3.2"  # mongolog will work, but django does not support
+  #- "3.3"  # mongolog will work, django does not support
   - "3.4"
   - "3.5"
 #  - "3.5-dev" # 3.5 development branch
 #  - "nightly" # currently points to 3.6-dev
 env:
   # Test out support for lowest/highest pymongo/django combos
-  - PYMONGO="==2.4" DJANGO="==0.5"
-  - PYMONGO=">=2.4" DJANGO=">=0.5" 
+  #- PYMONGO="==2.4" DJANGO="==1.8"
+  #- PYMONGO=">=3.0" DJANGO=">=1.9" 
+  - PYMONGO="==2.4"
+  - PYMONGO=">=3.0"
 # command to install dependencies
 services:
   - mongodb
 install: 
-  - pip install -r requirements.txt
+  #- pip install -r requirements.txt
   - pip install coveralls
-  - pip install pymongo$PYMONGO_VERSION
-  - pip install django$VERSION
+  - pip install pymongo$PYMONGO
   - pip freeze
 # command to run tests
-script: coverage run --source=./ manage.py test 
+script: python -m unittest discover
 after_success: 
   - coverage report
   - coveralls
+  - pip freeze

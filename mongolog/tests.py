@@ -16,19 +16,45 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
-from django.test import TestCase
 import logging
+from logging import config
 import pymongo
 pymongo_major_version = int(pymongo.version.split(".")[0])
 
 from mongolog.handlers import MongoLogHandler
 
+# Use plain python logging instead of django to decouple project
+# from django versions
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'mongolog': {
+            'level': 'DEBUG',
+            'class': 'mongolog.MongoLogHandler',
+            'connection': 'mongodb://localhost:27017',
+            'w': 1,
+            'j': False,
+            # record can be simple/verbose.  Default is verbose
+            'record_type': 'simple',
+
+            # utc/local.  Only used with record_type=simple
+            'time_zone': 'local',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['mongolog'],
+            'level': 'DEBUG',
+            'propagate': True
+        },
+    },
+}
 # Must instantiate root logger in order to access the correct 
 # monglog collection from the MongoLogHandler
-logger = logging.getLogger()
+logging.config.dictConfig(LOGGING)
+logger = logging.getLogger('')
 
-
-class TestLogLevels(TestCase):
+class TestLogLevels(unittest.TestCase):
     """
     All log tests should log a dictionary with a 'test' key
     logger.info({
