@@ -1,4 +1,4 @@
-django>=1.7.10,<1.9
-pymongo>=2.7
+django>=0.5
+pymongo>=2.4
 coverage==3.6
 coveralls==1.1

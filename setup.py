@@ -35,13 +35,22 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7'
-        'Programming Language :: Python :: 3'
         'Programming Language :: Python :: 3.0'
         'Programming Language :: Python :: 3.1'
-        'Programming Language :: Python :: 3.2'
-        'Programming Language :: Python :: 3.3'
         'Programming Language :: Python :: 3.4'
         'Programming Language :: Python :: 3.5'
+        'Framework :: Django'
+        'Framework :: Django :: 0.5'
+        'Framework :: Django :: 1.0'
+        'Framework :: Django :: 1.1'
+        'Framework :: Django :: 1.2'
+        'Framework :: Django :: 1.3'
+        'Framework :: Django :: 1.4'
+        'Framework :: Django :: 1.5'
+        'Framework :: Django :: 1.6'
+        'Framework :: Django :: 1.7'
+        'Framework :: Django :: 1.8'
+        'Framework :: Django :: 1.9'
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],

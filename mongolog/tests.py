@@ -18,6 +18,8 @@
 import unittest
 from django.test import TestCase
 import logging
+import pymongo
+pymongo_major_version = int(pymongo.version.split(".")[0])
 
 from mongolog.handlers import MongoLogHandler
 
@@ -75,11 +77,13 @@ class TestLogLevels(TestCase):
         Remove all current test entries
         Called in setUp and tearDown
         """
-        self.collection.delete_many({self.test_key: True})
+        if pymongo_major_version < 3:
+            self.collection.remove({self.test_key: True})
+        else:
+            self.collection.delete_many({self.test_key: True})
 
         # Ensure that we don't have any test entries
         self.assertEqual(0, self.collection.find({self.test_key: True}).count())
-
     
     def test_info_verbose(self):
         # set level=DEBUG and log a message and retrieve it.

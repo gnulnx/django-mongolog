@@ -6,6 +6,9 @@ v0.3.1
     * python 3 support
     * travis-ci support
     * coveralls support
+    * support for django>=0.5
+    * support for pymongo>=2.4
+    * removed support for python 3.2 and 3.3 as django no longer supports them
 
 v0.3.0
 ------
