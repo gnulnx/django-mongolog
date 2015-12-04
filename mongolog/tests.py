@@ -112,6 +112,10 @@ class TestLogLevels(unittest.TestCase):
 
         # Ensure that we don't have any test entries
         self.assertEqual(0, self.collection.find({self.test_key: True}).count())
+
+    def test_set_record_type(self):
+        with self.assertRaises(ValueError):
+            self.handler.set_record_type("bad type")
     
     def test_info_verbose(self):
         # set level=DEBUG and log a message and retrieve it.
@@ -198,26 +202,29 @@ class TestLogLevels(unittest.TestCase):
         Test the simple log record structure
         """
         self.handler.set_record_type(MongoLogHandler.SIMPLE)
-        self.handler.setLevel("INFO")
-
+        self.handler.setLevel("DEBUG")
+        
         log_msg = {'test': True, 'fruit': ['apple', 'orange'], 'error': ValueError, 'handler': MongoLogHandler()}
         logger.info(log_msg)
-        query = {
-            'msg.test': log_msg['test'],
-            'msg.fruit': log_msg['fruit']
-        }
-        # rec is None because ValueError and MongoLogHandler() are not JSON serializable
-        # and thus entire message is converted to a string
-        # TODO walk msg structure and convert types on the fly to preserer as much structure as possible
+
+        # We expect log_msg to be converted to a str because ValueError and MongoLogHandler() are not 
+        # JSON serieliazable
+        query = {'msg': str(log_msg)}
+
         rec = self.collection.find_one(query)
-        
-        self.assertEqual(None, rec)
-        log_msg = {'test': True, 'fruit': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(MongoLogHandler())}
-        logger.info(log_msg)
-        rec = self.collection.find_one(query)
+        self.assertEqual(rec['msg'], str(log_msg))
+
+        # now test a serielazable dict with an exception call
+        log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(MongoLogHandler())}
+        try:
+            raise ValueError
+        except ValueError as e:
+            logger.exception(log_msg)
+
+        rec = self.collection.find_one({'msg.fruits': ['apple', 'orange']})
         self.assertEqual(
             set(rec.keys()),
-            set(['_id', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
+            set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
         )
 
     def test_debug_verbose(self):

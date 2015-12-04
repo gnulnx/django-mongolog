@@ -174,9 +174,6 @@ class MongoLogHandler(Handler):
         else: 
             self.collection.insert_one(log_record)
 
-    def format(self, record):
-        raise MongoLogError("format is not defined")
-
     def process_tuple(self, items):
         ret_items = []
         for item in items:
@@ -197,7 +194,7 @@ class MongoLogHandler(Handler):
                 record.__dict__[k] = v
             except TypeError as e:
                 if "is not JSON serializable" in str(e):
-                    print("Failed to log message(%s) converting to str" % str(e))
+                    logger.exception("Failed to log message(%s) converting to str" % str(e))
                     record.__dict__[k] = str(v)
                 else:
                     print("e(%s) " % e)
