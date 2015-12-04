@@ -90,13 +90,16 @@ class TestLogLevels(unittest.TestCase):
                 self.handler = handler
                 self.handler.setLevel("DEBUG")
                 self.collection = self.handler.collection
-                #self.handler.setLevel("ERROR")
                 break
 
         if not hasattr(self, 'collection'):
             raise ValueError("Perhaps you didn't a monglog handler?", self.handler.__dict__)
 
         return self.collection
+
+    def test_str_unicode_mongologhandler(self):
+        self.assertEqual(self.handler.connection, u"%s" % self.handler)
+        self.assertEqual(self.handler.connection, "%s" % self.handler)
 
     def remove_test_entries(self):
         """
