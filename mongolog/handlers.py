@@ -61,6 +61,9 @@ class MongoLogHandler(Handler):
     def __unicode__(self):
         return self.connection
 
+    def __str__(self):
+        return self.__unicode__()
+
     def connect(self):
         major_version = int(pymongo.version.split(".")[0])
 
