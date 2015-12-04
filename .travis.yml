@@ -11,16 +11,9 @@ python:
 #  - "3.5-dev" # 3.5 development branch
 #  - "nightly" # currently points to 3.6-dev
 env:
-  # mongolog should support any version of django that uses normal python logging
-  # around version 0.3.1 we confirmed support all the way back to django==0.5
-  # It is probably worth periodically checking this support, but in order to 
-  # remove load from the travis-ci server the django version won't be supported
-  # other than what is in requirements.txt
-  #
-  #- PYMONGO="==2.4" DJANGO="==0.5"
-  #- PYMONGO=">=2.4" DJANGO=">=0.5" 
-  - PYMONGO="==2.4"
-  - PYMONGO=">=2.4"
+  # Test out support for lowest/highest pymongo/django combos
+  - PYMONGO="==2.4" DJANGO="==0.5"
+  - PYMONGO=">=2.4" DJANGO=">=0.5" 
 # command to install dependencies
 services:
   - mongodb
