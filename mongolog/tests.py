@@ -75,7 +75,7 @@ class TestLogLevels(TestCase):
         Remove all current test entries
         Called in setUp and tearDown
         """
-        self.collection.delete_many({self.test_key: True})
+        self.collection.remove({self.test_key: True})
 
         # Ensure that we don't have any test entries
         self.assertEqual(0, self.collection.find({self.test_key: True}).count())
