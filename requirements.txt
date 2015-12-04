@@ -1,4 +1,4 @@
-django>=1.8
+django>=1.4
 pymongo>=2.4
 coverage==3.6
 coveralls==1.1
