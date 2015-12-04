@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+v0.3.3
+    * log message JSON serializaztion check pass or convert to str
+
 v0.3.2
     * support for verbose and simple LogRecord Types
     * python 3 support

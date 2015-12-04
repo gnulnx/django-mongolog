@@ -104,15 +104,18 @@ class TestLogLevels(unittest.TestCase):
         Called in setUp and tearDown
         """
         if pymongo_major_version < 3:
-            self.collection.remove({self.test_key: True})
+            self.collection.remove({'info.msg.test': True})
+            self.collection.remove({'msg.test': True})
         else:
-            self.collection.delete_many({self.test_key: True})
+            self.collection.delete_many({'info.msg.test': True})
+            self.collection.delete_many({'msg.test': True})
 
         # Ensure that we don't have any test entries
         self.assertEqual(0, self.collection.find({self.test_key: True}).count())
     
     def test_info_verbose(self):
         # set level=DEBUG and log a message and retrieve it.
+        self.handler.set_record_type(MongoLogHandler.VERBOSE)
         self.handler.setLevel("INFO")
         self.handler.set_record_type("verbose")
         logger.info({'test': True, 'msg': 'INFO TEST'})
@@ -153,10 +156,10 @@ class TestLogLevels(unittest.TestCase):
 
     def test_logstructure_verbose(self):
         """
-        Test the basic structure of a log record
+        Test the verbose log record strucute
         """
+        self.handler.set_record_type(MongoLogHandler.VERBOSE)
         self.handler.setLevel("WARNING")
-        self.handler.set_record_type("verbose")
         log_msg = {'test': True, 'msg': 'WARNING', 'msg2': 'DANGER'}
         query = {
             self.test_key: log_msg['test'], 
@@ -190,8 +193,35 @@ class TestLogLevels(unittest.TestCase):
 
         self.assertEqual(rec['process']['name'], "MainProcess")
 
+    def test_logstructure_simple(self):
+        """
+        Test the simple log record structure
+        """
+        self.handler.set_record_type(MongoLogHandler.SIMPLE)
+        self.handler.setLevel("INFO")
+
+        log_msg = {'test': True, 'fruit': ['apple', 'orange'], 'error': ValueError, 'handler': MongoLogHandler()}
+        logger.info(log_msg)
+        query = {
+            'msg.test': log_msg['test'],
+            'msg.fruit': log_msg['fruit']
+        }
+        # rec is None because ValueError and MongoLogHandler() are not JSON serializable
+        # and thus entire message is converted to a string
+        # TODO walk msg structure and convert types on the fly to preserer as much structure as possible
+        rec = self.collection.find_one(query)
+        
+        self.assertEqual(None, rec)
+        log_msg = {'test': True, 'fruit': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(MongoLogHandler())}
+        logger.info(log_msg)
+        rec = self.collection.find_one(query)
+        self.assertEqual(
+            set(rec.keys()),
+            set(['_id', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
+        )
+
     def test_debug_verbose(self):
-        self.handler.set_record_type("verbose")
+        self.handler.set_record_type(MongoLogHandler.VERBOSE)
         logger.debug({'test': True, 'msg': 'DEBUG TEST'})
         self.assertEqual(
             1,
@@ -203,7 +233,7 @@ class TestLogLevels(unittest.TestCase):
         )
 
     def test_exception_verbose(self):
-        self.handler.set_record_type("verbose")
+        self.handler.set_record_type(MongoLogHandler.VERBOSE)
         try:
             raise ValueError()
         except ValueError:

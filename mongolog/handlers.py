@@ -19,6 +19,7 @@
 from __future__ import print_function
 from logging import Handler, StreamHandler, NOTSET
 from datetime import datetime
+import json
 
 import pymongo 
 
@@ -33,8 +34,9 @@ class MongoLogHandler(Handler):
     """
     A handler class which allows logging to use mongo db as the backend
     """
-
-    record_types = ['simple', 'verbose']
+    SIMPLE='simple'
+    VERBOSE='verbose'
+    record_types = [SIMPLE, VERBOSE]
 
     def __init__(self, level=NOTSET, connection=None, w=1, j=False, record_type="verbose", time_zone="local"):
         self.connection = connection
@@ -55,6 +57,9 @@ class MongoLogHandler(Handler):
         self.connect()
 
         return super(MongoLogHandler, self).__init__(level)
+
+    def __unicode__(self):
+        return self.connection
 
     def connect(self):
         major_version = int(pymongo.version.split(".")[0])
@@ -186,7 +191,18 @@ class MongoLogHandler(Handler):
                 v = tuple(v.split("\n"))
             if isinstance(v, tuple):
                 v = self.process_tuple(v)
-            record.__dict__[k] = v
+
+            try:
+                test = json.dumps(v)
+                record.__dict__[k] = v
+            except TypeError as e:
+                if "is not JSON serializable" in str(e):
+                    print("Failed to log message(%s) converting to str" % str(e))
+                    record.__dict__[k] = str(v)
+                else:
+                    print("e(%s) " % e)
+
+                    raise
         return record
 
     
