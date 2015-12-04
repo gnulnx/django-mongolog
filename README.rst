@@ -7,12 +7,13 @@ with standard python/django logging
 Quick start
 ----------- 
 
-1. Add "mongolog" to your INSTALLED_APPS like this::
+1. Add "mongolog" to your INSTALLED_APPS like this
+    .. code:: python
 
-    INSTALLED_APPS = (
-        ...
-        'mongolog',
-    )
+        INSTALLED_APPS = (
+            ...
+            'mongolog',
+        )
 
 2. Add the MongoLoggerHandler to your LOGGING config
     .. code:: python
