@@ -5,7 +5,7 @@ import collections
 
 COPY_PATH=os.path.expanduser(
 	os.path.abspath(
-		os.environ.get("MONGOLOG_COPY_PATH", None)
+		os.environ.get("MONGOLOG_COPY_PATH", "./")
 	)
 )
 if not COPY_PATH:
