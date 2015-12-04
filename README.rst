@@ -17,22 +17,22 @@ Quick start
 2. Add the MongoLoggerHandler to your LOGGING config
     .. code:: python
 
-    LOGGING = {
-        'handler': {
-            'mongolog': {
-                'level': 'WARN',
-                'class': 'mongolog.MongoLogHandler',
-                'connection': 'mongodb://localhost:27017/'
+        LOGGING = {
+            'handler': {
+                'mongolog': {
+                    'level': 'WARN',
+                    'class': 'mongolog.MongoLogHandler',
+                    'connection': 'mongodb://localhost:27017/'
+                },
             },
-        },
-        'loggers': {
-            'django': {
-                'handlers': ['console', 'mongolog'],
-                'level': 'DEBUG',
-                'propagate': True
+            'loggers': {
+                'django': {
+                    'handlers': ['console', 'mongolog'],
+                    'level': 'DEBUG',
+                    'propagate': True
+                },
             },
-        },
-    }
+        }
 
 3) Start your management shell::
 
