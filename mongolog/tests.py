@@ -267,6 +267,3 @@ class TestLogLevels(unittest.TestCase):
             set(rec['exception'].keys()),
             set(['info', 'trace'])  
         )
-
-if __name__ == '__main__':
-    unittest.main()
