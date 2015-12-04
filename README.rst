@@ -14,7 +14,8 @@ Quick start
         'mongolog',
     )
 
-2. Add the MongoLoggerHandler to your LOGGING config::
+2. Add the MongoLoggerHandler to your LOGGING config
+    .. code:: python
 
     LOGGING = {
         'handler': {
