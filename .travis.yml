@@ -12,7 +12,7 @@ python:
 #  - "nightly" # currently points to 3.6-dev
 env:
   # Test out support for lowest/highest pymongo/django combos
-  - PYMONGO="==2.4" DJANGO="==1.7.1"
+  - PYMONGO="==2.4" DJANGO="==1.8"
   #- PYMONGO=">=3.0" DJANGO=">=1.9" 
 # command to install dependencies
 services:
