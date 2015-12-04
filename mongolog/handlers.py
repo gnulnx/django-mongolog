@@ -197,8 +197,6 @@ class MongoLogHandler(Handler):
                     logger.exception("Failed to log message(%s) converting to str" % str(e))
                     record.__dict__[k] = str(v)
                 else:
-                    print("e(%s) " % e)
-
                     raise
         return record
 
