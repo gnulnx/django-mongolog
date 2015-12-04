@@ -19,7 +19,8 @@ install:
   - pip install coveralls
   - pip install pymongo==$PYMONGO_VERSION
 # command to run tests
-script: coverage run --source=./ manage.py test 
+#script: coverage run --source=./ manage.py test 
+script: manage.py test
 after_success: 
   - coverage report
   - coveralls
