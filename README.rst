@@ -39,19 +39,20 @@ Quick start
 
     ./manage.py shell
 
-4) Create a couple of log entries::
+4) Create a couple of log entries
+    .. code:: python
     
-    import logging
-    logger = logging.getLogger(__name__)
+        import logging
+        logger = logging.getLogger(__name__)
 
-    logger.debug("A debug message")
-    logger.info("An info message")
-    logger.warning("A warning message")
-    logger.error("An error message")
-    try:
-        raise ValueError("Bad Value")
-    except ValueError as e:
-        logger.exception("An exception message")
+        logger.debug("A debug message")
+        logger.info("An info message")
+        logger.warning("A warning message")
+        logger.error("An error message")
+        try:
+            raise ValueError("Bad Value")
+        except ValueError as e:
+            logger.exception("An exception message")
 
 5) Now log into your mongo shell::
 
