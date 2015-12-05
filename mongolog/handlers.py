@@ -76,16 +76,11 @@ class MongoLogHandler(Handler):
                 return handler
         return None
 
-    @classmethod
-    def get_collection(cls):
+    def get_collection(self):
         """
-        Return the collection being used by the MongLogHandler returned from handler()
+        Return the collection being used by MongoLogHandler
         """
-        if hasattr(cls, "collection"):
-            return cls.collection
-        else:
-            handler = MongoLogHandler.handler()
-            return getattr(handler, "collection", None)
+        return getattr(self, "collection", None)
 
     def connect(self):
         major_version = int(pymongo.version.split(".")[0])
