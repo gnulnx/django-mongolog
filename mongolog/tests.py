@@ -79,8 +79,8 @@ class TestLogLevels(unittest.TestCase):
         # Check for any preexsting mongolog test entries
         self.remove_test_entries()
 
-    def tearDown(self):
-        self.remove_test_entries()
+    #def tearDown(self):
+    #    self.remove_test_entries()
 
     def test_str_unicode_mongologhandler(self):
         self.assertEqual(self.handler.connection, u"%s" % self.handler)
@@ -163,6 +163,9 @@ class TestLogLevels(unittest.TestCase):
         self.assertEqual(1, self.collection.find(query).count())
 
         rec = self.collection.find_one(query)
+        print("rec(%s)" % rec)
+        import json
+        print(json.dumps(rec, indent=4, sort_keys=True, default=str))
         self.assertEqual(
             set(rec.keys()), 
             set(['info', 'name', 'thread', 'level', 'process', 'time', '_id'])
@@ -199,8 +202,8 @@ class TestLogLevels(unittest.TestCase):
         # JSON serieliazable
         query = {'msg': str(log_msg)}
 
-        rec = self.collection.find_one(query)
-        self.assertEqual(rec['msg'], str(log_msg))
+        #rec = self.collection.find_one(query)
+        #self.assertEqual(rec['msg'], str(log_msg))
 
         
         # now test a serielazable dict with an exception call
@@ -215,6 +218,26 @@ class TestLogLevels(unittest.TestCase):
             set(rec.keys()),
             set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
         )
+
+        log_msg = {
+            'test': True,
+            'fruits': [
+                'apple',
+                'orange',
+                {'tomatoes': ['roma', 'kmato', 'cherry', ValueError, 'plum']},
+                {},
+                {}
+            ],
+            'object': MongoLogHandler,
+            'instance': MongoLogHandler(),
+        }
+
+        try:
+            raise ValueError
+        except ValueError as e:
+            logger.exception(log_msg)
+
+
         
 
     def test_debug_verbose(self):

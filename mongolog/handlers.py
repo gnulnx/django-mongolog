@@ -174,12 +174,11 @@ class MongoLogHandler(Handler):
             'func': record.funcName,
             'filename': record.filename,
         })    
-        if hasattr(record, "msg_coverted"):
-            log_record['msg_converted'] = True
         # Add exception info
         if record.exc_info:
             log_record['exception'] = record.exc_text,
 
+        print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
         return log_record
 
     def emit(self, record):
@@ -198,49 +197,41 @@ class MongoLogHandler(Handler):
             self.collection.insert(log_record)
         else: 
             self.collection.insert_one(log_record)
-
-    def test_json(self, item):
-        try:
-            json.dumps(item)
-            return item
-        except Exception:  # Is there a better exception?
-            return str(item)
-
-    def process_tuple(self, items):
-        try:
-            json.dumps(items)
-            return items
-        except Exception:
-            ret_items = []
-            for item in items:
-                ret_items.append(self.test_json(item))
-            return ret_items
                 
     def process_record(self, record):
-        record = self.process_record_msg(record)
+        # Make sure the entire log message is JSON serializable.
+        record.msg = self.ensure_json(record.msg)
         return self.process_record_exception(record)
 
+    def ensure_json(self, value):
+        """
+        Use json.dumps(...) to ensure that 'value' is in json format.
+        The default=str option will attempt to convert any non serializable
+        objects/sub objects to a string.
+
+        Once the object has been json serialized we again use json to json.loads
+        the json string into a python dictionary.   We do this because pymongo
+        uses a slighlyt different serialization when inserting python data
+        into mongo and deserialization when pulling it out. 
+        """
+        return json.loads(json.dumps(value, default=str))
+
+
     def process_record_exception(self, record):
-        if record.exc_info:
-            if hasattr(record, "exc_text") and record.exc_text is not None:
-                record.exc_text = self.process_tuple(record.exc_text.split("\n"))
-            record.exc_info = str(record.exc_info)
-        return record
-
-    def process_record_msg(self, record):
         """
-        Ensure that record.msg is json serializable.
-        If not convert record.msg to a str.
-
-        TODO:  Walk tree and only convert those elements
-        which aren't JSON serializable.
+        Check for record attributes indicating the logger.exception(...)
+        method was called.  If those attrbutes are found ensure that they 
+        are converted to JSON serializable formats.  exc_text is also 
+        split up based on lines to make for nice stack trace prints inside
+        mongo.
         """
-        try:
-            json.dumps(record.msg)
-        except:    
-            record.msg = str(record.msg)
-            record.msg_coverted = True
-            
+        if hasattr(record, "exc_info"):
+            record.exc_info = self.ensure_json(record.exc_info)
+
+        if hasattr(record, "exc_text"):
+            exc_text = record.exc_text.split("\n") if record.exc_text else None
+            record.exc_text = self.ensure_json(exc_text)
+
         return record
 
     
