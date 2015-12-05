@@ -20,6 +20,8 @@ from __future__ import print_function
 from logging import Handler, StreamHandler, NOTSET
 from datetime import datetime
 import json
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
 
 import pymongo 
 
@@ -172,10 +174,13 @@ class MongoLogHandler(Handler):
             'func': record.funcName,
             'filename': record.filename,
         })    
+        if hasattr(record, "msg_coverted"):
+            log_record['msg_converted'] = True
         # Add exception info
         if record.exc_info:
             log_record['exception'] = record.exc_text,
 
+        print("log_record(%s)" % log_record)
         return log_record
 
     def emit(self, record):
@@ -193,6 +198,7 @@ class MongoLogHandler(Handler):
         if int(pymongo.version[0]) < 3:
             self.collection.insert(log_record)
         else: 
+            print("log_record(%s)" % log_record)
             self.collection.insert_one(log_record)
 
     def process_tuple(self, items):
@@ -203,7 +209,9 @@ class MongoLogHandler(Handler):
             ret_items.append(str(item))
         return ret_items
 
+
     def process_record(self, record):
+        #for k, v in [('msg', record.msg)]:
         for k, v in record.__dict__.items():
             if k == 'exc_text' and v:
                 v = tuple(v.split("\n"))
@@ -221,6 +229,31 @@ class MongoLogHandler(Handler):
                 record.__dict__[k] = str(v)
                 
         return record
+
+    def process_record(self, record):
+        record = self.process_record_msg(record)
+        return self.process_record_exception(record)
+
+    def process_record_exception(self, record):
+        if record.exc_info:
+            if hasattr(record, "exc_text") and record.exc_text is not None:
+                record.exc_text = self.process_tuple(record.exc_text.split("\n"))
+            record.exc_info = str(record.exc_info)
+        return record
+
+    def process_record_msg(self, record):
+        try:
+            json.dumps(record.msg)
+        except:    
+            record.msg = str(record.msg)
+            record.msg_coverted = True
+            
+        return record
+
+    
+
+        
+
 
     
 

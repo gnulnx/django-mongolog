@@ -192,9 +192,9 @@ class TestLogLevels(unittest.TestCase):
         self.handler.set_record_type(MongoLogHandler.SIMPLE)
         self.handler.setLevel("DEBUG")
         
-        log_msg = {'test': True, 'fruit': ['apple', 'orange'], 'error': ValueError, 'handler': MongoLogHandler()}
+        log_msg = {'test': True, 'fruit': ['apple', 'orange'], 'error': ValueError}
         logger.info(log_msg)
-
+        
         # We expect log_msg to be converted to a str because ValueError and MongoLogHandler() are not 
         # JSON serieliazable
         query = {'msg': str(log_msg)}
@@ -202,6 +202,7 @@ class TestLogLevels(unittest.TestCase):
         rec = self.collection.find_one(query)
         self.assertEqual(rec['msg'], str(log_msg))
 
+        
         # now test a serielazable dict with an exception call
         log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(MongoLogHandler())}
         try:
@@ -214,6 +215,7 @@ class TestLogLevels(unittest.TestCase):
             set(rec.keys()),
             set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
         )
+        
 
     def test_debug_verbose(self):
         self.handler.set_record_type(MongoLogHandler.VERBOSE)
