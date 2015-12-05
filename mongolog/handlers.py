@@ -176,9 +176,11 @@ class MongoLogHandler(Handler):
         })    
         # Add exception info
         if record.exc_info:
-            log_record['exception'] = record.exc_text,
+            log_record['exception'] = {
+                'info': record.exc_info,
+                'trace': record.exc_text,
+            }
 
-        print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
         return log_record
 
     def emit(self, record):
@@ -192,6 +194,10 @@ class MongoLogHandler(Handler):
             log_record = self.verbose_record(record)
         elif self.record_type == "simple":
             log_record = self.simple_record(record)
+
+        self.verbose = True
+        if self.verbose == True:
+            print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
         if int(pymongo.version[0]) < 3:
             self.collection.insert(log_record)

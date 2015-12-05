@@ -17,6 +17,7 @@
 """
 import unittest
 import logging
+import json
 from logging import config
 import pymongo
 pymongo_major_version = int(pymongo.version.split(".")[0])
@@ -163,8 +164,6 @@ class TestLogLevels(unittest.TestCase):
         self.assertEqual(1, self.collection.find(query).count())
 
         rec = self.collection.find_one(query)
-        print("rec(%s)" % rec)
-        import json
         print(json.dumps(rec, indent=4, sort_keys=True, default=str))
         self.assertEqual(
             set(rec.keys()), 
@@ -183,9 +182,7 @@ class TestLogLevels(unittest.TestCase):
             )
 
         self.assertEqual(rec['thread']['name'], "MainThread")
-
         self.assertEqual(rec['info']['filename'], "tests.py")
-
         self.assertEqual(rec['process']['name'], "MainProcess")
 
     def test_logstructure_simple(self):
@@ -194,17 +191,7 @@ class TestLogLevels(unittest.TestCase):
         """
         self.handler.set_record_type(MongoLogHandler.SIMPLE)
         self.handler.setLevel("DEBUG")
-        
-        log_msg = {'test': True, 'fruit': ['apple', 'orange'], 'error': ValueError}
-        logger.info(log_msg)
-        
-        # We expect log_msg to be converted to a str because ValueError and MongoLogHandler() are not 
-        # JSON serieliazable
-        query = {'msg': str(log_msg)}
-
-        #rec = self.collection.find_one(query)
-        #self.assertEqual(rec['msg'], str(log_msg))
-
+      
         
         # now test a serielazable dict with an exception call
         log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(MongoLogHandler())}
@@ -219,25 +206,31 @@ class TestLogLevels(unittest.TestCase):
             set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
         )
 
-        log_msg = {
-            'test': True,
-            'fruits': [
-                'apple',
-                'orange',
-                {'tomatoes': ['roma', 'kmato', 'cherry', ValueError, 'plum']},
-                {},
-                {}
-            ],
-            'object': MongoLogHandler,
-            'instance': MongoLogHandler(),
-        }
-
+        # Now try and exception with a complex log query
         try:
             raise ValueError
         except ValueError as e:
-            logger.exception(log_msg)
+            logger.exception({
+                'test': True,
+                'fruits': [
+                    'apple',
+                    'orange',
+                    {'tomatoes': ['roma', 'kmato', 'cherry', ValueError, 'plum']},
+                    {},
+                    {}
+                ],
+                'object': MongoLogHandler,
+                'instance': MongoLogHandler(),
+            })
 
-
+        rec = self.collection.find_one({'msg.fruits': {'$in': ['apple', 'orange']}})
+        self.assertEqual(
+            set(rec.keys()),
+            set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
+        )
+        
+        from mongolog.test_exceptions import test_valueError
+        test_valueError()
         
 
     def test_debug_verbose(self):
