@@ -199,13 +199,22 @@ class MongoLogHandler(Handler):
         else: 
             self.collection.insert_one(log_record)
 
+    def test_json(self, item):
+        try:
+            json.dumps(item)
+            return item
+        except Exception:  # Is there a better exception?
+            return str(item)
+
     def process_tuple(self, items):
-        ret_items = []
-        for item in items:
-            if isinstance(item, AttributeError):
-                item = str(item.message)
-            ret_items.append(str(item))
-        return ret_items
+        try:
+            json.dumps(items)
+            return items
+        except Exception:
+            ret_items = []
+            for item in items:
+                ret_items.append(self.test_json(item))
+            return ret_items
                 
     def process_record(self, record):
         record = self.process_record_msg(record)
@@ -219,6 +228,13 @@ class MongoLogHandler(Handler):
         return record
 
     def process_record_msg(self, record):
+        """
+        Ensure that record.msg is json serializable.
+        If not convert record.msg to a str.
+
+        TODO:  Walk tree and only convert those elements
+        which aren't JSON serializable.
+        """
         try:
             json.dumps(record.msg)
         except:    
