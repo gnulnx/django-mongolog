@@ -73,8 +73,8 @@ class TestLogLevels(unittest.TestCase):
 
     def setUp(self):
         self.handler = MongoLogHandler.handler()
+        self.collection = self.handler.get_collection()
         self.handler.setLevel("DEBUG")
-        self.collection = self.handler.collection
 
         # Check for any preexsting mongolog test entries
         self.remove_test_entries()
@@ -100,6 +100,14 @@ class TestLogLevels(unittest.TestCase):
 
         # Ensure that we don't have any test entries
         self.assertEqual(0, self.collection.find({self.test_key: True}).count())
+
+    def test_get_collection(self):
+        """
+        MongoLogHanlder.get_collection is a class method with
+        two different control paths. This test executes them both 
+        and ensures they return the same thing
+        """
+        self.assertEqual(self.handler.get_collection(), MongoLogHandler.get_collection())
 
     def test_set_record_type(self):
         with self.assertRaises(ValueError):
