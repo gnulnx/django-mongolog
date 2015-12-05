@@ -229,9 +229,6 @@ class TestLogLevels(unittest.TestCase):
             set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
         )
         
-        from mongolog.test_exceptions import test_valueError
-        test_valueError()
-        
 
     def test_debug_verbose(self):
         self.handler.set_record_type(MongoLogHandler.VERBOSE)
