@@ -27,7 +27,7 @@ from mongolog.exceptions import MongoLogError
 from mongolog.models import LogRecord
 
 import logging
-logger = logging.getLogger('django')
+logger = logging.getLogger('')
 
 
 class MongoLogHandler(Handler):
