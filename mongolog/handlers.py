@@ -214,14 +214,12 @@ class MongoLogHandler(Handler):
                 test = json.dumps(v)
                 record.__dict__[k] = v
             except (TypeError, Exception) as e:
-                if "is not JSON serializable" in str(e):
-                    logger.exception({
-                        'note': 'mongolog',
-                        'msg': "Failed to log message(%s) converting to str" % str(e),
-                    })
-                    record.__dict__[k] = str(v)
-                else:
-                    raise
+                logger.exception({
+                    'note': 'mongolog',
+                    'msg': "Failed to log message(%s) converting to str" % str(e),
+                })
+                record.__dict__[k] = str(v)
+                
         return record
 
     
