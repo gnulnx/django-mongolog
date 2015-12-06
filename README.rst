@@ -45,19 +45,18 @@ Quick start
 4) Create a couple of log entries
     .. code:: python
     
-        """
-        *protip: You can copy and paste all of this
-        """
         import logging
         import pymongo
         logger = logging.getLogger(__name__)
 
     One of the cool things about mongolog is that it can log complex data structures
-    in a way that makes them both human parseable and queryable.  So for instance if 
+    in a way that makes them both human parsable and queryable.  So for instance if 
     we create a the following log message:
 
     .. code:: python
-     
+        """
+        * Pro Tip: You can copy and paste all of this
+        """
         LOG_MSG = {
             'test': True,  
             'test class': 'TestBaseMongoLogHandler',
@@ -88,7 +87,9 @@ Quick start
             }
         }
 
-        # And then we log this message with each of the defined log levels
+    And then we log our essage at each of the defined log levels...
+    .. code:: python
+
         logger.debug(LOG_MSG)
         logger.info(LOG_MSG)
         logger.warn(LOG_MSG)
