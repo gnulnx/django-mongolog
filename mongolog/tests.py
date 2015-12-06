@@ -180,9 +180,11 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
             u'lineno'
         ]
         # To make test pass on python 3 version
+        print("sys.version[0](%s)" % sys.version_info[0])
         if sys.version_info[0] >= 3:
             expected_keys.append(u'stack_info')
 
+        print("expected_keys(%s)" % expected_keys)
         record = records[0]
         self.assertEqual(
             set(record.keys()),
