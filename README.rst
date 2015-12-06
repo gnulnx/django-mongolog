@@ -218,7 +218,7 @@ Quick start
     The next steps are to create a set of most used query operations for probing the log.
 
     I am very interested in feedback and feature requests from anyone using mongolog.  So again
-    Please visit the `MongoLog Users Group <https://groups.google.com/forum/#!forum/mongolog-users>`_ with any questions/suggestions.   
+    please visit the `MongoLog Users Group <https://groups.google.com/forum/#!forum/mongolog-users>`_ with any questions/suggestions.   
 
-    If you are interested in contributing please fork the repo and start coding.  
-    You can reach me through in the `MongoLog Users Group <https://groups.google.com/forum/#!forum/mongolog-users>`_ 
+    If you are interested in contributing please fork the repo and start coding or by all means reach out to me  
+    via the `MongoLog Users Group <https://groups.google.com/forum/#!forum/mongolog-users>`_ 
