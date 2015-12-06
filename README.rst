@@ -18,7 +18,7 @@ Quick start
         )
 
 2. Add the SimpleMongoLoggerHandler to your LOGGING config
-    .. code:: python
+.. code:: python
 
     LOGGING = {
         'version': 1,
