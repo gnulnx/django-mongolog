@@ -5,6 +5,7 @@ v0.3.3
 ------
     * log message JSON serializaztion check pass or convert to str
     * total revamp of log message parser.
+    * added verbose option to MongoLogHandler that will print all log entries to console
 
 v0.3.2
 ------
