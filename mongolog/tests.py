@@ -23,9 +23,7 @@ import pymongo
 pymongo_major_version = int(pymongo.version.split(".")[0])
 
 from mongolog.handlers import (
-    get_mongolog_handler, 
-    MongoLogHandler, 
-    SimpleMongoLogHandler,
+    get_mongolog_handler, SimpleMongoLogHandler
 )
 
 # Use plain python logging instead of django to decouple project
@@ -60,7 +58,34 @@ LOGGING = {
 logging.config.dictConfig(LOGGING)
 logger = logging.getLogger('')
 
-class TestBaseMongoLogHandler(unittest.TestCase):
+"""
+    All log tests should log a dictionary with a 'test' key
+    logger.info({
+        'test': True, 
+        'msg': 'special message'
+    })
+
+    This key will allow us to easily clean test entries out of the 
+    database.
+
+    NOTE: You can add any other key you want for testing purposes
+"""
+
+class TestRemoveEntriesMixin(object):
+    def remove_test_entries(self, test_key="msg.test"):
+        """
+        Remove all current test entries
+        Called in setUp and tearDown
+        """
+        if pymongo_major_version < 3:
+            self.collection.remove({test_key: True})
+        else:
+            self.collection.delete_many({test_key: True})
+
+        # Ensure that we don't have any test entries
+        self.assertEqual(0, self.collection.find({test_key: True}).count())
+
+class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
         LOGGING['handlers']['mongolog']['class'] = 'mongolog.BaseMongoLogHandler'
         logging.config.dictConfig(LOGGING)
@@ -68,19 +93,6 @@ class TestBaseMongoLogHandler(unittest.TestCase):
         self.collection = self.handler.get_collection()
 
         self.remove_test_entries()
-
-    def remove_test_entries(self):
-        """
-        Remove all current test entries
-        Called in setUp and tearDown
-        """
-        if pymongo_major_version < 3:
-            self.collection.remove({'msg.test': True})
-        else:
-            self.collection.delete_many({'msg.test': True})
-
-        # Ensure that we don't have any test entries
-        self.assertEqual(0, self.collection.find({'msg.test': True}).count())
 
     def test_base_handler(self):
         test_msg = {
@@ -171,115 +183,91 @@ class TestBaseMongoLogHandler(unittest.TestCase):
             ]
         )
 
+        # Now test that the nested ValueError was successfully converted to a unicode str.
         try:
             # unicode will throw a nameerror in Python 3
             self.assertEqual(unicode, type(record['msg']['Life']['Domain']['Bacteria'][0]['name'])) 
         except NameError:
             self.assertEqual(str, type(record['msg']['Life']['Domain']['Bacteria'][0]['name'])) 
         
-
-class TestLogLevels(unittest.TestCase):
-    """
-    All log tests should log a dictionary with a 'test' key
-    logger.info({
-        'test': True, 
-        'msg': 'special message'
-    })
-
-    This key will allow us to easily clean test entries out of the 
-    database.
-
-    NOTE: You can add any other key you want for testing purposes
-    """
-
-    # The basic key that should be part of every log messgage
-    test_key = 'info.msg.test'
-
-    def setUp(self):
-        self.handler = get_mongolog_handler()
-        #self.handler = MongoLogHandler.handler()
-        self.collection = self.handler.get_collection()
-        self.handler.setLevel("DEBUG")
-
-        # Check for any preexsting mongolog test entries
-        self.remove_test_entries()
-
-    def tearDown(self):
-        self.remove_test_entries()
-
     def test_str_unicode_mongologhandler(self):
         self.assertEqual(self.handler.connection, u"%s" % self.handler)
         self.assertEqual(self.handler.connection, "%s" % self.handler)
 
-    def remove_test_entries(self):
-        """
-        Remove all current test entries
-        Called in setUp and tearDown
-        """
-        if pymongo_major_version < 3:
-            self.collection.remove({'info.msg.test': True})
-            self.collection.remove({'msg.test': True})
-        else:
-            self.collection.delete_many({'info.msg.test': True})
-            self.collection.delete_many({'msg.test': True})
-
-        # Ensure that we don't have any test entries
-        self.assertEqual(0, self.collection.find({self.test_key: True}).count())
-
     def test_set_record_type(self):
         with self.assertRaises(ValueError):
             self.handler.set_record_type("bad type")
-    
-    def test_info_verbose(self):
-        # set level=DEBUG and log a message and retrieve it.
-        self.handler.set_record_type(MongoLogHandler.VERBOSE)
-        self.handler.setLevel("INFO")
-        self.handler.set_record_type("verbose")
-        logger.info({'test': True, 'msg': 'INFO TEST'})
+
+class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
+    def setUp(self):
+        LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
+        logging.config.dictConfig(LOGGING)
+        self.handler = get_mongolog_handler()
+        self.collection = self.handler.get_collection()
+
+        self.remove_test_entries()
+
+    def test_logstructure_simple(self):
+        """
+        Test the simple log record structure
+        """
+        self.handler.setLevel("DEBUG")
+      
+        
+        # now test a serielazable dict with an exception call
+        log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
+        try:
+            raise ValueError
+        except ValueError as e:
+            logger.exception(log_msg)
+
+        rec = self.collection.find_one({'msg.fruits': ['apple', 'orange']})
         self.assertEqual(
-            1,
-            self.collection.find({
-                self.test_key: True, 
-                'info.msg.msg': 'INFO TEST',
-                'level.name': 'INFO'
-            }).count()
+            set(rec.keys()),
+            set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
         )
 
-        # Bump the log level up to INFO and show that
-        # we do log another message because we are using the
-        # logger.info(...) method
-        self.handler.setLevel("INFO")
-        logger.info({'test': True, 'msg': 'INFO TEST'})
+        # Now try an exception log with a complex log msg.
+        try:
+            raise ValueError
+        except ValueError as e:
+            logger.exception({
+                'test': True,
+                'fruits': [
+                    'apple',
+                    'orange',
+                    {'tomatoes': ['roma', 'kmato', 'cherry', ValueError, 'plum']},
+                    {},
+                    {}
+                ],
+                'object': SimpleMongoLogHandler,
+                'instance': SimpleMongoLogHandler(),
+            })
+
+        rec = self.collection.find_one({'msg.fruits': {'$in': ['apple', 'orange']}})
         self.assertEqual(
-            2,
-            self.collection.find({
-                self.test_key: True, 
-                'info.msg.msg': 'INFO TEST',
-                'level.name': 'INFO'
-            }).count()
+            set(rec.keys()),
+            set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
         )
 
-        # Show that at level=ERROR no new message is logged
-        self.handler.setLevel("ERROR")
-        logger.info({'test': True, 'msg': 'INFO TEST'})
-        self.assertEqual(
-            2,  # count same as previous count
-            self.collection.find({
-                self.test_key: True, 
-                'info.msg.msg': 'INFO TEST',
-                'level.name': 'INFO'
-            }).count()
-        )
+        
+class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
+    def setUp(self):
+        LOGGING['handlers']['mongolog']['class'] = 'mongolog.VerboseMongoLogHandler'
+        logging.config.dictConfig(LOGGING)
+        self.handler = get_mongolog_handler()
+        self.collection = self.handler.get_collection()
+
+        self.remove_test_entries(test_key="info.msg.test")
 
     def test_logstructure_verbose(self):
         """
         Test the verbose log record strucute
         """
-        self.handler.set_record_type(MongoLogHandler.VERBOSE)
         self.handler.setLevel("WARNING")
         log_msg = {'test': True, 'msg': 'WARNING', 'msg2': 'DANGER'}
         query = {
-            self.test_key: log_msg['test'], 
+            'info.msg.test': log_msg['test'], 
             'info.msg.msg': log_msg['msg'],
             'info.msg.msg2': log_msg['msg2'],
             'level.name': 'WARNING'
@@ -307,88 +295,3 @@ class TestLogLevels(unittest.TestCase):
         self.assertEqual(rec['thread']['name'], "MainThread")
         self.assertEqual(rec['info']['filename'], "tests.py")
         self.assertEqual(rec['process']['name'], "MainProcess")
-
-    def test_logstructure_simple(self):
-        """
-        Test the simple log record structure
-        """
-        self.handler.set_record_type(MongoLogHandler.SIMPLE)
-        self.handler.setLevel("DEBUG")
-      
-        
-        # now test a serielazable dict with an exception call
-        log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(MongoLogHandler())}
-        try:
-            raise ValueError
-        except ValueError as e:
-            logger.exception(log_msg)
-
-        rec = self.collection.find_one({'msg.fruits': ['apple', 'orange']})
-        self.assertEqual(
-            set(rec.keys()),
-            set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
-        )
-
-        # Now try an exception log with a complex log msg.
-        try:
-            raise ValueError
-        except ValueError as e:
-            logger.exception({
-                'test': True,
-                'fruits': [
-                    'apple',
-                    'orange',
-                    {'tomatoes': ['roma', 'kmato', 'cherry', ValueError, 'plum']},
-                    {},
-                    {}
-                ],
-                'object': MongoLogHandler,
-                'instance': MongoLogHandler(),
-            })
-
-        rec = self.collection.find_one({'msg.fruits': {'$in': ['apple', 'orange']}})
-        self.assertEqual(
-            set(rec.keys()),
-            set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
-        )
-
-        print "LEAVING"
-        
-
-    def test_debug_verbose(self):
-        self.handler.set_record_type(MongoLogHandler.VERBOSE)
-        logger.debug({'test': True, 'msg': 'DEBUG TEST'})
-        self.assertEqual(
-            1,
-            self.collection.find({
-                self.test_key: True, 
-                'info.msg.msg': 'DEBUG TEST',
-                'level.name': 'DEBUG'
-            }).count()
-        )
-
-    def test_exception_verbose(self):
-        self.handler.set_record_type(MongoLogHandler.VERBOSE)
-        try:
-            raise ValueError()
-        except ValueError:
-            logger.exception({'test': True, 'msg': 'EXCEPTION TEST'})
-
-        query = {
-            self.test_key: True, 
-            'info.msg.msg': 'EXCEPTION TEST',
-            'level.name': 'ERROR'
-        }
-        self.assertEqual(1,self.collection.find(query).count())
-
-        rec = self.collection.find_one(query)
-
-        self.assertEqual(
-            set(rec.keys()), 
-            set(['info', 'name', 'thread', 'level', 'process', 'time', '_id', 'exception'])
-        )
-
-        self.assertEqual(
-            set(rec['exception'].keys()),
-            set(['info', 'trace'])  
-        )
