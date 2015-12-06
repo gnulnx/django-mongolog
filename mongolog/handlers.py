@@ -78,16 +78,19 @@ class BaseMongoLogHandler(Handler):
     def __str__(self):
         return self.__unicode__()
 
-    def connect(self):
+    def connect(self, test=False):
         major_version = int(pymongo.version.split(".")[0])
 
         if major_version == 3:
-            self.connect_pymongo3()
+            self.connect_pymongo3(test)
         elif major_version == 2:
             self.connect_pymongo2()
 
-    def connect_pymongo3(self):
+    def connect_pymongo3(self, test=False):
         try:
+            if test:
+                raise pymongo.errors.ServerSelectionTimeoutError("Just a test")
+
             self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5)
             info = self.client.server_info()
         except pymongo.errors.ServerSelectionTimeoutError as e:

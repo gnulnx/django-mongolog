@@ -149,7 +149,11 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 
         self.remove_test_entries()
 
-    def test_base_handler(self):
+    def test_conncetion_error(self):
+        with self.assertRaises(pymongo.errors.ServerSelectionTimeoutError):
+            self.handler.connect(test=True)
+
+    def test_basehandler_exception(self):
         with self.assertRaises(ValueError):
             raiseException()
 
