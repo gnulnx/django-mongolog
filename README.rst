@@ -45,6 +45,9 @@ Quick start
 4) Create a couple of log entries
     .. code:: python
     
+        """
+        *protip: You can copy and paste all of this
+        """
         import logging
         import pymongo
         logger = logging.getLogger(__name__)
