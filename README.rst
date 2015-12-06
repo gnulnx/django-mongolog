@@ -52,12 +52,13 @@ Quick start
     One of the cool things about mongolog is that it can log complex data structures
     in a way that makes them both human parsable and queryable.  So for instance if 
     we create a the following log message:
+    *Pro Tip: You can copy and paste the following code sippet*
 
     .. code:: python
-    
-        """
-        * Pro Tip: You can copy and paste all of this
-        """
+
+        
+        # Pro Tip: You can copy and paste all of this
+        
         LOG_MSG = {
             'test': True,  
             'test class': 'TestBaseMongoLogHandler',
