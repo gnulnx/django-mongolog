@@ -18,6 +18,7 @@
 import unittest
 import logging
 import json
+import sys
 from logging import config
 import pymongo
 pymongo_major_version = int(pymongo.version.split(".")[0])
@@ -157,10 +158,9 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 
 
         record = records[0]
-        raise Exception(record.keys())
         self.assertEqual(
-            record.keys(),
-            [
+            set(record.keys()),
+            set([
                 u'threadName', 
                 u'name', 
                 u'thread', 
@@ -181,8 +181,33 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
                 u'_id', 
                 u'levelname', 
                 u'lineno'
-            ]
+            ])
         )
+        """
+        [
+            'name', 
+            'stack_info', 
+            'levelno',
+            'process', 
+            'args', 
+            'exc_info', 
+            'processName', 
+            'threadName', 
+            'pathname', 
+            'created', 
+            'lineno', 
+            'funcName', 
+            'filename', 
+            '_id', 
+            'levelname', 
+            'msecs', 
+            'relativeCreated', 
+            'module', 
+            'thread', 
+            'msg', 
+            'exc_text'
+        ]
+        """
 
         # Now test that the nested ValueError was successfully converted to a unicode str.
         try:
