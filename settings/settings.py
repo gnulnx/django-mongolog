@@ -28,7 +28,7 @@ LOGGING = {
             'level': 'DEBUG',
             #'class': 'mongolog.BaseMongoLogHandler',
             'class': 'mongolog.SimpleMongoLogHandler',
-            #'class': 'mongolog.BaseMongoHandler',
+            #'class': 'mongolog.VerboseMongoHandler',
             'connection': 'mongodb://localhost:27017',
             'w': 1,
             'j': False,
