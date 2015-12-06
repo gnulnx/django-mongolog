@@ -52,9 +52,12 @@ Quick start
         import pymongo
         logger = logging.getLogger(__name__)
 
-        # One of the cool things about mongolog is that it can log complex data structures
-        # in a way that makes them both human parseable and queryable.  So for instance if 
-        # we create a the following log message 
+    One of the cool things about mongolog is that it can log complex data structures
+    in a way that makes them both human parseable and queryable.  So for instance if 
+    we create a the following log message:
+
+    .. code:: python
+     
         LOG_MSG = {
             'test': True,  
             'test class': 'TestBaseMongoLogHandler',
