@@ -17,6 +17,7 @@
 """
 import unittest
 import logging
+from logging import config  # noqa
 import sys
 import pymongo
 pymongo_major_version = int(pymongo.version.split(".")[0])
