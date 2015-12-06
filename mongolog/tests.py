@@ -185,9 +185,10 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
             expected_keys.append(u'stack_info')
             #del(expected_keys['lineno'])
 
+       
+        record = records[0]
         print("expected_keys(%s)" % expected_keys)
         print("record.keys(%s)" % record.keys())
-        record = records[0]
         self.assertEqual(
             set(record.keys()),
             set([
