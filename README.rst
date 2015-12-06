@@ -101,7 +101,7 @@ Quick start
         except ValueError as e:
             logger.exception(LOG_MSG)
 
-5) Now log into your mongo shell and look at some results::
+5) Now log into your mongo shell and look at some results
     
     .. code:: javascript
         
