@@ -20,8 +20,6 @@ from __future__ import print_function
 from logging import Handler, NOTSET
 from datetime import datetime
 import json
-import pprint
-pp = pprint.PrettyPrinter(indent=4)
 
 import pymongo
 
@@ -52,8 +50,7 @@ class BaseMongoLogHandler(Handler):
         # Used to determine which time setting is used in the simple record_type
         self.time_zone = time_zone
 
-        # If True will print each log_record to console before logging to mongo
-        # Useful for debugging since "func" will provides name of test method. 
+        # If True will print each log_record to console before writing to mongo
         self.verbose = verbose
 
         if not self.connection:
@@ -61,14 +58,14 @@ class BaseMongoLogHandler(Handler):
             print("Will try to connect with default")
 
             # Set a defaul connection key
-            self.connection = 'mongodb://localhost:27017/'
+            self.connection = u'mongodb://localhost:27017/'
 
         self.connect()
 
         return super(BaseMongoLogHandler, self).__init__(level)
 
     def __unicode__(self):
-        return self.connection
+        return u'%s' % self.connection
 
     def __str__(self):
         return self.__unicode__()
@@ -111,7 +108,8 @@ class BaseMongoLogHandler(Handler):
     
     def create_log_record(self, record):
         """
-
+        Override in subclasses to change log record formatting.
+        See SimpleMongoLogHandler and VerboseMongoLogHandler
         """
         return LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
 
