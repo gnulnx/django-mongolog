@@ -49,6 +49,48 @@ Quick start
         import pymongo
         logger = logging.getLogger(__name__)
 
+        TEST_MSG = {
+            'test': True,  
+            'test class': 'TestBaseMongoLogHandler',
+            'Life': {
+                'Domain': {
+                    'Bacteria': [
+                        {
+                            'name': ValueError,
+                            'description': 'Just a bad description'
+                        }
+                    ],
+                    'Archaea': [],
+                    'Eukaryota': [
+                        {
+                            'name': 'Excavata', 
+                            'description': 'Various flagellate protozoa',
+                        },
+                        {   
+                            'name': 'Amoebozoa',
+                            'descritpion': 'most lobose amoeboids and slime moulds',
+                        },
+                        {
+                            'name': 'Opisthokonta',
+                            'description': 'animals, fungi, choanoflagellates, etc.',
+                        },
+                        {
+                            'name': 'Rhizaria',
+                            'description': 'Foraminifera, Radiolaria, etc'
+                        },
+                        {   
+                            'name': 'Chromalveolata',
+                            'description': 'Stramenopiles (Brown Algae, Diatoms etc.)'
+                        },
+                        {
+                            'name': 'Archaeplastida',
+                            'description': 'Land plants, green algae, red algae, and glaucophytes'
+                        },
+                    ]
+                } 
+            }
+        }
+
         logger.debug("A debug message")
         logger.info("An info message")
         logger.warning("A warning message")
