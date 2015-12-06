@@ -6,7 +6,7 @@ with standard python/django logging.
 
  .. image:: https://coveralls.io/repos/gnulnx/django-mongolog/badge.svg?branch=master&service=github :target: https://coveralls.io/github/gnulnx/django-mongolog?branch=master
 
-
+..
  Please visit the `MongoLog Users Group <https://groups.google.com/forum/#!forum/mongolog-users>`_ with any questions/suggestions.   Thanks.
 
 Quick start
