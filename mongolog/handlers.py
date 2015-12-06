@@ -73,10 +73,12 @@ class MongoLogHandler(Handler):
         list of handlers
         """
         logger = logging.getLogger('')
-        for handler in logger.handlers:
-            if isinstance(handler, MongoLogHandler):
-                return handler
-        return None
+        handler = None
+        for _handler in logger.handlers:
+            if isinstance(_handler, MongoLogHandler):
+                handler = _handler
+                break
+        return handler
 
     def get_collection(self):
         """
