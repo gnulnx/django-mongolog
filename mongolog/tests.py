@@ -157,6 +157,32 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         self.assertEqual(1, records.count())
 
 
+        expected_keys = [
+            u'threadName', 
+            u'name', 
+            u'thread', 
+            u'relativeCreated', 
+            u'process',
+            u'args', 
+            u'filename', 
+            u'module', 
+            u'funcName', 
+            u'levelno', 
+            u'processName', 
+            u'created', 
+            u'msecs', 
+            u'msg', 
+            u'exc_info', 
+            u'exc_text', 
+            u'pathname', 
+            u'_id', 
+            u'levelname', 
+            u'lineno'
+        ]
+        # To make test pass on python 3 version
+        if sys.version_info[0] >= 3:
+            expected_keys.append(u'stack_info')
+
         record = records[0]
         self.assertEqual(
             set(record.keys()),
@@ -183,31 +209,7 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
                 u'lineno'
             ])
         )
-        """
-        [
-            'name', 
-            'stack_info', 
-            'levelno',
-            'process', 
-            'args', 
-            'exc_info', 
-            'processName', 
-            'threadName', 
-            'pathname', 
-            'created', 
-            'lineno', 
-            'funcName', 
-            'filename', 
-            '_id', 
-            'levelname', 
-            'msecs', 
-            'relativeCreated', 
-            'module', 
-            'thread', 
-            'msg', 
-            'exc_text'
-        ]
-        """
+        
 
         # Now test that the nested ValueError was successfully converted to a unicode str.
         try:
