@@ -105,8 +105,9 @@ Quick start
     .. code:: python
 
         ./mongo
-        > use mongolog
-        > db.mongolog.findOne({'level': "INFO"})
+        
+        use mongolog
+        db.mongolog.findOne({'level': "INFO"})
 
     Will produde a mongo document like:
 
