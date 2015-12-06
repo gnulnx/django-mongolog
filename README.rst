@@ -103,7 +103,7 @@ Quick start
 
 5) Now log into your mongo shell and look at some results
     
-    .. code:: javascript
+    .. code:: python
         
         db.mongolog.find({'level': "INFO"}).pretty()
         {
