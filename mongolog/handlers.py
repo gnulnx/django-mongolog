@@ -20,6 +20,8 @@ from __future__ import print_function
 from logging import Handler, StreamHandler, NOTSET
 from datetime import datetime
 import json
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
 
 import pymongo 
 
@@ -27,7 +29,7 @@ from mongolog.exceptions import MongoLogError
 from mongolog.models import LogRecord
 
 import logging
-logger = logging.getLogger('django')
+logger = logging.getLogger('')
 
 
 class MongoLogHandler(Handler):
@@ -38,7 +40,7 @@ class MongoLogHandler(Handler):
     VERBOSE='verbose'
     record_types = [SIMPLE, VERBOSE]
 
-    def __init__(self, level=NOTSET, connection=None, w=1, j=False, record_type="verbose", time_zone="local"):
+    def __init__(self, level=NOTSET, connection=None, w=1, j=False, record_type="verbose", verbose=None, time_zone="local"):
         self.connection = connection
 
         # Choose between verbose and simpel log record types
@@ -46,6 +48,10 @@ class MongoLogHandler(Handler):
         
         # Used to determine which time setting is used in the simple record_type
         self.time_zone = time_zone
+
+        # If True will print each log_record to console before logging to mongo
+        # Useful for debugging since "func" will provides name of test method. 
+        self.verbose = verbose
 
         if not self.connection:
             print("'connection' key not provided in logging config")
@@ -64,6 +70,26 @@ class MongoLogHandler(Handler):
     def __str__(self):
         return self.__unicode__()
 
+    @staticmethod
+    def handler():
+        """
+        Return the first MongoLogHander found in the current loggers
+        list of handlers
+        """
+        logger = logging.getLogger('')
+        handler = None
+        for _handler in logger.handlers:
+            if isinstance(_handler, MongoLogHandler):
+                handler = _handler
+                break
+        return handler
+
+    def get_collection(self):
+        """
+        Return the collection being used by MongoLogHandler
+        """
+        return getattr(self, "collection", None)
+
     def connect(self):
         major_version = int(pymongo.version.split(".")[0])
 
@@ -78,7 +104,7 @@ class MongoLogHandler(Handler):
             info = self.client.server_info()
         except pymongo.errors.ServerSelectionTimeoutError as e:
             msg = "Unable to connect to mongo with (%s)" % self.connection
-            logger.exception(msg)
+            logger.exception({'note': 'mongolog', 'msg': msg})
             raise pymongo.errors.ServerSelectionTimeoutError(msg)
         
         self.db = self.client.mongolog
@@ -156,7 +182,10 @@ class MongoLogHandler(Handler):
         })    
         # Add exception info
         if record.exc_info:
-            log_record['exception'] = record.exc_text,
+            log_record['exception'] = {
+                'info': record.exc_info,
+                'trace': record.exc_text,
+            }
 
         return log_record
 
@@ -172,36 +201,55 @@ class MongoLogHandler(Handler):
         elif self.record_type == "simple":
             log_record = self.simple_record(record)
 
+        # set this up so you can pass the verbose
+        if self.verbose:
+            print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
+
         if int(pymongo.version[0]) < 3:
             self.collection.insert(log_record)
         else: 
             self.collection.insert_one(log_record)
-
-    def process_tuple(self, items):
-        ret_items = []
-        for item in items:
-            if isinstance(item, AttributeError):
-                item = str(item.message)
-            ret_items.append(str(item))
-        return ret_items
-
+                
     def process_record(self, record):
-        for k, v in record.__dict__.items():
-            if k == 'exc_text' and v:
-                v = tuple(v.split("\n"))
-            if isinstance(v, tuple):
-                v = self.process_tuple(v)
+        # Make sure the entire log message is JSON serializable.
+        record.msg = self.ensure_json(record.msg)
+        return self.process_record_exception(record)
 
-            try:
-                test = json.dumps(v)
-                record.__dict__[k] = v
-            except TypeError as e:
-                if "is not JSON serializable" in str(e):
-                    logger.exception("Failed to log message(%s) converting to str" % str(e))
-                    record.__dict__[k] = str(v)
-                else:
-                    raise
+    def ensure_json(self, value):
+        """
+        Use json.dumps(...) to ensure that 'value' is in json format.
+        The default=str option will attempt to convert any non serializable
+        objects/sub objects to a string.
+
+        Once the object has been json serialized we again use json to json.loads
+        the json string into a python dictionary.   We do this because pymongo
+        uses a slighlyt different serialization when inserting python data
+        into mongo and deserialization when pulling it out. 
+        """
+        return json.loads(json.dumps(value, default=str))
+
+
+    def process_record_exception(self, record):
+        """
+        Check for record attributes indicating the logger.exception(...)
+        method was called.  If those attrbutes are found ensure that they 
+        are converted to JSON serializable formats.  exc_text is also 
+        split up based on lines to make for nice stack trace prints inside
+        mongo.
+        """
+        if hasattr(record, "exc_info"):
+            record.exc_info = self.ensure_json(record.exc_info)
+
+        if hasattr(record, "exc_text"):
+            exc_text = record.exc_text.split("\n") if record.exc_text else None
+            record.exc_text = self.ensure_json(exc_text)
+
         return record
+
+    
+
+        
+
 
     
 

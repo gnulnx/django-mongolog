@@ -17,6 +17,7 @@
 """
 import unittest
 import logging
+import json
 from logging import config
 import pymongo
 pymongo_major_version = int(pymongo.version.split(".")[0])
@@ -39,6 +40,7 @@ LOGGING = {
 
             # utc/local.  Only used with record_type=simple
             'time_zone': 'local',
+            'verbose': True
         },
     },
     'loggers': {
@@ -72,30 +74,15 @@ class TestLogLevels(unittest.TestCase):
     test_key = 'info.msg.test'
 
     def setUp(self):
-        self.collection = self.get_monglog_collection()
+        self.handler = MongoLogHandler.handler()
+        self.collection = self.handler.get_collection()
+        self.handler.setLevel("DEBUG")
 
-        # Check for an preexsting mongolog test entries
+        # Check for any preexsting mongolog test entries
         self.remove_test_entries()
 
     def tearDown(self):
         self.remove_test_entries()
-
-    def get_monglog_collection(self):
-        """
-        Get the collection used by the first MongoLogHandler 
-        found in the root loggers list of handlers. 
-        """
-        for handler in logger.handlers:
-            if isinstance(handler, MongoLogHandler):
-                self.handler = handler
-                self.handler.setLevel("DEBUG")
-                self.collection = self.handler.collection
-                break
-
-        if not hasattr(self, 'collection'):
-            raise ValueError("Perhaps you didn't a monglog handler?", self.handler.__dict__)
-
-        return self.collection
 
     def test_str_unicode_mongologhandler(self):
         self.assertEqual(self.handler.connection, u"%s" % self.handler)
@@ -195,9 +182,7 @@ class TestLogLevels(unittest.TestCase):
             )
 
         self.assertEqual(rec['thread']['name'], "MainThread")
-
         self.assertEqual(rec['info']['filename'], "tests.py")
-
         self.assertEqual(rec['process']['name'], "MainProcess")
 
     def test_logstructure_simple(self):
@@ -206,17 +191,8 @@ class TestLogLevels(unittest.TestCase):
         """
         self.handler.set_record_type(MongoLogHandler.SIMPLE)
         self.handler.setLevel("DEBUG")
+      
         
-        log_msg = {'test': True, 'fruit': ['apple', 'orange'], 'error': ValueError, 'handler': MongoLogHandler()}
-        logger.info(log_msg)
-
-        # We expect log_msg to be converted to a str because ValueError and MongoLogHandler() are not 
-        # JSON serieliazable
-        query = {'msg': str(log_msg)}
-
-        rec = self.collection.find_one(query)
-        self.assertEqual(rec['msg'], str(log_msg))
-
         # now test a serielazable dict with an exception call
         log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(MongoLogHandler())}
         try:
@@ -229,6 +205,30 @@ class TestLogLevels(unittest.TestCase):
             set(rec.keys()),
             set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
         )
+
+        # Now try an exception log with a complex log msg.
+        try:
+            raise ValueError
+        except ValueError as e:
+            logger.exception({
+                'test': True,
+                'fruits': [
+                    'apple',
+                    'orange',
+                    {'tomatoes': ['roma', 'kmato', 'cherry', ValueError, 'plum']},
+                    {},
+                    {}
+                ],
+                'object': MongoLogHandler,
+                'instance': MongoLogHandler(),
+            })
+
+        rec = self.collection.find_one({'msg.fruits': {'$in': ['apple', 'orange']}})
+        self.assertEqual(
+            set(rec.keys()),
+            set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
+        )
+        
 
     def test_debug_verbose(self):
         self.handler.set_record_type(MongoLogHandler.VERBOSE)
