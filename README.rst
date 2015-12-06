@@ -165,40 +165,40 @@ Quick start
     is contained under that key in standard mongo data structures.  This means that we can query 
     based on our log message.  For example in your mongo shell try the following queries:
 
-    .. code:: python
+    .. code:: javascript
 
-        # Find all documents loggd with a 'test' key
+        // Find all documents logged with a 'test' key
         > db.mongolog.find({'msg.test': {$exists: true}}).count()
         5
 
-        # Find all documents that have a Eukaryota name in the list of  ["Amoebozoa", "Opisthokonta"]
+        // Find all documents that have a Eukaryota name in the list of  ["Amoebozoa", "Opisthokonta"]
         > db.mongolog.find({'msg.Life.Domain.Eukaryota.name': {$in: ["Amoebozoa", "Opisthokonta"]}}).count()
         1
 
-        # Same as above but only those documents logged at level INFO
+        // Same as above but only those documents logged at level INFO
         >db.mongolog.find({
             'level': 'INFO',
             'msg.Life.Domain.Eukaryota.name': {$in: ["Amoebozoa", "Opisthokonta"]}, 
         }).count()
         1
 
-        # And again at level ERROR.  
+        // And again at level ERROR.  
         >db.mongolog.find({
             'level': 'INFO',
             'msg.Life.Domain.Eukaryota.name': {$in: ["Amoebozoa", "Opisthokonta"]}, 
         }).count()
         2
         
-        # Notice that now two records are returned.  This is because
-        # logger.exception(...) also logs at level ERROR, but also notice that if when we
-        # pretty print the records...
+        // Notice that now two records are returned.  This is because
+        // logger.exception(...) also logs at level ERROR, but also notice that if when we
+        // pretty print the records...
         >db.mongolog.find({
             'level': 'ERROR',
             'msg.Life.Domain.Eukaryota.name': {$in: ["Amoebozoa", "Opisthokonta"]}, 
         }).pretty()
 
-        # ...that one of the entries has exception info.  When running in a real environment
-        # and not the console the 'trace' section will be populated with the full stack trace.
+        // ...that one of the entries has exception info.  When running in a real environment
+        // and not the console the 'trace' section will be populated with the full stack trace.
         "exception" : {
             "info" : [
                 "<type 'exceptions.ValueError'>",
@@ -209,15 +209,15 @@ Quick start
              null
         }
 
-6) Future  Roadmap
-    .. code:: python
+Future  Roadmap
+---------------
 
-    Currently mongolog has pretty solid support for logging arbitrary datastructures.  If it finds
-    an object it doesn't know how to natively serialize it will try to convert it to str().  
+Currently mongolog has pretty solid support for logging arbitrary datastructures.  If it finds
+an object it doesn't know how to natively serialize it will try to convert it to str().  
 
-    The next steps are to create a set of most used query operations for probing the log.
+The next steps are to create a set of most used query operations for probing the log.
 
-    I am very interested in feedback and feature requests from anyone using mongolog.  So again
-    please visit the `MongoLog Users Group <https://groups.google.com/forum/#!forum/mongolog-users>`_ with any questions/suggestions/comments/or general feedback.   
+I am very interested in feedback and feature requests from anyone using mongolog.  So again
+please visit the `MongoLog Users Group <https://groups.google.com/forum/#!forum/mongolog-users>`_ with any questions/suggestions/comments/or general feedback.   
 
-    Thanks
+Thanks
