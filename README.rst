@@ -65,7 +65,7 @@ Quick start
                 'Domain': {
                     'Bacteria': [
                         {
-                            'name': ValueError,
+                            'name': ValueError,  # intentional bad value
                             'description': 'Just a bad description'
                         }
                     ],
@@ -156,3 +156,6 @@ Quick start
             "line" : 1
         }
 
+    Take a look at the "msg" section and you will notice that all of the information from our LOG_MSG
+    is contained therein standard mongo datastructures.  This means that we can in fact query based on
+    our log message.
