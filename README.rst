@@ -2,7 +2,7 @@ MongoLog
 ========
 
 MongoLog is a simple Mongo based log handler that can be easly used
-with standard python/django logging
+with standard python/django logging.
 
  .. image:: https://coveralls.io/repos/gnulnx/django-mongolog/badge.svg?branch=master&service=github :target: https://coveralls.io/github/gnulnx/django-mongolog?branch=master
 
@@ -17,25 +17,26 @@ Quick start
             'mongolog',
         )
 
-2. Add the MongoLoggerHandler to your LOGGING config
+2. Add the SimpleMongoLoggerHandler to your LOGGING config
     .. code:: python
 
-        LOGGING = {
-            'handler': {
-                'mongolog': {
-                    'level': 'WARN',
-                    'class': 'mongolog.SimpleMongoLogHandler',
-                    'connection': 'mongodb://localhost:27017/'
-                },
+    LOGGING = {
+        'version': 1,
+        'handlers': {
+            'mongolog': {
+                'level': 'DEBUG',
+                'class': 'mongolog.SimpleMongoLogHandler',
+                'connection': 'mongodb://localhost:27017'
             },
-            'loggers': {
-                'django': {
-                    'handlers': ['console', 'mongolog'],
-                    'level': 'DEBUG',
-                    'propagate': True
-                },
+        },
+        'loggers': {
+            'django': {
+                'handlers': ['mongolog'],
+                'level': 'INFO',
+                'propagate': True
             },
-        }
+        },
+    }
 
 3) Start your management shell::
 
@@ -45,6 +46,7 @@ Quick start
     .. code:: python
     
         import logging
+        import pymongo
         logger = logging.getLogger(__name__)
 
         logger.debug("A debug message")
