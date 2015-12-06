@@ -1,5 +1,5 @@
 """
-	django-mongolog.  Simple Mongo based logger for Django
+    django-mongolog.  Simple Mongo based logger for Django
     Copyright (C) 2015 - John Furr
 
     This program is free software: you can redistribute it and/or modify
@@ -17,9 +17,7 @@
 """
 import unittest
 import logging
-import json
 import sys
-from logging import config
 import pymongo
 pymongo_major_version = int(pymongo.version.split(".")[0])
 
@@ -70,13 +68,13 @@ logger = logging.getLogger('')
     NOTE: You can add any other key you want for testing purposes
 """
 TEST_MSG = {
-    'test':  True,  # String so we can remove test entries
+    'test': True,  # String so we can remove test entries
     'test class': 'TestBaseMongoLogHandler',
     'Life': {
         'Domain': {
             'Bacteria': [
                 {
-                    'name':  ValueError,
+                    'name': ValueError,
                     'description': 'Just a bad description'
                 }
             ],
@@ -87,7 +85,7 @@ TEST_MSG = {
                     'description': 'Various flagellate protozoa',
                 },
                 {   
-                    'name':'Amoebozoa',
+                    'name': 'Amoebozoa',
                     'descritpion': 'most lobose amoeboids and slime moulds',
                 },
                 {
@@ -110,6 +108,7 @@ TEST_MSG = {
         } 
     }
 }
+
 
 def raiseException():
     """
@@ -231,7 +230,7 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
         try:
             raise ValueError
-        except ValueError as e:
+        except ValueError:
             logger.exception(log_msg)
 
         rec = self.collection.find_one({'msg.fruits': ['apple', 'orange']})
@@ -243,7 +242,7 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         # Now try an exception log with a complex log msg.
         try:
             raise ValueError
-        except ValueError as e:
+        except ValueError:
             logger.exception({
                 'test': True,
                 'fruits': [
@@ -290,7 +289,7 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         record = records[0]
         self.assertEqual(
             set(record.keys()),
-            set([u'info', u'exception', u'time', u'level',u'name', u'thread', u'process', u'_id'])
+            set([u'info', u'exception', u'time', u'level', u'name', u'thread', u'process', u'_id'])
         )
 
         self.assertEqual(
@@ -333,7 +332,7 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         )
 
         for key in ['process', 'level', 'thread']:
-          self.assertEqual(
+            self.assertEqual(
                 set(rec[key].keys()),
                 set(['num', 'name'])
             )

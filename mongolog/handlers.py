@@ -17,19 +17,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 from __future__ import print_function
-from logging import Handler, StreamHandler, NOTSET
+from logging import Handler, NOTSET
 from datetime import datetime
 import json
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
 
-import pymongo 
+import pymongo
 
-from mongolog.exceptions import MongoLogError
 from mongolog.models import LogRecord
 
 import logging
 logger = logging.getLogger('')
+
 
 def get_mongolog_handler():
     """
@@ -46,12 +46,7 @@ def get_mongolog_handler():
 
 
 class BaseMongoLogHandler(Handler):
-    # These will be deprecated in the new model
-    SIMPLE='simple'
-    VERBOSE='verbose'
-    record_types = [SIMPLE, VERBOSE]
-
-    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local"):
+    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local"):  # noqa
         self.connection = connection
 
         # Used to determine which time setting is used in the simple record_type
@@ -92,8 +87,8 @@ class BaseMongoLogHandler(Handler):
                 raise pymongo.errors.ServerSelectionTimeoutError("Just a test")
 
             self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5)
-            info = self.client.server_info()
-        except pymongo.errors.ServerSelectionTimeoutError as e:
+            self.client.server_info()
+        except pymongo.errors.ServerSelectionTimeoutError:
             msg = "Unable to connect to mongo with (%s)" % self.connection
             logger.exception({'note': 'mongolog', 'msg': msg})
             raise pymongo.errors.ServerSelectionTimeoutError(msg)
@@ -104,7 +99,7 @@ class BaseMongoLogHandler(Handler):
     def connect_pymongo2(self):
         # TODO Determine proper try/except logic for pymongo 2.7 driver
         self.client = pymongo.MongoClient(self.connection)
-        info = self.client.server_info()
+        self.client.server_info()
         self.db = self.client.mongolog
         self.collection = self.db.mongolog
 
@@ -114,7 +109,7 @@ class BaseMongoLogHandler(Handler):
         """
         return getattr(self, "collection", None)
     
-    def create_log_record(self,record):
+    def create_log_record(self, record):
         """
 
         """
@@ -126,25 +121,21 @@ class BaseMongoLogHandler(Handler):
         https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
         """
         log_record = self.create_log_record(record)
-        #log_record = json.loads(json.dumps(log_record, default=str))
+        # log_record = json.loads(json.dumps(log_record, default=str))
         # set this up so you can pass the verbose
-        self.verbose=True
         if self.verbose:
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
-
-
 
         if int(pymongo.version[0]) < 3:
             self.collection.insert(log_record)
         else: 
-            #raise Exception(type(log_record))
             self.collection.insert_one(log_record)
     
 
 class SimpleMongoLogHandler(BaseMongoLogHandler):
     def create_log_record(self, record):
         record = super(SimpleMongoLogHandler, self).create_log_record(record)
-        mongolog_record =  LogRecord({
+        mongolog_record = LogRecord({
             'name': record['name'],
             'thread': record['thread'],
             'time': datetime.utcnow() if self.time_zone == 'utc' else datetime.now(),
@@ -169,7 +160,7 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
 class VerboseMongoLogHandler(BaseMongoLogHandler):
     def create_log_record(self, record):
         record = super(VerboseMongoLogHandler, self).create_log_record(record) 
-        mongolog_record =  LogRecord({
+        mongolog_record = LogRecord({
             'name': record['name'],
             'thread': {
                 'num': record['thread'],
@@ -204,9 +195,3 @@ class VerboseMongoLogHandler(BaseMongoLogHandler):
             }
 
         return mongolog_record
-
-
-    
-
-    
-        

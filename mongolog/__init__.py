@@ -1,5 +1,5 @@
 """
-	django-mongolog.  Simple Mongo based logger for Django
+    django-mongolog.  Simple Mongo based logger for Django
     Copyright (C) 2015 - John Furr
 
     This program is free software: you can redistribute it and/or modify

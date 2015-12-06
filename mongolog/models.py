@@ -17,6 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+
 class LogRecord(dict):
     """
     {
@@ -48,12 +49,4 @@ class LogRecord(dict):
         }
     }
     """
-    #def __str__(self):
-    #    return json.dumps(self, sort_keys=True, indent=4, default=str)
-
-    #def __repr__(self):
-    #    return json.dumps(self, sort_keys=True, indent=4, default=str)
-    #    return json.loads(json.dumps(self, default=str))
     pass
-    
-
