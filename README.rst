@@ -105,10 +105,8 @@ Quick start
     
     .. code:: javascript
         
-        ./mongo
-
-        > use mongo
-        > db.mongolog.find({'level': "INFO"}).pretty()
+        use mongo
+        db.mongolog.find({'level': "INFO"}).pretty()
         {
             "_id" : ObjectId("5664a22bdd162ca58f0693d2"),
             "name" : "__builtin__",
