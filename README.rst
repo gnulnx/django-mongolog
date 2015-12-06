@@ -88,8 +88,8 @@ Quick start
             }
         }
 
-    And then we log our essage at each of the defined log levels...
-    
+    Now let's log our message at each of the defined log levels...
+
     .. code:: python
 
         logger.debug(LOG_MSG)
@@ -101,9 +101,59 @@ Quick start
         except ValueError as e:
             logger.exception(LOG_MSG)
 
-5) Now log into your mongo shell::
+5) Now log into your mongo shell and look at some results::
+    
+    .. code:: javascript
+        
+        ./mongo
 
-    mongo
+        > use mongo
+        > db.mongolog.find({'level': "INFO"}).pretty()
+        {
+            "_id" : ObjectId("5664a22bdd162ca58f0693d2"),
+            "name" : "__builtin__",
+            "thread" : NumberLong("140735229362944"),
+            "level" : "INFO",
+            "process" : 42383,
+            "module" : "<console>",
+            "filename" : "<console>",
+            "func" : "<module>",
+            "time" : ISODate("2015-12-06T21:01:31.258Z"),
+            "msg" : {
+                "test" : true,
+                "Life" : {
+                    "Domain" : {
+                        "Eukaryota" : [
+                            {
+                                "name" : "Excavata",
+                                "description" : "Various flagellate protozoa"
+                            },
+                            {
+                                "name" : "Amoebozoa",
+                                "descritpion" : "most lobose amoeboids and slime moulds"
+                            },
+                            {
+                                "name" : "Opisthokonta",
+                                "description" : "animals, fungi, choanoflagellates, etc."
+                            }
+                        ],
+                        "Archaea" : [ ],
+                        "Bacteria" : [
+                            {
+                                "name" : "<type 'exceptions.ValueError'>",
+                                "description" : "Just a bad description"
+                            }
+                        ]
+                    }
+                },
+                "test class" : "TestBaseMongoLogHandler"
+            },
+            "path" : "<console>",
+            "line" : 1
+        }
+
+
+
     > use mongolog
     > db.mongolog.find({}).sort({'time.utc': -1}).limit(3)
 
