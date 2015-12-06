@@ -54,6 +54,7 @@ Quick start
     we create a the following log message:
 
     .. code:: python
+    
         """
         * Pro Tip: You can copy and paste all of this
         """
