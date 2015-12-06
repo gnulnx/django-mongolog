@@ -20,8 +20,6 @@ from __future__ import print_function
 from logging import Handler, NOTSET
 from datetime import datetime
 import json
-import pprint
-pp = pprint.PrettyPrinter(indent=4)
 
 import pymongo
 
