@@ -157,5 +157,49 @@ Quick start
         }
 
     Take a look at the "msg" section and you will notice that all of the information from our LOG_MSG
-    is contained therein standard mongo datastructures.  This means that we can in fact query based on
-    our log message.
+    is contained under that key in standard mongo datastructures.  This means that we can in fact query 
+    based on our log message.  For example in your mongo shell try the following query:
+
+    .. code:: python
+
+        # Find all documents loggd with a 'test' key
+        > db.mongolog.find({'msg.test': {$exists: true}}).count()
+        5
+
+        # Find all documents that have a  Eukaryota name in the list of  ["Amoebozoa", "Opisthokonta"]
+        > db.mongolog.find({'msg.Life.Domain.Eukaryota.name': {$in: ["Amoebozoa", "Opisthokonta"]}}).count()
+        1
+
+        # Same as above but only those documents logged at level INFO
+        db.mongolog.find({
+            'level': 'INFO',
+            'msg.Life.Domain.Eukaryota.name': {$in: ["Amoebozoa", "Opisthokonta"]}, 
+        }).count()
+        1
+
+        # And again at level ERROR.  
+        db.mongolog.find({
+            'level': 'INFO',
+            'msg.Life.Domain.Eukaryota.name': {$in: ["Amoebozoa", "Opisthokonta"]}, 
+        }).count()
+        2
+        
+        #Notice that now two records are returned.  This is because
+        # logger.exception(...) also logs at level ERROR, but almost notice that if we
+        # pretty print the records
+        db.mongolog.find({
+            'level': 'ERROR',
+            'msg.Life.Domain.Eukaryota.name': {$in: ["Amoebozoa", "Opisthokonta"]}, 
+        }).pretty()
+
+        # notice that one of the entries has exception info.  When running in a real environment
+        # and not the console the 'trace' section will be populated with the full trace back
+
+        "exception" : {
+            "info" : [
+                "<type 'exceptions.ValueError'>",
+                "Bad Value",
+                "<traceback object at 0x106853b90>"
+            ],
+            "trace" : null
+        },
