@@ -74,31 +74,19 @@ Quick start
                             'name': 'Opisthokonta',
                             'description': 'animals, fungi, choanoflagellates, etc.',
                         },
-                        {
-                            'name': 'Rhizaria',
-                            'description': 'Foraminifera, Radiolaria, etc'
-                        },
-                        {   
-                            'name': 'Chromalveolata',
-                            'description': 'Stramenopiles (Brown Algae, Diatoms etc.)'
-                        },
-                        {
-                            'name': 'Archaeplastida',
-                            'description': 'Land plants, green algae, red algae, and glaucophytes'
-                        },
                     ]
                 } 
             }
         }
 
-        logger.debug("A debug message")
-        logger.info("An info message")
-        logger.warning("A warning message")
-        logger.error("An error message")
+        logger.debug(TEST_MSG)
+        logger.info(TEST_MSG)
+        logger.warn(TEST_MSG)
+        logger.error(TEST_MSG)
         try:
             raise ValueError("Bad Value")
         except ValueError as e:
-            logger.exception("An exception message")
+            logger.exception(TEST_MSG)
 
 5) Now log into your mongo shell::
 
