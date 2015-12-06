@@ -24,7 +24,7 @@ Quick start
             'handler': {
                 'mongolog': {
                     'level': 'WARN',
-                    'class': 'mongolog.MongoLogHandler',
+                    'class': 'mongolog.SimpleMongoLogHandler',
                     'connection': 'mongodb://localhost:27017/'
                 },
             },
