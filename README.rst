@@ -101,14 +101,12 @@ Quick start
         except ValueError as e:
             logger.exception(LOG_MSG)
 
-5) Now log into your mongo shell and look at some results::
+5) Now log into your mongo shell and look at some results
+    .. code:: javascript
 
-    Running the following command
-
-    .. code:: python
-        
-        use mongolog
-        db.mongolog.findOne({'level': "INFO"})
+        ./mongo
+        > use mongolog
+        > db.mongolog.findOne({'level': "INFO"})
 
     Will produde a mongo document like:
 
