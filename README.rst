@@ -102,7 +102,7 @@ Quick start
             logger.exception(LOG_MSG)
 
 5) Now log into your mongo shell and look at some results
-    .. code:: javascript
+    .. code:: python
 
         ./mongo
         > use mongolog
