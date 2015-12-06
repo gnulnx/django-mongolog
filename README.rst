@@ -212,13 +212,12 @@ Quick start
 6) Future  Roadmap
     .. code:: python
 
-    Currently mongolog has pretty solid support for logging aribtraty datastructures.  If it finds
+    Currently mongolog has pretty solid support for logging arbitrary datastructures.  If it finds
     an object it doesn't know how to natively serialize it will try to convert it to str().  
 
     The next steps are to create a set of most used query operations for probing the log.
 
     I am very interested in feedback and feature requests from anyone using mongolog.  So again
-    please visit the `MongoLog Users Group <https://groups.google.com/forum/#!forum/mongolog-users>`_ with any questions/suggestions.   
+    please visit the `MongoLog Users Group <https://groups.google.com/forum/#!forum/mongolog-users>`_ with any questions/suggestions/comments/or general feedback.   
 
-    If you are interested in contributing please fork the repo and start coding or by all means reach out to me  
-    via the `MongoLog Users Group <https://groups.google.com/forum/#!forum/mongolog-users>`_ 
+    Thanks
