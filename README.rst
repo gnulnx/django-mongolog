@@ -112,8 +112,8 @@ Quick start
     Will produde a mongo document like:
 
     .. code:: python
-    
-        a={
+
+        {
             "_id" : ObjectId("5664a22bdd162ca58f0693d2"),
             "name" : "__builtin__",
             "thread" : NumberLong("140735229362944"),
