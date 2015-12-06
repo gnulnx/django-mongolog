@@ -157,8 +157,8 @@ Quick start
         }
 
     Take a look at the "msg" section and you will notice that all of the information from our LOG_MSG
-    is contained under that key in standard mongo datastructures.  This means that we can in fact query 
-    based on our log message.  For example in your mongo shell try the following query:
+    is contained under that key in standard mongo data structures.  This means that we can query 
+    based on our log message.  For example in your mongo shell try the following queries:
 
     .. code:: python
 
@@ -171,35 +171,45 @@ Quick start
         1
 
         # Same as above but only those documents logged at level INFO
-        db.mongolog.find({
+        >db.mongolog.find({
             'level': 'INFO',
             'msg.Life.Domain.Eukaryota.name': {$in: ["Amoebozoa", "Opisthokonta"]}, 
         }).count()
         1
 
         # And again at level ERROR.  
-        db.mongolog.find({
+        >db.mongolog.find({
             'level': 'INFO',
             'msg.Life.Domain.Eukaryota.name': {$in: ["Amoebozoa", "Opisthokonta"]}, 
         }).count()
         2
         
         #Notice that now two records are returned.  This is because
-        # logger.exception(...) also logs at level ERROR, but almost notice that if we
-        # pretty print the records
-        db.mongolog.find({
+        # logger.exception(...) also logs at level ERROR, but also notice that if when we
+        # pretty print the records...
+        >db.mongolog.find({
             'level': 'ERROR',
             'msg.Life.Domain.Eukaryota.name': {$in: ["Amoebozoa", "Opisthokonta"]}, 
         }).pretty()
 
-        # notice that one of the entries has exception info.  When running in a real environment
-        # and not the console the 'trace' section will be populated with the full trace back
-
+        # one of the entries has exception info.  When running in a real environment
+        # and not the console the 'trace' section will be populated with the full stack trace.
         "exception" : {
             "info" : [
                 "<type 'exceptions.ValueError'>",
                 "Bad Value",
                 "<traceback object at 0x106853b90>"
             ],
-            "trace" : null
-        },
+            "trace" :
+             null
+        }
+
+6) Future  Roadmap
+
+    Currently mongolog has pretty solid support for logging aribtraty datastructures.  If it finds
+    an object it doesn't know how to natively serialize it will try to convert it to str().  
+
+    The next steps are to create a set of most used query operations for probing the log.
+
+    I am very much interested in feedback and feature requests from anyone using mongolog.
+    If you are interested in contributing fork the repo and start coding.  You can reach me through my account at github with any questions.
