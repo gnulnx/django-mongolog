@@ -191,28 +191,7 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         print("record.keys(%s)" % record.keys())
         self.assertEqual(
             set(record.keys()),
-            set([
-                u'threadName', 
-                u'name', 
-                u'thread', 
-                u'relativeCreated', 
-                u'process',
-                u'args', 
-                u'filename', 
-                u'module', 
-                u'funcName', 
-                u'levelno', 
-                u'processName', 
-                u'created', 
-                u'msecs', 
-                u'msg', 
-                u'exc_info', 
-                u'exc_text', 
-                u'pathname', 
-                u'_id', 
-                u'levelname', 
-                u'lineno'
-            ])
+            set(expected_keys)
         )
         
 
