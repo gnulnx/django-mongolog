@@ -32,7 +32,82 @@ import logging
 logger = logging.getLogger('')
 
 
-class MongoLogHandler(Handler):
+class BaseMongoHandler(Handler):
+    def __init__(self, level=NOTSET, connection=None, w=1, j=False, record_type="verbose", verbose=None, time_zone="local"):
+        self.connection = connection
+
+        # Choose between verbose and simpel log record types
+        self.record_type = record_type
+        
+        # Used to determine which time setting is used in the simple record_type
+        self.time_zone = time_zone
+
+        # If True will print each log_record to console before logging to mongo
+        # Useful for debugging since "func" will provides name of test method. 
+        self.verbose = verbose
+
+        if not self.connection:
+            print("'connection' key not provided in logging config")
+            print("Will try to connect with default")
+
+            # Set a defaul connection key
+            self.connection = 'mongodb://localhost:27017/'
+
+        self.connect()
+
+        return super(BaseMongoHandler, self).__init__(level)
+
+    def __unicode__(self):
+        return self.connection
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def connect(self):
+        major_version = int(pymongo.version.split(".")[0])
+
+        if major_version == 3:
+            self.connect_pymongo3()
+        elif major_version == 2:
+            self.connect_pymongo2()
+
+    def connect_pymongo3(self):
+        try:
+            self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5)
+            info = self.client.server_info()
+        except pymongo.errors.ServerSelectionTimeoutError as e:
+            msg = "Unable to connect to mongo with (%s)" % self.connection
+            logger.exception({'note': 'mongolog', 'msg': msg})
+            raise pymongo.errors.ServerSelectionTimeoutError(msg)
+        
+        self.db = self.client.mongolog
+        self.collection = self.db.mongolog
+
+    def connect_pymongo2(self):
+        # TODO Determine proper try/except logic for pymongo 2.7 driver
+        self.client = pymongo.MongoClient(self.connection)
+        info = self.client.server_info()
+        self.db = self.client.mongolog
+        self.collection = self.db.mongolog
+
+    def get_collection(self):
+        """
+        Return the collection being used by MongoLogHandler
+        """
+        return getattr(self, "collection", None)
+    
+    def set_record_type(self, rtype):
+        """
+        Used to set record type on fly...for example during testing
+        """
+        if rtype not in self.record_types:
+            raise ValueError("type must be one of %s" % self.record_types)
+
+        self.record_type = rtype
+    
+
+
+class MongoLogHandler(BaseMongoHandler):
     """
     A handler class which allows logging to use mongo db as the backend
     """
@@ -62,13 +137,9 @@ class MongoLogHandler(Handler):
 
         self.connect()
 
-        return super(MongoLogHandler, self).__init__(level)
+        return super(MongoLogHandler, self).__init__(level, connection, w, j, record_type, verbose, time_zone)
 
-    def __unicode__(self):
-        return self.connection
-
-    def __str__(self):
-        return self.__unicode__()
+    
 
     @staticmethod
     def handler():
@@ -83,48 +154,6 @@ class MongoLogHandler(Handler):
                 handler = _handler
                 break
         return handler
-
-    def get_collection(self):
-        """
-        Return the collection being used by MongoLogHandler
-        """
-        return getattr(self, "collection", None)
-
-    def connect(self):
-        major_version = int(pymongo.version.split(".")[0])
-
-        if major_version == 3:
-            self.connect_pymongo3()
-        elif major_version == 2:
-            self.connect_pymongo2()
-
-    def connect_pymongo3(self):
-        try:
-            self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5)
-            info = self.client.server_info()
-        except pymongo.errors.ServerSelectionTimeoutError as e:
-            msg = "Unable to connect to mongo with (%s)" % self.connection
-            logger.exception({'note': 'mongolog', 'msg': msg})
-            raise pymongo.errors.ServerSelectionTimeoutError(msg)
-        
-        self.db = self.client.mongolog
-        self.collection = self.db.mongolog
-
-    def connect_pymongo2(self):
-        # TODO Determine proper try/except logic for pymongo 2.7 driver
-        self.client = pymongo.MongoClient(self.connection)
-        info = self.client.server_info()
-        self.db = self.client.mongolog
-        self.collection = self.db.mongolog
-    
-    def set_record_type(self, rtype):
-        """
-        Used to set record type on fly...for example during testing
-        """
-        if rtype not in self.record_types:
-            raise ValueError("type must be one of %s" % self.record_types)
-
-        self.record_type = rtype
 
     def verbose_record(self, record):
         # Logrecord Attributes: https://docs.python.org/2/library/logging.html#logrecord-attributes
