@@ -104,13 +104,14 @@ Quick start
 5) Now log into your mongo shell and look at some results
 
     Running the following command
+    
     .. code:: python
         
         use mongolog
         db.mongolog.findOne({'level': "INFO"})
 
     Will produde a mongo document like:
-    
+
     .. code:: python
         {
             "_id" : ObjectId("5664a22bdd162ca58f0693d2"),
