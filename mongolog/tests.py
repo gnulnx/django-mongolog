@@ -69,6 +69,61 @@ logger = logging.getLogger('')
 
     NOTE: You can add any other key you want for testing purposes
 """
+TEST_MSG = {
+    'test':  True,  # String so we can remove test entries
+    'test class': 'TestBaseMongoLogHandler',
+    'Life': {
+        'Domain': {
+            'Bacteria': [
+                {
+                    'name':  ValueError,
+                    'description': 'Just a bad description'
+                }
+            ],
+            'Archaea': [],
+            'Eukaryota': [
+                {
+                    'name': 'Excavata', 
+                    'description': 'Various flagellate protozoa',
+                },
+                {   
+                    'name':'Amoebozoa',
+                    'descritpion': 'most lobose amoeboids and slime moulds',
+                },
+                {
+                    'name': 'Opisthokonta',
+                    'description': 'animals, fungi, choanoflagellates, etc.',
+                },
+                {
+                    'name': 'Rhizaria',
+                    'description': 'Foraminifera, Radiolaria, and various other amoeboid protozoa'
+                },
+                {
+                    'name': 'Chromalveolata',
+                    'description': 'Stramenopiles (Brown Algae, Diatoms etc.)'
+                },
+                {
+                    'name': 'Archaeplastida',
+                    'description': 'Land plants, green algae, red algae, and glaucophytes'
+                },
+            ]
+        } 
+    }
+}
+
+def raiseException():
+    """
+    Used to test logger.exceptions.
+    Use like:
+    with self.assertRaises(ValueError):
+        raiseException()
+    """
+    try:
+        raise ValueError("Test Error")
+    except ValueError:
+        logger.exception(TEST_MSG)
+        raise
+
 
 class TestRemoveEntriesMixin(object):
     def remove_test_entries(self, test_key="msg.test"):
@@ -84,6 +139,7 @@ class TestRemoveEntriesMixin(object):
         # Ensure that we don't have any test entries
         self.assertEqual(0, self.collection.find({test_key: True}).count())
 
+
 class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
         LOGGING['handlers']['mongolog']['class'] = 'mongolog.BaseMongoLogHandler'
@@ -94,55 +150,6 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         self.remove_test_entries()
 
     def test_base_handler(self):
-        test_msg = {
-            'test':  True,  # String so we can remove test entries
-            'test class': 'TestBaseMongoLogHandler',
-            'Life': {
-                'Domain': {
-                    'Bacteria': [
-                        {
-                        'name':  ValueError,
-                        'description': 'Just a bad description'
-                        }
-                    ],
-                    'Archaea': [],
-                    'Eukaryota': [
-                        {
-                            'name': 'Excavata', 
-                            'description': 'Various flagellate protozoa',
-                        },
-                        {   
-                            'name':'Amoebozoa',
-                            'descritpion': 'most lobose amoeboids and slime moulds',
-                        },
-                        {
-                            'name': 'Opisthokonta',
-                            'description': 'animals, fungi, choanoflagellates, etc.',
-                        },
-                        {
-                            'name': 'Rhizaria',
-                            'description': 'Foraminifera, Radiolaria, and various other amoeboid protozoa'
-                        },
-                        {
-                            'name': 'Chromalveolata',
-                            'description': 'Stramenopiles (Brown Algae, Diatoms etc.)'
-                        },
-                        {
-                            'name': 'Archaeplastida',
-                            'description': 'Land plants, green algae, red algae, and glaucophytes'
-                        },
-                    ]
-                } 
-            }
-        }
-
-        def raiseException():
-            try:
-                raise ValueError("Test Error")
-            except ValueError:
-                logger.exception(test_msg)
-                raise
-
         with self.assertRaises(ValueError):
             raiseException()
 
@@ -152,7 +159,6 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
             'levelname': 'ERROR'
         })
         self.assertEqual(1, records.count())
-
 
         expected_keys = [
             u'threadName', 
@@ -187,6 +193,8 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
             set(expected_keys)
         )
 
+        self.assertIn('tests.py', record['pathname'])
+
         # Now test that the nested ValueError was successfully converted to a unicode str.
         try:
             # unicode will throw a NameError in Python 3
@@ -197,7 +205,7 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def test_str_unicode_mongologhandler(self):
         self.assertEqual(self.handler.connection, u"%s" % self.handler)
         self.assertEqual(self.handler.connection, "%s" % self.handler)
-        
+
 
 class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
@@ -214,7 +222,6 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         """
         self.handler.setLevel("DEBUG")
       
-        
         # now test a serielazable dict with an exception call
         log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
         try:
@@ -265,6 +272,51 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         """
         Test the verbose log record strucute
         """
+        with self.assertRaises(ValueError):
+            raiseException()
+
+        records = self.collection.find({
+            'info.msg.test': True, 
+            'info.msg.Life.Domain.Eukaryota.name': "Archaeplastida",
+            'level.name': 'ERROR'
+        })
+        self.assertEqual(1, records.count())
+
+        expected_keys = [
+            u'info',
+            u'exception',
+            u'time',
+            u'level',
+            u'name', 
+            u'thread', 
+            u'process',
+            u'_id', 
+        ]
+        # To make test pass on python 3 version
+        print("sys.version[0](%s)" % sys.version_info[0])
+        if sys.version_info[0] >= 3:
+            expected_keys.append(u'stack_info')
+       
+        record = records[0]
+        self.assertEqual(
+            set(record.keys()),
+            set(expected_keys)
+        )
+
+        self.assertEqual(
+            set(record['info'].keys()),
+            set(["filename", "func", "line", "module", "msg", "path"])
+        )
+
+        for entry in ['thread', 'process', 'level']:
+            self.assertEqual(
+                set(record[entry].keys()),
+                set(['name', 'num'])
+            )
+
+        self.assertIn('tests.py', record['info']['path'])
+
+
         self.handler.setLevel("WARNING")
         log_msg = {'test': True, 'msg': 'WARNING', 'msg2': 'DANGER'}
         query = {
