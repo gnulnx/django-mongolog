@@ -268,7 +268,7 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 
         self.remove_test_entries(test_key="info.msg.test")
 
-    def test_logstructure_verbose(self):
+    def test_logstructure_verbose_exception(self):
         """
         Test the verbose log record strucute
         """
@@ -282,25 +282,10 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         })
         self.assertEqual(1, records.count())
 
-        expected_keys = [
-            u'info',
-            u'exception',
-            u'time',
-            u'level',
-            u'name', 
-            u'thread', 
-            u'process',
-            u'_id', 
-        ]
-        # To make test pass on python 3 version
-        print("sys.version[0](%s)" % sys.version_info[0])
-        if sys.version_info[0] >= 3:
-            expected_keys.append(u'stack_info')
-       
         record = records[0]
         self.assertEqual(
             set(record.keys()),
-            set(expected_keys)
+            set([u'info', u'exception', u'time', u'level',u'name', u'thread', u'process', u'_id'])
         )
 
         self.assertEqual(
@@ -316,7 +301,10 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 
         self.assertIn('tests.py', record['info']['path'])
 
-
+    def test_logstructure_verbose_debug_info_warn(self):
+        """
+        TODO:  Beef this test up a bit
+        """
         self.handler.setLevel("WARNING")
         log_msg = {'test': True, 'msg': 'WARNING', 'msg2': 'DANGER'}
         query = {
