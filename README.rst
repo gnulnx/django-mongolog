@@ -17,7 +17,8 @@ Quick start
             'mongolog',
         )
 
-2. Add the SimpleMongoLoggerHandler to your LOGGING config.  (alternativeyl copy and paste the below config)
+2. Add the SimpleMongoLoggerHandler to your LOGGING config.  
+(alternativeyl copy and paste the below config)
     .. code:: python
 
         LOGGING = {
