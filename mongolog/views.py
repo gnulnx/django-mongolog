@@ -1,9 +1,8 @@
+"""
 import logging
 logger = logging.getLogger('')
 
 from django.views.generic.base import TemplateView
-
-from mongolog.handlers import MongoLogHandler
 
 
 class HomeView(TemplateView):
@@ -28,3 +27,4 @@ class HomeView(TemplateView):
     		raise
 
     	return context
+"""
