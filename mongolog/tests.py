@@ -38,8 +38,6 @@ LOGGING = {
             'connection': 'mongodb://localhost:27017',
             'w': 1,
             'j': False,
-            # record can be simple/verbose.  Default is verbose
-            'record_type': 'simple',
 
             # utc/local.  Only used with record_type=simple
             'time_zone': 'local',
@@ -148,12 +146,11 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         with self.assertRaises(ValueError):
             raiseException()
 
-        query = {
+        records = self.collection.find({
             'msg.test': True, 
             'msg.Life.Domain.Eukaryota.name': "Archaeplastida",
             'levelname': 'ERROR'
-        }
-        records = self.collection.find(query)
+        })
         self.assertEqual(1, records.count())
 
 
@@ -183,21 +180,16 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         print("sys.version[0](%s)" % sys.version_info[0])
         if sys.version_info[0] >= 3:
             expected_keys.append(u'stack_info')
-            #del(expected_keys['lineno'])
-
        
         record = records[0]
-        print("expected_keys(%s)" % expected_keys)
-        print("record.keys(%s)" % record.keys())
         self.assertEqual(
             set(record.keys()),
             set(expected_keys)
         )
-        
 
         # Now test that the nested ValueError was successfully converted to a unicode str.
         try:
-            # unicode will throw a nameerror in Python 3
+            # unicode will throw a NameError in Python 3
             self.assertEqual(unicode, type(record['msg']['Life']['Domain']['Bacteria'][0]['name'])) 
         except NameError:
             self.assertEqual(str, type(record['msg']['Life']['Domain']['Bacteria'][0]['name'])) 
@@ -205,10 +197,7 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def test_str_unicode_mongologhandler(self):
         self.assertEqual(self.handler.connection, u"%s" % self.handler)
         self.assertEqual(self.handler.connection, "%s" % self.handler)
-
-    def test_set_record_type(self):
-        with self.assertRaises(ValueError):
-            self.handler.set_record_type("bad type")
+        
 
 class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):

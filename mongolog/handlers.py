@@ -51,12 +51,9 @@ class BaseMongoLogHandler(Handler):
     VERBOSE='verbose'
     record_types = [SIMPLE, VERBOSE]
 
-    def __init__(self, level=NOTSET, connection=None, w=1, j=False, record_type="verbose", verbose=None, time_zone="local"):
+    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local"):
         self.connection = connection
 
-        # Choose between verbose and simpel log record types
-        self.record_type = record_type
-        
         # Used to determine which time setting is used in the simple record_type
         self.time_zone = time_zone
 
@@ -114,15 +111,6 @@ class BaseMongoLogHandler(Handler):
         """
         return getattr(self, "collection", None)
     
-    def set_record_type(self, rtype):
-        """
-        Used to set record type on fly...for example during testing
-        """
-        if rtype not in self.record_types:
-            raise ValueError("type must be one of %s" % self.record_types)
-
-        self.record_type = rtype
-
     def create_log_record(self,record):
         """
 
