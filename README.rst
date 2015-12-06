@@ -18,25 +18,25 @@ Quick start
         )
 
 2. Add the SimpleMongoLoggerHandler to your LOGGING config
-.. code:: python
+    .. code:: python
 
-    LOGGING = {
-        'version': 1,
-        'handlers': {
-            'mongolog': {
-                'level': 'DEBUG',
-                'class': 'mongolog.SimpleMongoLogHandler',
-                'connection': 'mongodb://localhost:27017'
+        LOGGING = {
+            'version': 1,
+            'handlers': {
+                'mongolog': {
+                    'level': 'DEBUG',
+                    'class': 'mongolog.SimpleMongoLogHandler',
+                    'connection': 'mongodb://localhost:27017'
+                },
             },
-        },
-        'loggers': {
-            '': {
-                'handlers': ['mongolog'],
-                'level': 'DEBUG',
-                'propagate': True
+            'loggers': {
+                '': {
+                    'handlers': ['mongolog'],
+                    'level': 'DEBUG',
+                    'propagate': True
+                },
             },
-        },
-    }
+        }
 
 3) Start your management shell::
 
