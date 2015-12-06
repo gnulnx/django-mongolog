@@ -204,8 +204,9 @@ Quick start
              null
         }
 
-6) Future  Roadmap::
-
+6) Future  Roadmap
+    .. code:: python
+    
     Currently mongolog has pretty solid support for logging aribtraty datastructures.  If it finds
     an object it doesn't know how to natively serialize it will try to convert it to str().  
 
