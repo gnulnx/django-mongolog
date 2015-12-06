@@ -30,9 +30,9 @@ Quick start
             },
         },
         'loggers': {
-            'django': {
+            '': {
                 'handlers': ['mongolog'],
-                'level': 'INFO',
+                'level': 'DEBUG',
                 'propagate': True
             },
         },
