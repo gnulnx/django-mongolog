@@ -40,7 +40,7 @@ class MongoLogHandler(Handler):
     VERBOSE='verbose'
     record_types = [SIMPLE, VERBOSE]
 
-    def __init__(self, level=NOTSET, connection=None, w=1, j=False, record_type="verbose", time_zone="local"):
+    def __init__(self, level=NOTSET, connection=None, w=1, j=False, record_type="verbose", verbose=None, time_zone="local"):
         self.connection = connection
 
         # Choose between verbose and simpel log record types
@@ -48,6 +48,11 @@ class MongoLogHandler(Handler):
         
         # Used to determine which time setting is used in the simple record_type
         self.time_zone = time_zone
+
+        # If True will print each log_record to console
+        # Can be useful for debugging since funcname will provie
+        # the name of the test the output came from.
+        self.verbose = verbose
 
         if not self.connection:
             print("'connection' key not provided in logging config")
@@ -197,8 +202,8 @@ class MongoLogHandler(Handler):
         elif self.record_type == "simple":
             log_record = self.simple_record(record)
 
-        self.verbose = True
-        if self.verbose == True:
+        # set this up so you can pass the verbose
+        if self.verbose:
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
         if int(pymongo.version[0]) < 3:
