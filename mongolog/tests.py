@@ -183,8 +183,10 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         print("sys.version[0](%s)" % sys.version_info[0])
         if sys.version_info[0] >= 3:
             expected_keys.append(u'stack_info')
+            del(expected_keys['lineno'])
 
         print("expected_keys(%s)" % expected_keys)
+        print("record.keys(%s)" % record.keys())
         record = records[0]
         self.assertEqual(
             set(record.keys()),
