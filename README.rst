@@ -102,9 +102,16 @@ Quick start
             logger.exception(LOG_MSG)
 
 5) Now log into your mongo shell and look at some results
+
+    Running the following command
     .. code:: python
         
-        db.mongolog.find({'level': "INFO"}).pretty()
+        use mongolog
+        db.mongolog.findOne({'level': "INFO"})
+
+    Will produde a mongo document like:
+    
+    .. code:: python
         {
             "_id" : ObjectId("5664a22bdd162ca58f0693d2"),
             "name" : "__builtin__",
