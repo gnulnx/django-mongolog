@@ -110,42 +110,6 @@ Quick start
             "_id" : ObjectId("5664a22bdd162ca58f0693d2"),
             "name" : "__builtin__",
             "thread" : NumberLong("140735229362944"),
-            "level" : "INFO",
-            "process" : 42383,
-            "module" : "<console>",
-            "filename" : "<console>",
-            "func" : "<module>",
-            "time" : ISODate("2015-12-06T21:01:31.258Z"),
-            "msg" : {
-                "test" : true,
-                "Life" : {
-                    "Domain" : {
-                        "Eukaryota" : [
-                            {
-                                "name" : "Excavata",
-                                "description" : "Various flagellate protozoa"
-                            },
-                            {
-                                "name" : "Amoebozoa",
-                                "descritpion" : "most lobose amoeboids and slime moulds"
-                            },
-                            {
-                                "name" : "Opisthokonta",
-                                "description" : "animals, fungi, choanoflagellates, etc."
-                            }
-                        ],
-                        "Archaea" : [ ],
-                        "Bacteria" : [
-                            {
-                                "name" : "<type 'exceptions.ValueError'>",
-                                "description" : "Just a bad description"
-                            }
-                        ]
-                    }
-                },
-                "test class" : "TestBaseMongoLogHandler"
-            },
-            "path" : "<console>",
-            "line" : 1
+            
         }
 
