@@ -40,6 +40,7 @@ LOGGING = {
 
             # utc/local.  Only used with record_type=simple
             'time_zone': 'local',
+            'verbose': True
         },
     },
     'loggers': {
@@ -80,8 +81,8 @@ class TestLogLevels(unittest.TestCase):
         # Check for any preexsting mongolog test entries
         self.remove_test_entries()
 
-    #def tearDown(self):
-    #    self.remove_test_entries()
+    def tearDown(self):
+        self.remove_test_entries()
 
     def test_str_unicode_mongologhandler(self):
         self.assertEqual(self.handler.connection, u"%s" % self.handler)
@@ -164,7 +165,6 @@ class TestLogLevels(unittest.TestCase):
         self.assertEqual(1, self.collection.find(query).count())
 
         rec = self.collection.find_one(query)
-        print(json.dumps(rec, indent=4, sort_keys=True, default=str))
         self.assertEqual(
             set(rec.keys()), 
             set(['info', 'name', 'thread', 'level', 'process', 'time', '_id'])
@@ -206,7 +206,7 @@ class TestLogLevels(unittest.TestCase):
             set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
         )
 
-        # Now try and exception with a complex log query
+        # Now try an exception log with a complex log msg.
         try:
             raise ValueError
         except ValueError as e:
