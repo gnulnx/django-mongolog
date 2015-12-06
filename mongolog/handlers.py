@@ -31,8 +31,26 @@ from mongolog.models import LogRecord
 import logging
 logger = logging.getLogger('')
 
+def get_mongolog_handler():
+    """
+    Return the first MongoLogHander found in the current loggers
+    list of handlers
+    """
+    logger = logging.getLogger('')
+    handler = None
+    for _handler in logger.handlers:
+        if isinstance(_handler, BaseMongoLogHandler):
+            handler = _handler
+            break
+    return handler
 
-class BaseMongoHandler(Handler):
+
+class BaseMongoLogHandler(Handler):
+    # These will be deprecated in the new model
+    SIMPLE='simple'
+    VERBOSE='verbose'
+    record_types = [SIMPLE, VERBOSE]
+
     def __init__(self, level=NOTSET, connection=None, w=1, j=False, record_type="verbose", verbose=None, time_zone="local"):
         self.connection = connection
 
@@ -55,7 +73,7 @@ class BaseMongoHandler(Handler):
 
         self.connect()
 
-        return super(BaseMongoHandler, self).__init__(level)
+        return super(BaseMongoLogHandler, self).__init__(level)
 
     def __unicode__(self):
         return self.connection
@@ -104,16 +122,67 @@ class BaseMongoHandler(Handler):
             raise ValueError("type must be one of %s" % self.record_types)
 
         self.record_type = rtype
+
+    def create_log_record(self,record):
+        """
+
+        """
+        return LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
+
+    def emit(self, record):
+        """ 
+        record = LogRecord
+        https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
+        """
+        log_record = self.create_log_record(record)
+        #log_record = json.loads(json.dumps(log_record, default=str))
+        # set this up so you can pass the verbose
+        self.verbose=True
+        if self.verbose:
+            print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
+
+
+
+        if int(pymongo.version[0]) < 3:
+            self.collection.insert(log_record)
+        else: 
+            #raise Exception(type(log_record))
+            self.collection.insert_one(log_record)
     
 
+class SimpleMongoLogHandler(BaseMongoLogHandler):
+    def create_log_record(self, record):
+        record = super(SimpleMongoLogHandler, self).create_log_record(record)
+        mongolog_record =  LogRecord({
+            'name': record['name'],
+            'thread': record['thread'],
+            'time': datetime.utcnow() if self.time_zone == 'utc' else datetime.now(),
+            'process': record['process'],
+            'level': record['levelname'],
+            'msg': record['msg'],
+            'path': record['pathname'],
+            'module': record['module'],
+            'line': record['lineno'],
+            'func': record['funcName'],
+            'filename': record['filename'],
+        })
+        # Add exception info
+        if record['exc_info']:
+            mongolog_record['exception'] = {
+                'info': record['exc_info'],
+                'trace': record['exc_text'],
+            }
+        return mongolog_record
 
-class MongoLogHandler(BaseMongoHandler):
+class VerboseMongoHandler(BaseMongoLogHandler):
+    def create_log_record(self, record):
+        record = super(SimpleMongoLogHandler, self).create_log_record(record) 
+
+class MongoLogHandler(BaseMongoLogHandler):
     """
     A handler class which allows logging to use mongo db as the backend
     """
-    SIMPLE='simple'
-    VERBOSE='verbose'
-    record_types = [SIMPLE, VERBOSE]
+   
 
     def __init__(self, level=NOTSET, connection=None, w=1, j=False, record_type="verbose", verbose=None, time_zone="local"):
         self.connection = connection
@@ -141,19 +210,7 @@ class MongoLogHandler(BaseMongoHandler):
 
     
 
-    @staticmethod
-    def handler():
-        """
-        Return the first MongoLogHander found in the current loggers
-        list of handlers
-        """
-        logger = logging.getLogger('')
-        handler = None
-        for _handler in logger.handlers:
-            if isinstance(_handler, MongoLogHandler):
-                handler = _handler
-                break
-        return handler
+    
 
     def verbose_record(self, record):
         # Logrecord Attributes: https://docs.python.org/2/library/logging.html#logrecord-attributes

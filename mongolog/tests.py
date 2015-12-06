@@ -22,7 +22,11 @@ from logging import config
 import pymongo
 pymongo_major_version = int(pymongo.version.split(".")[0])
 
-from mongolog.handlers import MongoLogHandler
+from mongolog.handlers import (
+    get_mongolog_handler, 
+    MongoLogHandler, 
+    SimpleMongoLogHandler,
+)
 
 # Use plain python logging instead of django to decouple project
 # from django versions
@@ -31,7 +35,7 @@ LOGGING = {
     'handlers': {
         'mongolog': {
             'level': 'DEBUG',
-            'class': 'mongolog.MongoLogHandler',
+            'class': 'mongolog.SimpleMongoLogHandler',
             'connection': 'mongodb://localhost:27017',
             'w': 1,
             'j': False,
@@ -56,6 +60,124 @@ LOGGING = {
 logging.config.dictConfig(LOGGING)
 logger = logging.getLogger('')
 
+class TestBaseMongoLogHandler(unittest.TestCase):
+    def setUp(self):
+        LOGGING['handlers']['mongolog']['class'] = 'mongolog.BaseMongoLogHandler'
+        logging.config.dictConfig(LOGGING)
+        self.handler = get_mongolog_handler()
+        self.collection = self.handler.get_collection()
+
+        self.remove_test_entries()
+
+    def remove_test_entries(self):
+        """
+        Remove all current test entries
+        Called in setUp and tearDown
+        """
+        if pymongo_major_version < 3:
+            self.collection.remove({'msg.test': True})
+        else:
+            self.collection.delete_many({'msg.test': True})
+
+        # Ensure that we don't have any test entries
+        self.assertEqual(0, self.collection.find({'msg.test': True}).count())
+
+    def test_base_handler(self):
+        test_msg = {
+            'test':  True,  # String so we can remove test entries
+            'test class': 'TestBaseMongoLogHandler',
+            'Life': {
+                'Domain': {
+                    'Bacteria': [
+                        {
+                        'name':  ValueError,
+                        'description': 'Just a bad description'
+                        }
+                    ],
+                    'Archaea': [],
+                    'Eukaryota': [
+                        {
+                            'name': 'Excavata', 
+                            'description': 'Various flagellate protozoa',
+                        },
+                        {   
+                            'name':'Amoebozoa',
+                            'descritpion': 'most lobose amoeboids and slime moulds',
+                        },
+                        {
+                            'name': 'Opisthokonta',
+                            'description': 'animals, fungi, choanoflagellates, etc.',
+                        },
+                        {
+                            'name': 'Rhizaria',
+                            'description': 'Foraminifera, Radiolaria, and various other amoeboid protozoa'
+                        },
+                        {
+                            'name': 'Chromalveolata',
+                            'description': 'Stramenopiles (Brown Algae, Diatoms etc.)'
+                        },
+                        {
+                            'name': 'Archaeplastida',
+                            'description': 'Land plants, green algae, red algae, and glaucophytes'
+                        },
+                    ]
+                } 
+            }
+        }
+
+        def raiseException():
+            try:
+                raise ValueError("Test Error")
+            except ValueError:
+                logger.exception(test_msg)
+                raise
+
+        with self.assertRaises(ValueError):
+            raiseException()
+
+        query = {
+            'msg.test': True, 
+            'msg.Life.Domain.Eukaryota.name': "Archaeplastida",
+            'levelname': 'ERROR'
+        }
+        records = self.collection.find(query)
+        self.assertEqual(1, records.count())
+
+
+        record = records[0]
+        self.assertEqual(
+            record.keys(),
+            [
+                u'threadName', 
+                u'name', 
+                u'thread', 
+                u'relativeCreated', 
+                u'process',
+                u'args', 
+                u'filename', 
+                u'module', 
+                u'funcName', 
+                u'levelno', 
+                u'processName', 
+                u'created', 
+                u'msecs', 
+                u'msg', 
+                u'exc_info', 
+                u'exc_text', 
+                u'pathname', 
+                u'_id', 
+                u'levelname', 
+                u'lineno'
+            ]
+        )
+
+        try:
+            # unicode will throw a nameerror in Python 3
+            self.assertEqual(unicode, type(record['msg']['Life']['Domain']['Bacteria'][0]['name'])) 
+        except NameError:
+            self.assertEqual(str, type(record['msg']['Life']['Domain']['Bacteria'][0]['name'])) 
+        
+
 class TestLogLevels(unittest.TestCase):
     """
     All log tests should log a dictionary with a 'test' key
@@ -74,7 +196,8 @@ class TestLogLevels(unittest.TestCase):
     test_key = 'info.msg.test'
 
     def setUp(self):
-        self.handler = MongoLogHandler.handler()
+        self.handler = get_mongolog_handler()
+        #self.handler = MongoLogHandler.handler()
         self.collection = self.handler.get_collection()
         self.handler.setLevel("DEBUG")
 
@@ -228,6 +351,8 @@ class TestLogLevels(unittest.TestCase):
             set(rec.keys()),
             set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
         )
+
+        print "LEAVING"
         
 
     def test_debug_verbose(self):
