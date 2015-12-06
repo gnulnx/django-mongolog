@@ -157,6 +157,7 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 
 
         record = records[0]
+        raise Exception(record.keys())
         self.assertEqual(
             record.keys(),
             [
