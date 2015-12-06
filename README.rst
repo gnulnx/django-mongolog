@@ -21,7 +21,7 @@ Quick start
             'mongolog',
         )
 
-2. Add the SimpleMongoLoggerHandler to your LOGGING config.  
+2. Add the SimpleMongoLogHandler to your LOGGING config.  
     .. code:: python
 
         LOGGING = {
@@ -55,7 +55,7 @@ Quick start
 
     One of the cool things about mongolog is that it can log complex data structures
     in a way that makes them both human parsable and queryable.  So for instance if 
-    we create a the following log message:
+    we create the following log message:
 
     .. code:: python
 
@@ -104,6 +104,7 @@ Quick start
             raise ValueError("Bad Value")
         except ValueError as e:
             logger.exception(LOG_MSG)
+            raise
 
 5) Now log into your mongo shell and look at some results
     .. code:: python
