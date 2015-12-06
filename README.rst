@@ -52,7 +52,10 @@ Quick start
         import pymongo
         logger = logging.getLogger(__name__)
 
-        TEST_MSG = {
+        # One of the cool things about mongolog is that it can log complex data structures
+        # in a way that makes them both human parseable and queryable.  So for instance if 
+        # we create a the following log message 
+        LOG_MSG = {
             'test': True,  
             'test class': 'TestBaseMongoLogHandler',
             'Life': {
@@ -82,14 +85,15 @@ Quick start
             }
         }
 
-        logger.debug(TEST_MSG)
-        logger.info(TEST_MSG)
-        logger.warn(TEST_MSG)
-        logger.error(TEST_MSG)
+        # And then we log this message with each of the defined log levels
+        logger.debug(LOG_MSG)
+        logger.info(LOG_MSG)
+        logger.warn(LOG_MSG)
+        logger.error(LOG_MSG)
         try:
             raise ValueError("Bad Value")
         except ValueError as e:
-            logger.exception(TEST_MSG)
+            logger.exception(LOG_MSG)
 
 5) Now log into your mongo shell::
 
