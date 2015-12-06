@@ -6,6 +6,9 @@ with standard python/django logging.
 
  .. image:: https://coveralls.io/repos/gnulnx/django-mongolog/badge.svg?branch=master&service=github :target: https://coveralls.io/github/gnulnx/django-mongolog?branch=master
 
+
+ Please visit the `MongoLog Users Group<https://groups.google.com/forum/#!forum/mongolog-users>`_ with any questions/suggestions.   Thanks.
+
 Quick start
 ----------- 
 
@@ -206,11 +209,12 @@ Quick start
 
 6) Future  Roadmap
     .. code:: python
-    
+
     Currently mongolog has pretty solid support for logging aribtraty datastructures.  If it finds
     an object it doesn't know how to natively serialize it will try to convert it to str().  
 
     The next steps are to create a set of most used query operations for probing the log.
 
-    I am very much interested in feedback and feature requests from anyone using mongolog.
-    If you are interested in contributing fork the repo and start coding.  You can reach me through my account at github with any questions.
+    I am very interested in feedback and feature requests from anyone using mongolog.
+    If you are interested in contributing please fork the repo and start coding.  
+    You can reach me through my account at github with any questions.
