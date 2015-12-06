@@ -1,5 +1,5 @@
 """
-	django-mongolog.  Simple Mongo based logger for Django
+    django-mongolog.  Simple Mongo based logger for Django
     Copyright (C) 2015 - John Furr
 
     This program is free software: you can redistribute it and/or modify
@@ -15,4 +15,4 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-from .handlers import MongoLogHandler
+from .handlers import BaseMongoLogHandler, SimpleMongoLogHandler, VerboseMongoLogHandler

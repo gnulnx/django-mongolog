@@ -26,12 +26,12 @@ LOGGING = {
         },
         'mongolog': {
             'level': 'DEBUG',
-            'class': 'mongolog.MongoLogHandler',
+            #'class': 'mongolog.BaseMongoLogHandler',
+            'class': 'mongolog.SimpleMongoLogHandler',
+            #'class': 'mongolog.VerboseMongoHandler',
             'connection': 'mongodb://localhost:27017',
             'w': 1,
             'j': False,
-            # record can be simple/verbose.  Default is verbose
-            'record_type': 'simple',
 
             # utc/local.  Only used with record_type=simple
             'time_zone': 'local',
