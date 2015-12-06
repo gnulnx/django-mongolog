@@ -49,9 +49,8 @@ class MongoLogHandler(Handler):
         # Used to determine which time setting is used in the simple record_type
         self.time_zone = time_zone
 
-        # If True will print each log_record to console
-        # Can be useful for debugging since funcname will provie
-        # the name of the test the output came from.
+        # If True will print each log_record to console before logging to mongo
+        # Useful for debugging since "func" will provides name of test method. 
         self.verbose = verbose
 
         if not self.connection:
