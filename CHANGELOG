@@ -1,7 +1,11 @@
 Change Log
 ==========
 
-v0.4.0
+v0.4.2
+------
+    * Fix stack trace formatting so it displays nicely in mongo pretty mode
+
+v0.4.1
 ------
     * log message JSON serializaztion check pass or convert to str
     * total revamp of log message parser.
