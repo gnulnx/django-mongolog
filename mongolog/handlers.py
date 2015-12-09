@@ -150,7 +150,7 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
         if record['exc_info']:
             mongolog_record['exception'] = {
                 'info': record['exc_info'],
-                'trace': record['exc_text'],
+                'trace': record['exc_text'].split("\n") if record['exc_text'] else None,
             }
         return mongolog_record
 
