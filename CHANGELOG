@@ -3,7 +3,7 @@ Change Log
 
 v0.4.2
 ------
-    * Six stack trace formatting so it displays nicely in mongo pretty mode
+    * Fix stack trace formatting so it displays nicely in mongo pretty mode
 
 v0.4.1
 ------
