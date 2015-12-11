@@ -22,6 +22,7 @@ from logging import Handler, NOTSET
 from datetime import datetime as dt
 import json
 import pymongo
+from pymongo.collection import ReturnDocument
 
 from mongolog.models import LogRecord
 
@@ -61,6 +62,9 @@ class BaseMongoLogHandler(Handler):
 
         self.connect()
 
+        # Make sure the indexes are setup properly
+        self.ensure_collections_indexed()
+
         return super(BaseMongoLogHandler, self).__init__(level)
 
     def __unicode__(self):
@@ -78,15 +82,16 @@ class BaseMongoLogHandler(Handler):
             self.connect_pymongo2()
 
     def connect_pymongo3(self, test=False):
+
         try:
             if test:
                 raise pymongo.errors.ServerSelectionTimeoutError("Just a test")
 
             self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5)
-            self.client.server_info()
         except pymongo.errors.ServerSelectionTimeoutError:
             msg = "Unable to connect to mongo with (%s)" % self.connection
-            logger.exception({'note': 'mongolog', 'msg': msg})
+            # NOTE: Trying to log here ends up with Duplicate Key errors on upsert in emit()
+            print(msg)
             raise pymongo.errors.ServerSelectionTimeoutError(msg)
         
         # The mongo database
@@ -116,7 +121,29 @@ class BaseMongoLogHandler(Handler):
         Override in subclasses to change log record formatting.
         See SimpleMongoLogHandler and VerboseMongoLogHandler
         """
-        return LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
+        record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
+
+        # Set variables here before subclasses modify the record format
+        self.level = record['levelname']
+        self.msg = record['msg']
+        return record
+
+    def ensure_collections_indexed(self):
+        """
+        Create the indexes if they are not already created
+        """
+        self.mongolog.create_index(
+            [
+                ("level", 1),
+                ("msg", 1)
+            ],
+            unique=True
+        )
+
+        self.timestamp.create_index([
+            ("mid", 1),
+            ("ts", 1)
+        ])
 
     def emit(self, record):
         """ 
@@ -137,10 +164,46 @@ class BaseMongoLogHandler(Handler):
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
         if int(pymongo.version[0]) < 3:
-            result = self.mongolog.insert(log_record)
-        else: 
-            result = self.mongolog.insert_one(log_record)
-    
+            self.mongolog.insert(log_record)
+        else:
+            self.insert_pymongo_3(log_record)
+
+    def insert_pymongo_3(self, log_record):
+        query = {
+            'level': self.level,
+            'msg': self.msg,
+        }
+        try:
+            result = self.mongolog.find_one_and_replace(
+                query,
+                log_record,
+                upsert=True,
+                return_document=ReturnDocument.AFTER
+            )
+        except pymongo.errors.DuplicateKeyError:
+            try:
+                result = self.mongolog.find_one_and_replace(
+                    query,
+                    log_record,
+                    upsert=True,
+                    return_document=ReturnDocument.AFTER
+                )
+            except pymongo.errors.DuplicateKeyError:
+                # Seems to be strange case that arises out of unit testing.
+                # test_connection_error retires the connect with test=True.
+                # This ends up raising an exception which does a logger.exception(...) call.
+                # That call ends up failing here with a Duplicate Key Error.  The strange thing
+                # is the find_one operation here with the same query returns None.
+                if not self.mongolog.find_one(query):
+                    return
+                raise
+
+        # Now update the timestamp collection
+        self.timestamp.insert_one({
+            'mid': result['_id'],
+            'ts': log_record['time']
+        })
+
 
 class SimpleMongoLogHandler(BaseMongoLogHandler):
     def create_log_record(self, record):
