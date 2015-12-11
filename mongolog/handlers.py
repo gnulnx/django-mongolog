@@ -17,15 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 from __future__ import print_function
+import logging
 from logging import Handler, NOTSET
-from datetime import datetime
+from datetime import datetime as dt
 import json
-
 import pymongo
 
 from mongolog.models import LogRecord
 
-import logging
 logger = logging.getLogger('')
 
 
@@ -90,21 +89,27 @@ class BaseMongoLogHandler(Handler):
             logger.exception({'note': 'mongolog', 'msg': msg})
             raise pymongo.errors.ServerSelectionTimeoutError(msg)
         
+        # The mongo database
         self.db = self.client.mongolog
-        self.collection = self.db.mongolog
+
+        # This is the primary log document collection
+        self.mongolog = self.db.mongolog
+
+        # This is the timestamp collection
+        self.timestamp = self.db.timestamp
 
     def connect_pymongo2(self):
         # TODO Determine proper try/except logic for pymongo 2.7 driver
         self.client = pymongo.MongoClient(self.connection)
         self.client.server_info()
         self.db = self.client.mongolog
-        self.collection = self.db.mongolog
+        self.mongolog = self.db.mongolog
 
     def get_collection(self):
         """
         Return the collection being used by MongoLogHandler
         """
-        return getattr(self, "collection", None)
+        return getattr(self, "mongolog", None)
     
     def create_log_record(self, record):
         """
@@ -119,15 +124,22 @@ class BaseMongoLogHandler(Handler):
         https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
         """
         log_record = self.create_log_record(record)
-        # log_record = json.loads(json.dumps(log_record, default=str))
-        # set this up so you can pass the verbose
+
+        # NOTE: if the user is using django and they have USE_TZ=True in their settings
+        # then the timezone displayed will be what is specified in TIME_ZONE
+        # For instance if they have TIME_ZONE='UTC' then both dt.now() and dt.utcnow()
+        # will be equivalent.
+        log_record.update({
+            'time': dt.utcnow() if self.time_zone == 'utc' else dt.now()
+        })
+
         if self.verbose:
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
         if int(pymongo.version[0]) < 3:
-            self.collection.insert(log_record)
+            result = self.mongolog.insert(log_record)
         else: 
-            self.collection.insert_one(log_record)
+            result = self.mongolog.insert_one(log_record)
     
 
 class SimpleMongoLogHandler(BaseMongoLogHandler):
@@ -136,7 +148,6 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
         mongolog_record = LogRecord({
             'name': record['name'],
             'thread': record['thread'],
-            'time': datetime.utcnow() if self.time_zone == 'utc' else datetime.now(),
             'process': record['process'],
             'level': record['levelname'],
             'msg': record['msg'],
@@ -163,10 +174,6 @@ class VerboseMongoLogHandler(BaseMongoLogHandler):
             'thread': {
                 'num': record['thread'],
                 'name': record['threadName'],
-            },
-            'time': {
-                'utc': datetime.utcnow(),
-                'loc': datetime.now(),
             },
             'process': {
                 'num': record['process'],

@@ -6,7 +6,12 @@ with standard python/django logging.
 
 Please visit the `MongoLog Users Group <https://groups.google.com/forum/#!forum/mongolog-users>`_ with any questions/suggestions.   Thanks.
 
- .. image:: https://coveralls.io/repos/gnulnx/django-mongolog/badge.svg?branch=master&service=github :target: https://coveralls.io/github/gnulnx/django-mongolog?branch=master
+.. image:: https://travis-ci.org/gnulnx/django-mongolog.svg?branch=master
+    :target: https://travis-ci.org/gnulnx/django-mongolog
+    
+.. image:: https://coveralls.io/repos/gnulnx/django-mongolog/badge.svg?branch=master&service=github 
+    :target: https://coveralls.io/github/gnulnx/django-mongolog?branch=master
+
 
  
 

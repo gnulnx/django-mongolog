@@ -185,7 +185,8 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
             u'pathname', 
             u'_id', 
             u'levelname', 
-            u'lineno'
+            u'lineno',
+            u'time',
         ]
         # To make test pass on python 3 version
         print("sys.version[0](%s)" % sys.version_info[0])
@@ -325,11 +326,6 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         self.assertEqual(
             set(rec.keys()), 
             set(['info', 'name', 'thread', 'level', 'process', 'time', '_id'])
-        )
-
-        self.assertEqual(
-            set(rec['time'].keys()),
-            set(['utc', 'loc'])
         )
 
         for key in ['process', 'level', 'thread']:

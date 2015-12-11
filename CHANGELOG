@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+v0.4.3
+-------
+    * Uniform timestamp handling
+
 v0.4.2
 ------
     * Fix stack trace formatting so it displays nicely in mongo pretty mode
