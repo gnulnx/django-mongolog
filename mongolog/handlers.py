@@ -78,9 +78,18 @@ class BaseMongoLogHandler(Handler):
     def connect(self, test=False):
 
         if major_version == 3:
-            self.connect_pymongo3(test)
+            client = self.connect_pymongo3(test)
         elif major_version == 2:
-            self.connect_pymongo2()
+            client = self.connect_pymongo2()
+
+        # The mongo database
+        self.db = self.client.mongolog
+
+        # This is the primary log document collection
+        self.mongolog = self.db.mongolog
+
+        # This is the timestamp collection
+        self.timestamp = self.db.timestamp
 
     def connect_pymongo3(self, test=False):
 
@@ -95,15 +104,8 @@ class BaseMongoLogHandler(Handler):
             print(msg)
             raise pymongo.errors.ServerSelectionTimeoutError(msg)
         
-        # The mongo database
-        self.db = self.client.mongolog
-
-        # This is the primary log document collection
-        self.mongolog = self.db.mongolog
-
-        # This is the timestamp collection
-        self.timestamp = self.db.timestamp
-
+        return self.client
+        
     def connect_pymongo2(self):
         # TODO Determine proper try/except logic for pymongo 2.7 driver
         self.client = pymongo.MongoClient(self.connection)
