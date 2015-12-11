@@ -22,7 +22,9 @@ from logging import Handler, NOTSET
 from datetime import datetime as dt
 import json
 import pymongo
-from pymongo.collection import ReturnDocument
+major_version = int(pymongo.version.split(".")[0])
+if major_version >= 3:
+    from pymongo.collection import ReturnDocument
 
 from mongolog.models import LogRecord
 
@@ -74,7 +76,6 @@ class BaseMongoLogHandler(Handler):
         return self.__unicode__()
 
     def connect(self, test=False):
-        major_version = int(pymongo.version.split(".")[0])
 
         if major_version == 3:
             self.connect_pymongo3(test)
