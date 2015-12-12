@@ -40,7 +40,7 @@ LOGGING = {
 
             # utc/local.  Only used with record_type=simple
             'time_zone': 'local',
-            'verbose': False
+            'verbose': True
         },
     },
     'loggers': {
