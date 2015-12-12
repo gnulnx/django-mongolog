@@ -3,7 +3,8 @@ Change Log
 
 v0.4.3
 -------
-    * Uniform timestamp handling
+    * timestamp collection added
+    * uuid field added
 
 v0.4.2
 ------

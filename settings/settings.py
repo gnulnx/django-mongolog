@@ -32,6 +32,7 @@ LOGGING = {
             'connection': 'mongodb://localhost:27017',
             'w': 1,
             'j': False,
+            'verbose': False,
 
             # utc/local.  Only used with record_type=simple
             'time_zone': 'local',

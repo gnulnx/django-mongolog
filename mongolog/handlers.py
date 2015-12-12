@@ -21,11 +21,17 @@ import logging
 from logging import Handler, NOTSET
 from datetime import datetime as dt
 import json
+import uuid
 import pymongo
+major_version = int(pymongo.version.split(".")[0])
+if major_version >= 3:
+    from pymongo.collection import ReturnDocument
 
 from mongolog.models import LogRecord
 
 logger = logging.getLogger('')
+
+uuid_namespace = uuid.UUID('8296424f-28b7-5982-a434-e6ec8ef529b3')
 
 
 def get_mongolog_handler():
@@ -61,6 +67,9 @@ class BaseMongoLogHandler(Handler):
 
         self.connect()
 
+        # Make sure the indexes are setup properly
+        self.ensure_collections_indexed()
+
         return super(BaseMongoLogHandler, self).__init__(level)
 
     def __unicode__(self):
@@ -70,26 +79,13 @@ class BaseMongoLogHandler(Handler):
         return self.__unicode__()
 
     def connect(self, test=False):
-        major_version = int(pymongo.version.split(".")[0])
 
         if major_version == 3:
-            self.connect_pymongo3(test)
+            self.client = self.connect_pymongo3(test)
         elif major_version == 2:
-            self.connect_pymongo2()
+            self.client = self.connect_pymongo2()
 
-    def connect_pymongo3(self, test=False):
-        try:
-            if test:
-                raise pymongo.errors.ServerSelectionTimeoutError("Just a test")
-
-            self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5)
-            self.client.server_info()
-        except pymongo.errors.ServerSelectionTimeoutError:
-            msg = "Unable to connect to mongo with (%s)" % self.connection
-            logger.exception({'note': 'mongolog', 'msg': msg})
-            raise pymongo.errors.ServerSelectionTimeoutError(msg)
-        
-        # The mongo database
+        # The mongolog database
         self.db = self.client.mongolog
 
         # This is the primary log document collection
@@ -98,12 +94,26 @@ class BaseMongoLogHandler(Handler):
         # This is the timestamp collection
         self.timestamp = self.db.timestamp
 
+    def connect_pymongo3(self, test=False):
+
+        try:
+            if test:
+                raise pymongo.errors.ServerSelectionTimeoutError("Just a test")
+
+            self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5)
+        except pymongo.errors.ServerSelectionTimeoutError:
+            msg = "Unable to connect to mongo with (%s)" % self.connection
+            # NOTE: Trying to log here ends up with Duplicate Key errors on upsert in emit()
+            print(msg)
+            raise pymongo.errors.ServerSelectionTimeoutError(msg)
+        
+        return self.client
+        
     def connect_pymongo2(self):
         # TODO Determine proper try/except logic for pymongo 2.7 driver
         self.client = pymongo.MongoClient(self.connection)
         self.client.server_info()
-        self.db = self.client.mongolog
-        self.mongolog = self.db.mongolog
+        return self.client
 
     def get_collection(self):
         """
@@ -113,18 +123,46 @@ class BaseMongoLogHandler(Handler):
     
     def create_log_record(self, record):
         """
+        Convert the python LogRecord to a MongoLog Record.
+        Also add a UUID which is a combination of the log message and log level.
+
         Override in subclasses to change log record formatting.
         See SimpleMongoLogHandler and VerboseMongoLogHandler
         """
-        return LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
+        record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
+
+        # The UUID is a combination of the record.levelname and the record.msg
+        record.update({
+            'uuid': uuid.uuid5(
+                uuid_namespace, 
+                str(record['msg']) + str(record['levelname']) 
+            ).hex
+        })
+        
+        return record
+
+    def ensure_collections_indexed(self):
+        """
+        Create the indexes if they are not already created
+        """
+        # uncomment to change collection level write concern for the mongolog collection
+        # col = self.db.get_collection('mongolog', write_concern=pymongo.write_concern.WriteConcern(w=0))
+        self.mongolog.create_index([("uuid", 1)], unique=True)
+
+        self.timestamp.create_index([
+            ("mid", 1),
+            ("ts", 1)
+        ])
 
     def emit(self, record):
         """ 
-        record = LogRecord
+        From python:  type(record) == LogRecord
         https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
         """
         log_record = self.create_log_record(record)
 
+        log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
+        
         # NOTE: if the user is using django and they have USE_TZ=True in their settings
         # then the timezone displayed will be what is specified in TIME_ZONE
         # For instance if they have TIME_ZONE='UTC' then both dt.now() and dt.utcnow()
@@ -137,10 +175,45 @@ class BaseMongoLogHandler(Handler):
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
         if int(pymongo.version[0]) < 3:
-            result = self.mongolog.insert(log_record)
-        else: 
-            result = self.mongolog.insert_one(log_record)
-    
+            self.insert_pymongo_2(log_record)
+        else:
+            self.insert_pymongo_3(log_record)
+
+    def insert_pymongo_2(self, log_record):
+        query = {'uuid': log_record['uuid']}
+
+        # remove the old document
+        self.mongolog.find_and_modify(query, remove=True)
+        
+        # insert the new one
+        _id = self.mongolog.insert(log_record)
+
+        # Add an entry in the timestamp collection
+        self.timestamp.insert({
+            'mid': _id,
+            'ts': log_record['time']
+        })
+
+    def insert_pymongo_3(self, log_record):
+        query = {'uuid': log_record['uuid']}
+        result = self.mongolog.find_one_and_replace(
+            query,
+            log_record,
+            upsert=True,
+            return_document=ReturnDocument.AFTER,
+        )
+
+        # Now update the timestamp collection
+        # We can do this with a lower write concern than the previous operation since 
+        # we can alway's retreive the last datetime from the mongolog collection
+        self.timestamp.insert(
+            {
+                'mid': result['_id'],
+                'ts': log_record['time']
+            },
+            # w=0 
+        )
+
 
 class SimpleMongoLogHandler(BaseMongoLogHandler):
     def create_log_record(self, record):
@@ -156,6 +229,7 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
             'line': record['lineno'],
             'func': record['funcName'],
             'filename': record['filename'],
+            'uuid': record['uuid']
         })
         # Add exception info
         if record['exc_info']:
@@ -191,6 +265,7 @@ class VerboseMongoLogHandler(BaseMongoLogHandler):
                 'func': record['funcName'],
                 'filename': record['filename'],
             },
+            'uuid': record['uuid']
         })    
 
         if record['exc_info']:
