@@ -167,10 +167,25 @@ class BaseMongoLogHandler(Handler):
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
         if int(pymongo.version[0]) < 3:
-            # TODO This needs to do an upsert now
-            self.mongolog.insert(log_record)
+            self.insert_pymongo_2(log_record)
         else:
             self.insert_pymongo_3(log_record)
+
+    def insert_pymongo_2(self, log_record):
+        query = {
+            'level': self.level_txt,
+            'msg': self.msg, 
+        }
+        # TODO This needs to do an upsert now
+        result = self.mongolog.find_and_modify(query, remove=True)
+        _id = self.mongolog.insert(log_record)
+
+        # Now update the timestamp collection
+        self.timestamp.insert({
+            'mid': _id,
+            'ts': log_record['time']
+        })
+
 
     def insert_pymongo_3(self, log_record):
         query = {
