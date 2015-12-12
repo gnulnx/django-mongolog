@@ -31,7 +31,6 @@ from mongolog.models import LogRecord
 
 logger = logging.getLogger('')
 
-
 uuid_namespace = uuid.UUID('8296424f-28b7-5982-a434-e6ec8ef529b3')
 
 
@@ -86,7 +85,7 @@ class BaseMongoLogHandler(Handler):
         elif major_version == 2:
             self.client = self.connect_pymongo2()
 
-        # The mongo database
+        # The mongolog database
         self.db = self.client.mongolog
 
         # This is the primary log document collection
@@ -124,12 +123,14 @@ class BaseMongoLogHandler(Handler):
     
     def create_log_record(self, record):
         """
+        Convert the python LogRecord to a MongoLog Record.
+        Also add a UUID which is a combination of the log message and log level.
+
         Override in subclasses to change log record formatting.
         See SimpleMongoLogHandler and VerboseMongoLogHandler
         """
         record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
 
-        # Make sure we include a uuid
         # The UUID is a combination of the record.levelname and the record.msg
         record.update({
             'uuid': uuid.uuid5(
@@ -144,13 +145,9 @@ class BaseMongoLogHandler(Handler):
         """
         Create the indexes if they are not already created
         """
-        self.mongolog.create_index(
-            [
-                ("level", 1),
-                ("uuid", 1)
-            ],
-            unique=True
-        )
+        # uncomment to change collection level write concern for the mongolog collection
+        # col = self.db.get_collection('mongolog', write_concern=pymongo.write_concern.WriteConcern(w=0))
+        self.mongolog.create_index([("uuid", 1)], unique=True)
 
         self.timestamp.create_index([
             ("mid", 1),
@@ -159,7 +156,7 @@ class BaseMongoLogHandler(Handler):
 
     def emit(self, record):
         """ 
-        record = LogRecord
+        From python:  type(record) == LogRecord
         https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
         """
         log_record = self.create_log_record(record)
@@ -201,11 +198,13 @@ class BaseMongoLogHandler(Handler):
     def insert_pymongo_3(self, log_record):
         query = {'uuid': log_record['uuid']}
         try:
+            # Only uess write concern of collection which is read-only.
+            # get_collection overrides these values in ensure_collections_indexed
             result = self.mongolog.find_one_and_replace(
                 query,
                 log_record,
                 upsert=True,
-                return_document=ReturnDocument.AFTER
+                return_document=ReturnDocument.AFTER,
             )
         except pymongo.errors.DuplicateKeyError:
             try:
@@ -216,7 +215,7 @@ class BaseMongoLogHandler(Handler):
                     return_document=ReturnDocument.AFTER
                 )
             except pymongo.errors.DuplicateKeyError:
-                # Seems to be strange case that arises out of unit testing.
+                # Seems to be a strange case that arises out of unit testing.
                 # test_connection_error retires the connect with test=True.
                 # This ends up raising an exception which does a logger.exception(...) call.
                 # That call ends up failing here with a Duplicate Key Error.  The strange thing
@@ -226,10 +225,15 @@ class BaseMongoLogHandler(Handler):
                 raise
 
         # Now update the timestamp collection
-        self.timestamp.insert_one({
-            'mid': result['_id'],
-            'ts': log_record['time']
-        })
+        # We can do this with a lower write concern than the previous operation since 
+        # we can alway's retreive the last datetime from the mongolog collection
+        self.timestamp.insert(
+            {
+                'mid': result['_id'],
+                'ts': log_record['time']
+            },
+            # w=0 
+        )
 
 
 class SimpleMongoLogHandler(BaseMongoLogHandler):

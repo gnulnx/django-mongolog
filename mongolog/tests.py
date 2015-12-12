@@ -142,8 +142,10 @@ class TestRemoveEntriesMixin(object):
 
 class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
+        
         LOGGING['handlers']['mongolog']['class'] = 'mongolog.BaseMongoLogHandler'
         logging.config.dictConfig(LOGGING)
+
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()
 
@@ -191,7 +193,6 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
             u'uuid',
         ]
         # To make test pass on python 3 version
-        print("sys.version[0](%s)" % sys.version_info[0])
         if sys.version_info[0] >= 3:
             expected_keys.append(u'stack_info')
        
@@ -232,8 +233,9 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         """
         Test the simple log record structure
         """
+
         self.handler.setLevel("DEBUG")
-      
+
         # now test a serielazable dict with an exception call
         log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
         expected_keys = set([
@@ -241,6 +243,7 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
             'process', 'level', 'msg', 'path', 'module', 
             'line', 'func', 'filename', 'uuid'
         ])
+
         try:
             raise ValueError
         except ValueError:
