@@ -127,7 +127,7 @@ class BaseMongoLogHandler(Handler):
 
         # Set variables here before subclasses modify the record format
         # NOTE: self.level is defined as an int() in python 3 so don't know this self.level
-        self.level_text = record['levelname']
+        self.level_txt = record['levelname']
         self.msg = record['msg']
         return record
 
