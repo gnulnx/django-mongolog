@@ -257,7 +257,8 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
                 #'object': SimpleMongoLogHandler,
                 #'instance': str(SimpleMongoLogHandler()),
             }
-            logger.warn(log_msg)
+            log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
+            logger.exception(log_msg)
 
         rec = self.collection.find_one({'msg.fruits': {'$in': ['apple', 'orange']}})
         self.assertEqual(
