@@ -148,6 +148,8 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         self.collection = self.handler.get_collection()
 
         self.remove_test_entries()
+        #import sys
+        #sys.exit()
 
     def test_connection_error(self):
         if pymongo_major_version >= 3:
@@ -187,6 +189,7 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
             u'levelname', 
             u'lineno',
             u'time',
+            u'uuid',
         ]
         # To make test pass on python 3 version
         print("sys.version[0](%s)" % sys.version_info[0])
@@ -232,16 +235,18 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
       
         # now test a serielazable dict with an exception call
         log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
+        expected_keys = set([
+            '_id', 'exception', 'name', 'thread', 'time', 
+            'process', 'level', 'msg', 'path', 'module', 
+            'line', 'func', 'filename', 'uuid'
+        ])
         try:
             raise ValueError
         except ValueError:
             logger.exception(log_msg)
 
         rec = self.collection.find_one({'msg.fruits': ['apple', 'orange']})
-        self.assertEqual(
-            set(rec.keys()),
-            set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
-        )
+        self.assertEqual(set(rec.keys()), expected_keys)
 
         # Python 2 duplicate entry test
         log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
@@ -251,10 +256,7 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
             logger.exception(log_msg)
 
         rec = self.collection.find_one({'msg.fruits': ['apple', 'orange']})
-        self.assertEqual(
-            set(rec.keys()),
-            set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
-        )
+        self.assertEqual(set(rec.keys()), expected_keys)
 
         # Now try an exception log with a complex log msg.
         try:
@@ -275,10 +277,7 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
             logger.exception(log_msg)
 
         rec = self.collection.find_one({'msg.fruits': {'$in': ['apple', 'orange']}})
-        self.assertEqual(
-            set(rec.keys()),
-            set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
-        )
+        self.assertEqual(set(rec.keys()), expected_keys)
         
         
 class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
@@ -307,7 +306,7 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         record = records[0]
         self.assertEqual(
             set(record.keys()),
-            set([u'info', u'exception', u'time', u'level', u'name', u'thread', u'process', u'_id'])
+            set(['info', 'exception', 'time', 'level', 'name', 'thread', 'process', '_id', 'uuid'])
         )
 
         self.assertEqual(
@@ -341,7 +340,7 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         rec = self.collection.find_one(query)
         self.assertEqual(
             set(rec.keys()), 
-            set(['info', 'name', 'thread', 'level', 'process', 'time', '_id'])
+            set(['info', 'name', 'thread', 'level', 'process', 'time', '_id', 'uuid'])
         )
 
         for key in ['process', 'level', 'thread']:

@@ -21,6 +21,7 @@ import logging
 from logging import Handler, NOTSET
 from datetime import datetime as dt
 import json
+import uuid
 import pymongo
 major_version = int(pymongo.version.split(".")[0])
 if major_version >= 3:
@@ -29,6 +30,9 @@ if major_version >= 3:
 from mongolog.models import LogRecord
 
 logger = logging.getLogger('')
+
+
+uuid_namespace = uuid.UUID('8296424f-28b7-5982-a434-e6ec8ef529b3')
 
 
 def get_mongolog_handler():
@@ -125,6 +129,7 @@ class BaseMongoLogHandler(Handler):
         """
         record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
 
+        record.update({'uuid': uuid.uuid5(uuid_namespace, str(record['msg']))})
         # Set variables here before subclasses modify the record format
         # NOTE: self.level is defined as an int() in python 3 so don't know this self.level
         self.level_txt = record['levelname']
@@ -154,6 +159,7 @@ class BaseMongoLogHandler(Handler):
         https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
         """
         log_record = self.create_log_record(record)
+        assert log_record.get('uuid', None) is not None
 
         # NOTE: if the user is using django and they have USE_TZ=True in their settings
         # then the timezone displayed will be what is specified in TIME_ZONE
@@ -176,8 +182,22 @@ class BaseMongoLogHandler(Handler):
             'level': self.level_txt,
             'msg': self.msg, 
         }
+
+        print("query(%s)" % query)
+        #print("log_record(%s)" % json.dumps(log_record, indent=4, sort_keys=True))
+        print('BEFORE 1')
+        for r in self.mongolog.find(query):
+            print("r(%s)" % r)
+        print("AFTER 1")
         # TODO This needs to do an upsert now
         result = self.mongolog.find_and_modify(query, remove=True)
+        #raise Exception(result)
+
+        print('BEFORE 2')
+        for r in self.mongolog.find(query):
+            print("r(%s)" % r)
+        print("AFTER 2")
+
         _id = self.mongolog.insert(log_record)
 
         # Now update the timestamp collection
@@ -238,6 +258,7 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
             'line': record['lineno'],
             'func': record['funcName'],
             'filename': record['filename'],
+            'uuid': record['uuid']
         })
         # Add exception info
         if record['exc_info']:
@@ -273,6 +294,7 @@ class VerboseMongoLogHandler(BaseMongoLogHandler):
                 'func': record['funcName'],
                 'filename': record['filename'],
             },
+            'uuid': record['uuid']
         })    
 
         if record['exc_info']:
