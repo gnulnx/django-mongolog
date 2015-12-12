@@ -171,7 +171,6 @@ class BaseMongoLogHandler(Handler):
             'time': dt.utcnow() if self.time_zone == 'utc' else dt.now()
         })
 
-        self.verbose = False
         if self.verbose:
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
