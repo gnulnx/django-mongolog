@@ -245,17 +245,17 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 
         
         logger.warn(log_msg)
-        #log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
-        #try:
-        #    raise ValueError
-        #except ValueError:
-        #    logger.exception(log_msg)
-        #
-        #rec = self.collection.find_one({'msg.fruits': ['apple', 'orange']})
-        #self.assertEqual(
-        #    set(rec.keys()),
-        #    set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
-        #)
+        log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
+        try:
+            raise ValueError
+        except ValueError:
+            logger.exception(log_msg)
+        
+        rec = self.collection.find_one({'msg.fruits': ['apple', 'orange']})
+        self.assertEqual(
+            set(rec.keys()),
+            set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
+        )
 
 
 
@@ -269,14 +269,13 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
                 'fruits': [
                     'apple',
                     'orange',
-                    #{'tomatoes': ['roma', 'kmato', 'cherry', 'ValueError', 'plum']},
-                    #{},
-                    #{}
+                    {'tomatoes': ['roma', 'kmato', 'cherry', ValueError, 'plum']},
+                    {},
+                    {}
                 ],
-                #'object': SimpleMongoLogHandler,
-                #'instance': str(SimpleMongoLogHandler()),
+                'object': SimpleMongoLogHandler,
+                'instance': SimpleMongoLogHandler(),
             }
-            log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
             logger.exception(log_msg)
 
         rec = self.collection.find_one({'msg.fruits': {'$in': ['apple', 'orange']}})
