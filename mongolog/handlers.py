@@ -110,8 +110,7 @@ class BaseMongoLogHandler(Handler):
         # TODO Determine proper try/except logic for pymongo 2.7 driver
         self.client = pymongo.MongoClient(self.connection)
         self.client.server_info()
-        self.db = self.client.mongolog
-        self.mongolog = self.db.mongolog
+        return self.client
 
     def get_collection(self):
         """
@@ -167,6 +166,7 @@ class BaseMongoLogHandler(Handler):
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
         if int(pymongo.version[0]) < 3:
+            # TODO This needs to do an upsert now
             self.mongolog.insert(log_record)
         else:
             self.insert_pymongo_3(log_record)
