@@ -196,33 +196,13 @@ class BaseMongoLogHandler(Handler):
 
     def insert_pymongo_3(self, log_record):
         query = {'uuid': log_record['uuid']}
-        try:
-            # Only uess write concern of collection which is read-only.
-            # get_collection overrides these values in ensure_collections_indexed
-            result = self.mongolog.find_one_and_replace(
-                query,
-                log_record,
-                upsert=True,
-                return_document=ReturnDocument.AFTER,
-            )
-        except pymongo.errors.DuplicateKeyError:
-            try:
-                result = self.mongolog.find_one_and_replace(
-                    query,
-                    log_record,
-                    upsert=True,
-                    return_document=ReturnDocument.AFTER
-                )
-            except pymongo.errors.DuplicateKeyError:
-                # Seems to be a strange case that arises out of unit testing.
-                # test_connection_error retires the connect with test=True.
-                # This ends up raising an exception which does a logger.exception(...) call.
-                # That call ends up failing here with a Duplicate Key Error.  The strange thing
-                # is the find_one operation here with the same query returns None.
-                if not self.mongolog.find_one(query):
-                    return
-                raise
-
+        result = self.mongolog.find_one_and_replace(
+            query,
+            log_record,
+            upsert=True,
+            return_document=ReturnDocument.AFTER,
+        )
+        
         # Now update the timestamp collection
         # We can do this with a lower write concern than the previous operation since 
         # we can alway's retreive the last datetime from the mongolog collection
