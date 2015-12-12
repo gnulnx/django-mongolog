@@ -129,11 +129,22 @@ class BaseMongoLogHandler(Handler):
         """
         record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
 
-        record.update({'uuid': uuid.uuid5(uuid_namespace, str(record['msg']))})
+        # Makesure we include a uuid
+        # The UUID is a combination of the record.levelname and the record.msg
+        record.update({
+            'uuid':  uuid.uuid5(
+                uuid_namespace, 
+                str(record['msg']) + str(record['levelname']) 
+            ).hex
+        })
         # Set variables here before subclasses modify the record format
         # NOTE: self.level is defined as an int() in python 3 so don't know this self.level
         self.level_txt = record['levelname']
+        print("self.level.txt(%s)" % self.level_txt)
         self.msg = record['msg']
+        print("self.msg(%s)" % self.msg)
+        self.uuid = record['uuid']
+        print("self.uuid(%s" % self.uuid)
         return record
 
     def ensure_collections_indexed(self):
@@ -143,7 +154,7 @@ class BaseMongoLogHandler(Handler):
         self.mongolog.create_index(
             [
                 ("level", 1),
-                ("msg", 1)
+                ("uuid", 1)
             ],
             unique=True
         )
@@ -169,6 +180,7 @@ class BaseMongoLogHandler(Handler):
             'time': dt.utcnow() if self.time_zone == 'utc' else dt.now()
         })
 
+        self.verbose=False
         if self.verbose:
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
@@ -178,17 +190,9 @@ class BaseMongoLogHandler(Handler):
             self.insert_pymongo_3(log_record)
 
     def insert_pymongo_2(self, log_record):
-        query = {
-            'level': self.level_txt,
-            'msg': self.msg, 
-        }
+        query = {'uuid': log_record['uuid']}
 
         print("query(%s)" % query)
-        #print("log_record(%s)" % json.dumps(log_record, indent=4, sort_keys=True))
-        print('BEFORE 1')
-        for r in self.mongolog.find(query):
-            print("r(%s)" % r)
-        print("AFTER 1")
         # TODO This needs to do an upsert now
         result = self.mongolog.find_and_modify(query, remove=True)
         #raise Exception(result)
@@ -198,7 +202,10 @@ class BaseMongoLogHandler(Handler):
             print("r(%s)" % r)
         print("AFTER 2")
 
+        #try:
         _id = self.mongolog.insert(log_record)
+        #except:
+        #    raise Exception(log_record)
 
         # Now update the timestamp collection
         self.timestamp.insert({
