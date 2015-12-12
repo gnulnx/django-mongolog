@@ -243,24 +243,8 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
             set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
         )
 
-        
-        logger.warn(log_msg)
-        log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
-        try:
-            raise ValueError
-        except ValueError:
-            logger.exception(log_msg)
-        
-        rec = self.collection.find_one({'msg.fruits': ['apple', 'orange']})
-        self.assertEqual(
-            set(rec.keys()),
-            set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
-        )
-
-
-
         # Now try an exception log with a complex log msg.
-        """
+        
         try:
             raise ValueError
         except ValueError:
@@ -283,7 +267,7 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
             set(rec.keys()),
             set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
         )
-        """
+        
         
 class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
