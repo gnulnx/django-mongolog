@@ -245,18 +245,19 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         try:
             raise ValueError
         except ValueError:
-            logger.exception({
+            log_msg = {
                 'test': True,
                 'fruits': [
                     'apple',
                     'orange',
-                    {'tomatoes': ['roma', 'kmato', 'cherry', 'ValueError', 'plum']},
+                    #{'tomatoes': ['roma', 'kmato', 'cherry', 'ValueError', 'plum']},
                     #{},
                     #{}
                 ],
                 #'object': SimpleMongoLogHandler,
                 #'instance': str(SimpleMongoLogHandler()),
-            })
+            }
+            logger.exception(log_msg)
 
         rec = self.collection.find_one({'msg.fruits': {'$in': ['apple', 'orange']}})
         self.assertEqual(
