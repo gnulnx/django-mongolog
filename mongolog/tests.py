@@ -244,7 +244,7 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         )
 
         
-        #logger.warn(log_msg)
+        logger.warn(log_msg)
         #log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
         #try:
         #    raise ValueError
