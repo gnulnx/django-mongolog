@@ -148,8 +148,6 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         self.collection = self.handler.get_collection()
 
         self.remove_test_entries()
-        #import sys
-        #sys.exit()
 
     def test_connection_error(self):
         if pymongo_major_version >= 3:

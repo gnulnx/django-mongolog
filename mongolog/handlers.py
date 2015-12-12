@@ -82,9 +82,9 @@ class BaseMongoLogHandler(Handler):
     def connect(self, test=False):
 
         if major_version == 3:
-            client = self.connect_pymongo3(test)
+            self.client = self.connect_pymongo3(test)
         elif major_version == 2:
-            client = self.connect_pymongo2()
+            self.client = self.connect_pymongo2()
 
         # The mongo database
         self.db = self.client.mongolog
@@ -129,22 +129,15 @@ class BaseMongoLogHandler(Handler):
         """
         record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
 
-        # Makesure we include a uuid
+        # Make sure we include a uuid
         # The UUID is a combination of the record.levelname and the record.msg
         record.update({
-            'uuid':  uuid.uuid5(
+            'uuid': uuid.uuid5(
                 uuid_namespace, 
                 str(record['msg']) + str(record['levelname']) 
             ).hex
         })
-        # Set variables here before subclasses modify the record format
-        # NOTE: self.level is defined as an int() in python 3 so don't know this self.level
-        self.level_txt = record['levelname']
-        print("self.level.txt(%s)" % self.level_txt)
-        self.msg = record['msg']
-        print("self.msg(%s)" % self.msg)
-        self.uuid = record['uuid']
-        print("self.uuid(%s" % self.uuid)
+        
         return record
 
     def ensure_collections_indexed(self):
@@ -170,7 +163,8 @@ class BaseMongoLogHandler(Handler):
         https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
         """
         log_record = self.create_log_record(record)
-        assert log_record.get('uuid', None) is not None
+        if not log_record.get('uuid', None):
+            raise ValueError("You must have a uuid in your LogRecord")
 
         # NOTE: if the user is using django and they have USE_TZ=True in their settings
         # then the timezone displayed will be what is specified in TIME_ZONE
@@ -180,7 +174,7 @@ class BaseMongoLogHandler(Handler):
             'time': dt.utcnow() if self.time_zone == 'utc' else dt.now()
         })
 
-        self.verbose=False
+        self.verbose = False
         if self.verbose:
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
@@ -192,33 +186,20 @@ class BaseMongoLogHandler(Handler):
     def insert_pymongo_2(self, log_record):
         query = {'uuid': log_record['uuid']}
 
-        print("query(%s)" % query)
-        # TODO This needs to do an upsert now
-        result = self.mongolog.find_and_modify(query, remove=True)
-        #raise Exception(result)
-
-        print('BEFORE 2')
-        for r in self.mongolog.find(query):
-            print("r(%s)" % r)
-        print("AFTER 2")
-
-        #try:
+        # remove the old document
+        self.mongolog.find_and_modify(query, remove=True)
+        
+        # insert the new one
         _id = self.mongolog.insert(log_record)
-        #except:
-        #    raise Exception(log_record)
 
-        # Now update the timestamp collection
+        # Add an entry in the timestamp collection
         self.timestamp.insert({
             'mid': _id,
             'ts': log_record['time']
         })
 
-
     def insert_pymongo_3(self, log_record):
-        query = {
-            'level': self.level_txt,
-            'msg': self.msg,
-        }
+        query = {'uuid': log_record['uuid']}
         try:
             result = self.mongolog.find_one_and_replace(
                 query,
