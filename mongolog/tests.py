@@ -255,7 +255,7 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
                     {}
                 ],
                 'object': SimpleMongoLogHandler,
-                'instance': SimpleMongoLogHandler(),
+                'instance': str(SimpleMongoLogHandler()),
             })
 
         rec = self.collection.find_one({'msg.fruits': {'$in': ['apple', 'orange']}})
