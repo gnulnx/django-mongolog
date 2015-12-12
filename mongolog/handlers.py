@@ -160,9 +160,9 @@ class BaseMongoLogHandler(Handler):
         https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
         """
         log_record = self.create_log_record(record)
-        if not log_record.get('uuid', None):
-            raise ValueError("You must have a uuid in your LogRecord")
 
+        log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
+        
         # NOTE: if the user is using django and they have USE_TZ=True in their settings
         # then the timezone displayed will be what is specified in TIME_ZONE
         # For instance if they have TIME_ZONE='UTC' then both dt.now() and dt.utcnow()
@@ -202,7 +202,7 @@ class BaseMongoLogHandler(Handler):
             upsert=True,
             return_document=ReturnDocument.AFTER,
         )
-        
+
         # Now update the timestamp collection
         # We can do this with a lower write concern than the previous operation since 
         # we can alway's retreive the last datetime from the mongolog collection
