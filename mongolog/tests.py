@@ -250,11 +250,11 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
                 'fruits': [
                     'apple',
                     'orange',
-                    {'tomatoes': ['roma', 'kmato', 'cherry', ValueError, 'plum']},
+                    {'tomatoes': ['roma', 'kmato', 'cherry', 'ValueError', 'plum']},
                     {},
                     {}
                 ],
-                'object': SimpleMongoLogHandler,
+                #'object': SimpleMongoLogHandler,
                 #'instance': str(SimpleMongoLogHandler()),
             })
 
