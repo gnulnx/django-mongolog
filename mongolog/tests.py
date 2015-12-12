@@ -207,6 +207,8 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
             self.assertEqual(unicode, type(record['msg']['Life']['Domain']['Bacteria'][0]['name'])) 
         except NameError:
             self.assertEqual(str, type(record['msg']['Life']['Domain']['Bacteria'][0]['name'])) 
+
+        logger.info("Just some friendly info")
         
     def test_str_unicode_mongologhandler(self):
         self.assertEqual(self.handler.connection, u"%s" % self.handler)
@@ -241,7 +243,7 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
             set(['_id', 'exception', 'name', 'thread', 'time', 'process', 'level', 'msg', 'path', 'module', 'line', 'func', 'filename'])
         )
 
-        logger.info("Just some friendly info")
+        
         #logger.warn(log_msg)
         #log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
         #try:
