@@ -126,7 +126,8 @@ class BaseMongoLogHandler(Handler):
         record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
 
         # Set variables here before subclasses modify the record format
-        self.level = record['levelname']
+        # NOTE: self.level is defined as an int() in python 3 so don't know this self.level
+        self.level_text = record['levelname']
         self.msg = record['msg']
         return record
 
@@ -173,7 +174,7 @@ class BaseMongoLogHandler(Handler):
 
     def insert_pymongo_3(self, log_record):
         query = {
-            'level': self.level,
+            'level': self.level_txt,
             'msg': self.msg,
         }
         try:
