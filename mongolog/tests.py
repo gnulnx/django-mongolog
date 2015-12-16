@@ -40,7 +40,8 @@ LOGGING = {
 
             # utc/local.  Only used with record_type=simple
             'time_zone': 'local',
-            'verbose': True
+            'verbose': True,
+            'record_type': 'reference',
         },
     },
     'loggers': {
@@ -144,12 +145,23 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
         
         LOGGING['handlers']['mongolog']['class'] = 'mongolog.BaseMongoLogHandler'
+        LOGGING['handlers']['mongolog']['record_type'] = 'reference'
         logging.config.dictConfig(LOGGING)
 
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()
 
         self.remove_test_entries()
+
+    def test_write_concert(self):
+        LOGGING['handlers']['mongolog']['w'] = 0
+        logging.config.dictConfig(LOGGING)
+        self.test_basehandler_exception()
+
+    def test_valid_record_type(self):
+        LOGGING['handlers']['mongolog']['record_type'] = 'invalid type'
+        with self.assertRaises(ValueError):
+            logging.config.dictConfig(LOGGING)
 
     def test_connection_error(self):
         if pymongo_major_version >= 3:
@@ -223,6 +235,7 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
         LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
+        LOGGING['handlers']['mongolog']['record_type'] = 'reference'
         logging.config.dictConfig(LOGGING)
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()

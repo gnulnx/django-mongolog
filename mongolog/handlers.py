@@ -49,8 +49,24 @@ def get_mongolog_handler():
 
 
 class BaseMongoLogHandler(Handler):
-    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local"):  # noqa
+
+    REFERENCE = 'reference'
+    EMBEDDED = 'embedded'
+
+    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="reference"):  # noqa
         self.connection = connection
+
+        valid_record_types = [self.REFERENCE, self.EMBEDDED]
+        if record_type not in valid_record_types:
+            raise ValueError("record_type myst be one of %s" % valid_record_types)
+       
+        self.record_type = record_type
+         
+        # The write concern
+        self.w = w
+
+        # If True block until write operations have been committed to the journal.
+        self.j = j
 
         # Used to determine which time setting is used in the simple record_type
         self.time_zone = time_zone
@@ -100,7 +116,12 @@ class BaseMongoLogHandler(Handler):
             if test:
                 raise pymongo.errors.ServerSelectionTimeoutError("Just a test")
 
-            self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5)
+            if self.w == 0:
+                # if w=0 you can't have other options
+                self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5, w=self.w)
+            else:
+                self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5, w=self.w, j=self.j)
+                
         except pymongo.errors.ServerSelectionTimeoutError:
             msg = "Unable to connect to mongo with (%s)" % self.connection
             # NOTE: Trying to log here ends up with Duplicate Key errors on upsert in emit()
@@ -136,7 +157,7 @@ class BaseMongoLogHandler(Handler):
             'uuid': uuid.uuid5(
                 uuid_namespace, 
                 str(record['msg']) + str(record['levelname']) 
-            ).hex
+            ).hex,
         })
         
         return record
@@ -145,12 +166,12 @@ class BaseMongoLogHandler(Handler):
         """
         Create the indexes if they are not already created
         """
-        # uncomment to change collection level write concern for the mongolog collection
-        # col = self.db.get_collection('mongolog', write_concern=pymongo.write_concern.WriteConcern(w=0))
         self.mongolog.create_index([("uuid", 1)], unique=True)
+        self.mongolog.create_index([("dates", 1)])
+        self.mongolog.create_index([("counter", 1)])
 
         self.timestamp.create_index([
-            ("mid", 1),
+            ("uuid", 1),
             ("ts", 1)
         ])
 
@@ -168,7 +189,7 @@ class BaseMongoLogHandler(Handler):
         # For instance if they have TIME_ZONE='UTC' then both dt.now() and dt.utcnow()
         # will be equivalent.
         log_record.update({
-            'time': dt.utcnow() if self.time_zone == 'utc' else dt.now()
+            'time': dt.utcnow() if self.time_zone == 'utc' else dt.now(),
         })
 
         if self.verbose:
@@ -177,7 +198,10 @@ class BaseMongoLogHandler(Handler):
         if int(pymongo.version[0]) < 3:
             self.insert_pymongo_2(log_record)
         else:
-            self.insert_pymongo_3(log_record)
+            if self.record_type == self.REFERENCE:
+                self.reference_log_pymongo_3(log_record)
+            elif self.record_type == self.EMBEDDED:
+                self.embed_log_pymongo_3(log_record)
 
     def insert_pymongo_2(self, log_record):
         query = {'uuid': log_record['uuid']}
@@ -186,17 +210,41 @@ class BaseMongoLogHandler(Handler):
         self.mongolog.find_and_modify(query, remove=True)
         
         # insert the new one
-        _id = self.mongolog.insert(log_record)
+        self.mongolog.insert(log_record)
 
         # Add an entry in the timestamp collection
         self.timestamp.insert({
-            'mid': _id,
+            'uuid': log_record['uuid'],
             'ts': log_record['time']
         })
 
-    def insert_pymongo_3(self, log_record):
+    def embed_log_pymongo_3(self, log_record):
         query = {'uuid': log_record['uuid']}
-        result = self.mongolog.find_one_and_replace(
+
+        result = self.mongolog.find(query)
+        if result.count():
+            # Create a date field if it doesn't already exist and push the current
+            # time stamp onto the end.  Pop the first element when the array grows larger than 5
+            self.mongolog.update_one(
+                query, 
+                {
+                    "$push": {
+                        'dates': {
+                            '$each': [log_record['time']],
+                            "$slice": -5  # only keep the last n entries
+                        }
+                    },
+                    # Keep a counter of the number of times we see this record
+                    "$inc": {'counter': 1}
+                }
+            ) 
+
+        else:
+            self.mongolog.insert_one(log_record)
+
+    def reference_log_pymongo_3(self, log_record):
+        query = {'uuid': log_record['uuid']}
+        self.mongolog.find_one_and_replace(
             query,
             log_record,
             upsert=True,
@@ -206,13 +254,10 @@ class BaseMongoLogHandler(Handler):
         # Now update the timestamp collection
         # We can do this with a lower write concern than the previous operation since 
         # we can alway's retreive the last datetime from the mongolog collection
-        self.timestamp.insert(
-            {
-                'mid': result['_id'],
-                'ts': log_record['time']
-            },
-            # w=0 
-        )
+        self.timestamp.insert({
+            'uuid': log_record['uuid'],
+            'ts': log_record['time']
+        })
 
 
 class SimpleMongoLogHandler(BaseMongoLogHandler):

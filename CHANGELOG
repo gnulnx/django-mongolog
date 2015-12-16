@@ -5,6 +5,8 @@ v0.4.3
 -------
     * timestamp collection added
     * uuid field added
+    * Control w and j wrinte concern vairables from settings file
+    * options to control insert style, embedded/reference (pymongo3 only right now)
 
 v0.4.2
 ------
