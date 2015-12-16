@@ -153,6 +153,11 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 
         self.remove_test_entries()
 
+    def test_valid_record_type(self):
+        LOGGING['handlers']['mongolog']['record_type'] = 'invalid type'
+        with self.assertRaises(ValueError):
+            logging.config.dictConfig(LOGGING)
+
     def test_connection_error(self):
         if pymongo_major_version >= 3:
             with self.assertRaises(pymongo.errors.ServerSelectionTimeoutError):
