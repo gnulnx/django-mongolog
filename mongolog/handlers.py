@@ -148,7 +148,6 @@ class BaseMongoLogHandler(Handler):
                 uuid_namespace, 
                 str(record['msg']) + str(record['levelname']) 
             ).hex,
-            #'Dates': []
         })
         
         return record
@@ -212,8 +211,6 @@ class BaseMongoLogHandler(Handler):
 
         result = self.mongolog.find(query)
         if result.count():
-            #self.mongolog.update_one(query, {"$push": {'dates': log_record['time']}})
-
             # Create a date field if it doesn't already exist and push the current
             # time stamp onto the end.  Pop the first element when the array grows larger than 5
             self.mongolog.update_one(
@@ -230,12 +227,6 @@ class BaseMongoLogHandler(Handler):
                 }
             ) 
 
-            # Add an entry in the timestamp collection
-            #self.timestamp.insert({
-            #    'uuid': log_record['uuid'],
-            #    'ts': log_record['time']
-            #})
-                
         else:
             self.mongolog.insert_one(log_record)
 
