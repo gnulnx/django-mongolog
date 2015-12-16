@@ -184,8 +184,8 @@ class BaseMongoLogHandler(Handler):
         if int(pymongo.version[0]) < 3:
             self.insert_pymongo_2(log_record)
         else:
-            self.insert_pymongo_3(log_record)
-            #self.upsert_pymongo_3(log_record)
+            #self.insert_pymongo_3(log_record)
+            self.upsert_pymongo_3(log_record)
 
     def insert_pymongo_2(self, log_record):
         query = {'uuid': log_record['uuid']}
@@ -198,7 +198,7 @@ class BaseMongoLogHandler(Handler):
 
         # Add an entry in the timestamp collection
         self.timestamp.insert({
-            'mid': _id,
+            'uuid': log_record['uuid'],
             'ts': log_record['time']
         })
 
