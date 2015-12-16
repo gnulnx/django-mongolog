@@ -153,6 +153,11 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 
         self.remove_test_entries()
 
+    def test_write_concert(self):
+        LOGGING['handlers']['mongolog']['w'] = 0
+        logging.config.dictConfig(LOGGING)
+        self.test_basehandler_exception()
+
     def test_valid_record_type(self):
         LOGGING['handlers']['mongolog']['record_type'] = 'invalid type'
         with self.assertRaises(ValueError):
