@@ -5,6 +5,7 @@ v0.4.3
 -------
     * timestamp collection added
     * uuid field added
+    * Control w and j wrinte concern vairables from settings file
 
 v0.4.2
 ------
