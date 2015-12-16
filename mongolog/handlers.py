@@ -49,9 +49,17 @@ def get_mongolog_handler():
 
 
 class BaseMongoLogHandler(Handler):
-    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local"):  # noqa
+    REFERENCE = 'reference'
+    EMBEDDED = 'embedded'
+    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="reference"):  # noqa
         self.connection = connection
 
+        valid_record_types = [self.REFERENCE, self.EMBEDDED]
+        if record_type not in valid_record_types:
+            raise ValueError("record_type myst be one of %s" % valid_record_types)
+       
+        self.record_type = record_type
+         
         # The write concern
         self.w = w
 
@@ -188,8 +196,10 @@ class BaseMongoLogHandler(Handler):
         if int(pymongo.version[0]) < 3:
             self.insert_pymongo_2(log_record)
         else:
-            #self.insert_pymongo_3(log_record)
-            self.upsert_pymongo_3(log_record)
+            if self.record_type == self.REFERENCE:
+                self.insert_pymongo_3(log_record)
+            elif self.record_type == self.EMBEDDED:
+                self.upsert_pymongo_3(log_record)
 
     def insert_pymongo_2(self, log_record):
         query = {'uuid': log_record['uuid']}

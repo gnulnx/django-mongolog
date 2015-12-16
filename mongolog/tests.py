@@ -40,7 +40,8 @@ LOGGING = {
 
             # utc/local.  Only used with record_type=simple
             'time_zone': 'local',
-            'verbose': True
+            'verbose': True,
+            'record_type': 'reference',
         },
     },
     'loggers': {
@@ -144,6 +145,7 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
         
         LOGGING['handlers']['mongolog']['class'] = 'mongolog.BaseMongoLogHandler'
+        LOGGING['handlers']['mongolog']['record_type'] = 'reference'
         logging.config.dictConfig(LOGGING)
 
         self.handler = get_mongolog_handler()
@@ -223,6 +225,7 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
         LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
+        LOGGING['handlers']['mongolog']['record_type'] = 'reference'
         logging.config.dictConfig(LOGGING)
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()
