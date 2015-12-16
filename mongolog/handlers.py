@@ -156,7 +156,7 @@ class BaseMongoLogHandler(Handler):
         #self.mongolog.create_index([("dates", 1)])
 
         self.timestamp.create_index([
-            ("mid", 1),
+            ("uuid", 1),
             ("ts", 1)
         ])
 
