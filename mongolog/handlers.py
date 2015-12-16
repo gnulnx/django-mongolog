@@ -197,9 +197,9 @@ class BaseMongoLogHandler(Handler):
             self.insert_pymongo_2(log_record)
         else:
             if self.record_type == self.REFERENCE:
-                self.insert_pymongo_3(log_record)
+                self.reference_log_pymongo_3(log_record)
             elif self.record_type == self.EMBEDDED:
-                self.upsert_pymongo_3(log_record)
+                self.embed_log_pymongo_3(log_record)
 
     def insert_pymongo_2(self, log_record):
         query = {'uuid': log_record['uuid']}
@@ -216,7 +216,7 @@ class BaseMongoLogHandler(Handler):
             'ts': log_record['time']
         })
 
-    def upsert_pymongo_3(self, log_record):
+    def embed_log_pymongo_3(self, log_record):
         query = {'uuid': log_record['uuid']}
 
         result = self.mongolog.find(query)
@@ -240,7 +240,7 @@ class BaseMongoLogHandler(Handler):
         else:
             self.mongolog.insert_one(log_record)
 
-    def insert_pymongo_3(self, log_record):
+    def reference_log_pymongo_3(self, log_record):
         query = {'uuid': log_record['uuid']}
         result = self.mongolog.find_one_and_replace(
             query,
