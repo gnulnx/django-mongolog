@@ -49,8 +49,10 @@ def get_mongolog_handler():
 
 
 class BaseMongoLogHandler(Handler):
+
     REFERENCE = 'reference'
     EMBEDDED = 'embedded'
+
     def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="reference"):  # noqa
         self.connection = connection
 
@@ -208,7 +210,7 @@ class BaseMongoLogHandler(Handler):
         self.mongolog.find_and_modify(query, remove=True)
         
         # insert the new one
-        _id = self.mongolog.insert(log_record)
+        self.mongolog.insert(log_record)
 
         # Add an entry in the timestamp collection
         self.timestamp.insert({
@@ -242,7 +244,7 @@ class BaseMongoLogHandler(Handler):
 
     def reference_log_pymongo_3(self, log_record):
         query = {'uuid': log_record['uuid']}
-        result = self.mongolog.find_one_and_replace(
+        self.mongolog.find_one_and_replace(
             query,
             log_record,
             upsert=True,
