@@ -30,7 +30,7 @@ LOGGING = {
             'class': 'mongolog.SimpleMongoLogHandler',
             #'class': 'mongolog.VerboseMongoHandler',
             'connection': 'mongodb://localhost:27017',
-            'w': 1,
+            'w': 0,
             'j': False,
             'verbose': False,
 

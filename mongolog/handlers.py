@@ -106,7 +106,12 @@ class BaseMongoLogHandler(Handler):
             if test:
                 raise pymongo.errors.ServerSelectionTimeoutError("Just a test")
 
-            self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5, w=self.w, j=self.j)
+            if self.w == 0:
+                # if w=0 you can't have other options
+                self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5, w=self.w)
+            else:
+                self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5, w=self.w, j=self.j)
+                
         except pymongo.errors.ServerSelectionTimeoutError:
             msg = "Unable to connect to mongo with (%s)" % self.connection
             # NOTE: Trying to log here ends up with Duplicate Key errors on upsert in emit()
@@ -153,7 +158,8 @@ class BaseMongoLogHandler(Handler):
         Create the indexes if they are not already created
         """
         self.mongolog.create_index([("uuid", 1)], unique=True)
-        #self.mongolog.create_index([("dates", 1)])
+        self.mongolog.create_index([("dates", 1)])
+        self.mongolog.create_index([("counter", 1)])
 
         self.timestamp.create_index([
             ("uuid", 1),
@@ -175,7 +181,6 @@ class BaseMongoLogHandler(Handler):
         # will be equivalent.
         log_record.update({
             'time': dt.utcnow() if self.time_zone == 'utc' else dt.now(),
-            #'dates': [dt.utcnow() if self.time_zone == 'utc' else dt.now()]
         })
 
         if self.verbose:
@@ -207,7 +212,30 @@ class BaseMongoLogHandler(Handler):
 
         result = self.mongolog.find(query)
         if result.count():
-            self.mongolog.update_one(query, {"$push": {'dates': log_record['time']}})
+            #self.mongolog.update_one(query, {"$push": {'dates': log_record['time']}})
+
+            # Create a date field if it doesn't already exist and push the current
+            # time stamp onto the end.  Pop the first element when the array grows larger than 5
+            self.mongolog.update_one(
+                query, 
+                {
+                    "$push": {
+                        'dates': {
+                            '$each': [log_record['time']],
+                            "$slice": -5  # only keep the last n entries
+                        }
+                    },
+                    # Keep a counter of the number of times we see this record
+                    "$inc": {'counter': 1}
+                }
+            ) 
+
+            # Add an entry in the timestamp collection
+            #self.timestamp.insert({
+            #    'uuid': log_record['uuid'],
+            #    'ts': log_record['time']
+            #})
+                
         else:
             self.mongolog.insert_one(log_record)
 
