@@ -253,7 +253,7 @@ class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMix
             'module', 
             'filename', 
             'func', 
-            'time', 
+            'created', 
             'msg', 
             'path', 
             'line', 
