@@ -53,7 +53,7 @@ class BaseMongoLogHandler(Handler):
     REFERENCE = 'reference'
     EMBEDDED = 'embedded'
 
-    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="reference"):  # noqa
+    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="embedded"):  # noqa
         self.connection = connection
 
         valid_record_types = [self.REFERENCE, self.EMBEDDED]
@@ -313,7 +313,7 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
 
         if record.get('dates'):
             mongolog_record['dates'] = record['dates']
-            
+
         # Add exception info
         if record['exc_info']:
             mongolog_record['exception'] = {
