@@ -12,7 +12,8 @@ Please visit the `MongoLog Users Group <https://groups.google.com/forum/#!forum/
 .. image:: https://coveralls.io/repos/gnulnx/django-mongolog/badge.svg?branch=master&service=github 
     :target: https://coveralls.io/github/gnulnx/django-mongolog?branch=master
 
-
+.. image:: https://api.codacy.com/project/badge/grade/d8d4eaa24bbe4ae5afe608210e4b8d28
+    :target: https://www.codacy.com/app/gnulnx/django-mongolog
  
 
 Quick start
