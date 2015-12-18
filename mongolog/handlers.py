@@ -54,6 +54,8 @@ class BaseMongoLogHandler(Handler):
     EMBEDDED = 'embedded'
 
     def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="embedded"):  # noqa
+        super(BaseMongoLogHandler, self).__init__(level)
+        
         self.connection = connection
 
         valid_record_types = [self.REFERENCE, self.EMBEDDED]
@@ -89,8 +91,6 @@ class BaseMongoLogHandler(Handler):
 
         # Make sure the indexes are setup properly
         self.ensure_collections_indexed()
-
-        return super(BaseMongoLogHandler, self).__init__(level)
 
     def __unicode__(self):
         return u'%s' % self.connection
