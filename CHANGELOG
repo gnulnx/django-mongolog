@@ -1,12 +1,12 @@
 Change Log
 ==========
 
-v0.4.3
+v0.5.0
 -------
     * timestamp collection added
     * uuid field added
     * Control w and j wrinte concern vairables from settings file
-    * options to control insert style, embedded/reference (pymongo3 only right now)
+    * embedded document and reference documents both supported
 
 v0.4.2
 ------
@@ -37,7 +37,7 @@ v0.3.0
     * Support log string concatenation.  aka logger.error("%s", "astring").
     * Support dictionary based messages.  :)
     * Converted project to a full django project
-    # support for pymongo driver 2.7 and greater
+    # support for pymongo driver 2.4 and greater
     * Added this CHANGELOG:  #14
     * Basic log tests # 15
 
