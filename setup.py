@@ -2,7 +2,7 @@ import os
 import subprocess
 from setuptools import setup
 
-VERSION = "0.4.3"
+VERSION = "0.5.0"
 
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
     README = readme.read()
@@ -16,7 +16,7 @@ setup(
     packages=['mongolog'],
     install_requires=(
         'django>=1.7.10',
-        'pymongo>=2.7',
+        'pymongo>=2.4',
         'coverage',
     ),
     include_package_data=True,

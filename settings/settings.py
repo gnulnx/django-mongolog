@@ -33,6 +33,7 @@ LOGGING = {
             'w': 0,
             'j': False,
             'verbose': False,
+            'record_type': "embedded",
 
             # utc/local.  Only used with record_type=simple
             'time_zone': 'local',

@@ -53,14 +53,18 @@ class BaseMongoLogHandler(Handler):
     REFERENCE = 'reference'
     EMBEDDED = 'embedded'
 
-    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="reference"):  # noqa
+    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="embedded"):  # noqa
         self.connection = connection
 
         valid_record_types = [self.REFERENCE, self.EMBEDDED]
         if record_type not in valid_record_types:
             raise ValueError("record_type myst be one of %s" % valid_record_types)
        
+        # The type of document we store
         self.record_type = record_type
+
+        # number of dates to keep in embedded document
+        self.num_dates = 25
          
         # The write concern
         self.w = w
@@ -158,8 +162,19 @@ class BaseMongoLogHandler(Handler):
                 uuid_namespace, 
                 str(record['msg']) + str(record['levelname']) 
             ).hex,
+            # NOTE: if the user is using django and they have USE_TZ=True in their settings
+            # then the timezone displayed will be what is specified in TIME_ZONE
+            # For instance if they have TIME_ZONE='UTC' then both dt.now() and dt.utcnow()
+            # will be equivalent.
+            'time': dt.utcnow() if self.time_zone == 'utc' else dt.now(),
         })
+
+        # If we are using an embedded document type
+        # we need to create the dates array
+        if self.record_type == self.EMBEDDED:
+            record['dates'] = [record['time']]
         
+
         return record
 
     def ensure_collections_indexed(self):
@@ -182,28 +197,25 @@ class BaseMongoLogHandler(Handler):
         """
         log_record = self.create_log_record(record)
 
+        # TODO move this to a validate log_record method and add more validation
         log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
         
-        # NOTE: if the user is using django and they have USE_TZ=True in their settings
-        # then the timezone displayed will be what is specified in TIME_ZONE
-        # For instance if they have TIME_ZONE='UTC' then both dt.now() and dt.utcnow()
-        # will be equivalent.
-        log_record.update({
-            'time': dt.utcnow() if self.time_zone == 'utc' else dt.now(),
-        })
-
         if self.verbose:
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
         if int(pymongo.version[0]) < 3:
-            self.insert_pymongo_2(log_record)
+            if self.record_type == self.REFERENCE:
+                self.reference_log_pymongo_2(log_record)
+            elif self.record_type == self.EMBEDDED:
+                self.embed_log_pymongo_2(log_record)
         else:
             if self.record_type == self.REFERENCE:
                 self.reference_log_pymongo_3(log_record)
             elif self.record_type == self.EMBEDDED:
                 self.embed_log_pymongo_3(log_record)
 
-    def insert_pymongo_2(self, log_record):
+
+    def reference_log_pymongo_2(self, log_record):
         query = {'uuid': log_record['uuid']}
 
         # remove the old document
@@ -218,6 +230,30 @@ class BaseMongoLogHandler(Handler):
             'ts': log_record['time']
         })
 
+    def embed_log_pymongo_2(self, log_record):
+        query = {'uuid': log_record['uuid']}
+
+        result = self.mongolog.find(query)
+        if result.count():
+            # Create a date field if it doesn't already exist and push the current
+            # time stamp onto the end.  Pop the first element when the array grows larger than 5
+            self.mongolog.update(
+                query, 
+                {
+                    "$push": {
+                        'dates': {
+                            '$each': [log_record['time']],
+                            "$slice": -self.num_dates  # only keep the last n entries
+                        }
+                    },
+                    # Keep a counter of the number of times we see this record
+                    "$inc": {'counter': 1}
+                }
+            ) 
+
+        else:
+            self.mongolog.insert(log_record)
+
     def embed_log_pymongo_3(self, log_record):
         query = {'uuid': log_record['uuid']}
 
@@ -231,7 +267,7 @@ class BaseMongoLogHandler(Handler):
                     "$push": {
                         'dates': {
                             '$each': [log_record['time']],
-                            "$slice": -5  # only keep the last n entries
+                            "$slice": -self.num_dates  # only keep the last n entries
                         }
                     },
                     # Keep a counter of the number of times we see this record
@@ -274,8 +310,13 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
             'line': record['lineno'],
             'func': record['funcName'],
             'filename': record['filename'],
-            'uuid': record['uuid']
+            'uuid': record['uuid'],
+            'time': record['time'],
         })
+
+        if record.get('dates'):
+            mongolog_record['dates'] = record['dates']
+
         # Add exception info
         if record['exc_info']:
             mongolog_record['exception'] = {
@@ -310,7 +351,8 @@ class VerboseMongoLogHandler(BaseMongoLogHandler):
                 'func': record['funcName'],
                 'filename': record['filename'],
             },
-            'uuid': record['uuid']
+            'uuid': record['uuid'],
+            'time': record['time'],
         })    
 
         if record['exc_info']:

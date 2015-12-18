@@ -41,7 +41,7 @@ LOGGING = {
             # utc/local.  Only used with record_type=simple
             'time_zone': 'local',
             'verbose': True,
-            'record_type': 'reference',
+            'record_type': 'embedded',
         },
     },
     'loggers': {
@@ -232,7 +232,78 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         self.assertEqual(self.handler.connection, "%s" % self.handler)
 
 
-class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
+class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMixin):
+    def setUp(self):
+        LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
+        LOGGING['handlers']['mongolog']['record_type'] = 'embedded'
+        logging.config.dictConfig(LOGGING)
+        self.logger = logging.getLogger()
+        self.handler = get_mongolog_handler()
+        self.collection = self.handler.get_collection()
+
+        self.remove_test_entries()
+
+        self.expected_keys = set([
+            'dates', 
+            'uuid', 
+            'thread', 
+            'level', 
+            'process', 
+            'exception', 
+            'module', 
+            'filename', 
+            'func', 
+            'time', 
+            'msg', 
+            'path', 
+            'line', 
+            '_id', 
+            'name'
+        ]) 
+
+    def test_exception(self):
+        with self.assertRaises(ValueError):
+            raiseException()
+
+        records = self.collection.find({
+            'msg.test': True, 
+            'msg.Life.Domain.Eukaryota.name': "Archaeplastida",
+            'level': 'ERROR'
+        })
+        self.assertEqual(1, records.count())
+
+        record = records[0]
+        self.assertEqual(
+            set(record.keys()), 
+            self.expected_keys
+        )
+
+        # Verify that the dates field has 1 item        
+        self.assertEqual(1, len(record['dates']))
+
+        # now create anthe rduplicate entry and show that only one record is still present
+        # however now it should have 2 values in 'dates'
+        with self.assertRaises(ValueError):
+            raiseException()
+
+        records = self.collection.find({
+            'msg.test': True, 
+            'msg.Life.Domain.Eukaryota.name': "Archaeplastida",
+            'level': 'ERROR'
+        })
+        self.assertEqual(1, records.count())
+        record = records[0]
+        # should have two values in dates now
+        self.assertEqual(2, len(record['dates']))
+
+        # Now check the exceptoin keys
+        self.assertEqual(
+            set(record['exception'].keys()),
+            set(['info', 'trace'])
+        )
+
+
+class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
         LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
         LOGGING['handlers']['mongolog']['record_type'] = 'reference'
@@ -242,7 +313,7 @@ class TestSimpleMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 
         self.remove_test_entries()
 
-    def test_logstructure_simple(self):
+    def test_logstructure_simple_reference(self):
         """
         Test the simple log record structure
         """
