@@ -23,8 +23,8 @@ from datetime import datetime as dt
 import json
 import uuid
 import pymongo
-major_version = int(pymongo.version.split(".")[0])
-if major_version >= 3:
+pymongo_version = int(pymongo.version.split(".")[0])
+if pymongo_version >= 3:
     from pymongo.collection import ReturnDocument
 
 from mongolog.models import LogRecord
@@ -55,7 +55,7 @@ class BaseMongoLogHandler(Handler):
 
     def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="embedded"):  # noqa
         super(BaseMongoLogHandler, self).__init__(level)
-        
+
         self.connection = connection
 
         valid_record_types = [self.REFERENCE, self.EMBEDDED]
@@ -100,9 +100,9 @@ class BaseMongoLogHandler(Handler):
 
     def connect(self, test=False):
 
-        if major_version == 3:
+        if pymongo_version == 3:
             self.client = self.connect_pymongo3(test)
-        elif major_version == 2:
+        elif pymongo_version == 2:
             self.client = self.connect_pymongo2()
 
         # The mongolog database
@@ -200,18 +200,47 @@ class BaseMongoLogHandler(Handler):
         log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
         
         if self.verbose:
-            print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
+            print(json.dumps(log_record, sort_keys=True, indent=4, default=str))       
 
-        if int(pymongo.version[0]) < 3:
-            if self.record_type == self.REFERENCE:
+        if self.record_type == self.EMBEDDED:
+            self.insert_embedded(log_record)
+
+        elif self.record_type == self.REFERENCE:
+            if pymongo_version == 2:
                 self.reference_log_pymongo_2(log_record)
-            elif self.record_type == self.EMBEDDED:
-                self.embed_log_pymongo_2(log_record)
-        else:
-            if self.record_type == self.REFERENCE:
+
+            elif pymongo_version == 3:
                 self.reference_log_pymongo_3(log_record)
-            elif self.record_type == self.EMBEDDED:
-                self.embed_log_pymongo_3(log_record)
+
+    def insert_embedded(self, log_record):
+        query = {'uuid': log_record['uuid']}
+        result = self.mongolog.find(query)
+        if result.count() == 0:
+
+            # First time this record has been seen add a created field and insert it
+            log_record['created'] = log_record.pop('time')
+            if pymongo_version == 2:
+                self.mongolog.insert(log_record)
+            elif pymongo_version == 3:
+                self.mongolog.insert_one(log_record)
+        else:
+            # record has been seen before so we update the counter and push/pop
+            # the log record time.  We keep the 'n' latest log record
+            update = {
+                "$push": {
+                    'dates': {
+                        '$each': [log_record['time']],
+                        "$slice": -self.num_dates  # only keep the last n entries
+                    }
+                },
+                # Keep a counter of the number of times we see this record
+                "$inc": {'counter': 1}
+            }
+
+            if pymongo_version == 2:
+                self.mongolog.update(query, update)
+            elif pymongo_version == 3:
+                self.mongolog.update_one(query, update)
 
     def reference_log_pymongo_2(self, log_record):
         query = {'uuid': log_record['uuid']}
@@ -227,57 +256,6 @@ class BaseMongoLogHandler(Handler):
             'uuid': log_record['uuid'],
             'ts': log_record['time']
         })
-
-    def embed_log_pymongo_2(self, log_record):
-        query = {'uuid': log_record['uuid']}
-
-        result = self.mongolog.find(query)
-        if result.count():
-            # Create a date field if it doesn't already exist and push the current
-            # time stamp onto the end.  Pop the first element when the array grows larger than 5
-            self.mongolog.update(
-                query, 
-                {
-                    "$push": {
-                        'dates': {
-                            '$each': [log_record['time']],
-                            "$slice": -self.num_dates  # only keep the last n entries
-                        }
-                    },
-                    # Keep a counter of the number of times we see this record
-                    "$inc": {'counter': 1}
-                }
-            ) 
-
-        else:
-            log_record['created'] = log_record.pop('time')
-            self.mongolog.insert(log_record)
-
-    def embed_log_pymongo_3(self, log_record):
-        query = {'uuid': log_record['uuid']}
-
-        result = self.mongolog.find(query)
-        if result.count():
-            # Create a date field if it doesn't already exist and push the current
-            # time stamp onto the end.  Pop the first element when the array grows larger than 5
-            self.mongolog.update_one(
-                query, 
-                {
-                    "$push": {
-                        'dates': {
-                            '$each': [log_record['time']],
-                            "$slice": -self.num_dates  # only keep the last n entries
-                        }
-                    },
-                    # Keep a counter of the number of times we see this record
-                    "$inc": {'counter': 1}
-                }
-            ) 
-
-        else:
-            # rename time to created if this is our first time creating the entry
-            log_record['created'] = log_record.pop('time')
-            self.mongolog.insert_one(log_record)
 
     def reference_log_pymongo_3(self, log_record):
         query = {'uuid': log_record['uuid']}
