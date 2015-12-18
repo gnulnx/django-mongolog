@@ -250,6 +250,7 @@ class BaseMongoLogHandler(Handler):
             ) 
 
         else:
+            log_record['created'] = log_record.pop('time')
             self.mongolog.insert(log_record)
 
     def embed_log_pymongo_3(self, log_record):
@@ -274,6 +275,8 @@ class BaseMongoLogHandler(Handler):
             ) 
 
         else:
+            # rename time to created if this is our first time creating the entry
+            log_record['created'] = log_record.pop('time')
             self.mongolog.insert_one(log_record)
 
     def reference_log_pymongo_3(self, log_record):
