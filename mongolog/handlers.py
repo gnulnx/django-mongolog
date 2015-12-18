@@ -174,7 +174,6 @@ class BaseMongoLogHandler(Handler):
         if self.record_type == self.EMBEDDED:
             record['dates'] = [record['time']]
         
-
         return record
 
     def ensure_collections_indexed(self):
@@ -213,7 +212,6 @@ class BaseMongoLogHandler(Handler):
                 self.reference_log_pymongo_3(log_record)
             elif self.record_type == self.EMBEDDED:
                 self.embed_log_pymongo_3(log_record)
-
 
     def reference_log_pymongo_2(self, log_record):
         query = {'uuid': log_record['uuid']}
