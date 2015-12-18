@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+v0.5.1
+------
+    * using codacy to check code quality
+
 v0.5.0
 -------
     * timestamp collection added
