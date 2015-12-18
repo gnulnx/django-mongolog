@@ -60,7 +60,11 @@ class BaseMongoLogHandler(Handler):
         if record_type not in valid_record_types:
             raise ValueError("record_type myst be one of %s" % valid_record_types)
        
+        # The type of document we store
         self.record_type = record_type
+
+        # number of dates to keep in embedded document
+        self.num_dates = 25
          
         # The write concern
         self.w = w
@@ -196,7 +200,6 @@ class BaseMongoLogHandler(Handler):
         # TODO move this to a validate log_record method and add more validation
         log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
         
-        self.verbose=True
         if self.verbose:
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
@@ -240,7 +243,7 @@ class BaseMongoLogHandler(Handler):
                     "$push": {
                         'dates': {
                             '$each': [log_record['time']],
-                            "$slice": -5  # only keep the last n entries
+                            "$slice": -self.num_dates  # only keep the last n entries
                         }
                     },
                     # Keep a counter of the number of times we see this record
@@ -264,7 +267,7 @@ class BaseMongoLogHandler(Handler):
                     "$push": {
                         'dates': {
                             '$each': [log_record['time']],
-                            "$slice": -5  # only keep the last n entries
+                            "$slice": -self.num_dates  # only keep the last n entries
                         }
                     },
                     # Keep a counter of the number of times we see this record
