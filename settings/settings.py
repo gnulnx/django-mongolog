@@ -27,8 +27,9 @@ LOGGING = {
         'mongolog': {
             'level': 'DEBUG',
             #'class': 'mongolog.BaseMongoLogHandler',
-            'class': 'mongolog.SimpleMongoLogHandler',
+            #'class': 'mongolog.SimpleMongoLogHandler',
             #'class': 'mongolog.VerboseMongoHandler',
+            'class': 'mongolog.SimpleHttpLogHandler',
             'connection': 'mongodb://localhost:27017',
             'w': 0,
             'j': False,
@@ -50,6 +51,28 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True
         }
+    },
+}
+
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'mongolog': {
+            'level': 'DEBUG',
+            #'class': 'mongolog.SimpleMongoLogHandler',
+            'class': 'mongolog.SimpleHttpLogHandler',
+            'connection': 'mongodb://jfurr:gnuLNX123@localhost:27017',
+            #'connection': 'mongodb://localhost:27017',
+            'username': 'jfurr',
+            'password': 'gnuLNX123'
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['mongolog'],
+            'level': 'DEBUG',
+            'propagate': True
+        },
     },
 }
 

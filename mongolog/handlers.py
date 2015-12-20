@@ -23,6 +23,7 @@ from datetime import datetime as dt
 import json
 import uuid
 import pymongo
+import requests
 pymongo_version = int(pymongo.version.split(".")[0])
 if pymongo_version >= 3:
     from pymongo.collection import ReturnDocument
@@ -53,15 +54,17 @@ class BaseMongoLogHandler(Handler):
     REFERENCE = 'reference'
     EMBEDDED = 'embedded'
 
-    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="embedded"):  # noqa
+    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="embedded", *args, **kwargs):  # noqa
         super(BaseMongoLogHandler, self).__init__(level)
-
         self.connection = connection
 
         valid_record_types = [self.REFERENCE, self.EMBEDDED]
         if record_type not in valid_record_types:
             raise ValueError("record_type myst be one of %s" % valid_record_types)
        
+        # A list of options supported by pymongo
+        self.options = kwargs
+
         # The type of document we store
         self.record_type = record_type
 
@@ -173,7 +176,7 @@ class BaseMongoLogHandler(Handler):
         # we need to create the dates array
         if self.record_type == self.EMBEDDED:
             record['dates'] = [record['time']]
-        
+
         return record
 
     def ensure_collections_indexed(self):
@@ -190,7 +193,7 @@ class BaseMongoLogHandler(Handler):
         ])
 
     def emit(self, record):
-        """ 
+        """
         From python:  type(record) == LogRecord
         https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
         """
@@ -303,6 +306,29 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
                 'trace': record['exc_text'].split("\n") if record['exc_text'] else None,
             }
         return mongolog_record
+
+
+class SimpleHttpLogHandler(SimpleMongoLogHandler):
+    count = 1
+
+    def emit(self, record):
+        
+        """ 
+        From python:  type(record) == LogRecord
+        https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
+        """
+        log_record = self.create_log_record(record)
+
+        # TODO move this to a validate log_record method and add more validation
+        log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
+        
+        if self.verbose:
+            print(json.dumps(log_record, sort_keys=True, indent=4, default=str))  
+
+
+        r = requests.post('http://192.168.33.10', data=log_record)
+        print(self.count, r, r.json())
+        self.count = self.count+1
 
 
 class VerboseMongoLogHandler(BaseMongoLogHandler):
