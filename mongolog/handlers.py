@@ -326,8 +326,9 @@ class SimpleHttpLogHandler(SimpleMongoLogHandler):
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))  
 
 
-        r = requests.post('http://192.168.33.10', data=log_record)
-        print(self.count, r, r.json())
+        r = requests.post('http://192.168.33.10', data={'dump': json.dumps(log_record, default=str)})
+        print(r)
+        print(self.count, r, r.content)
         self.count = self.count+1
 
 
