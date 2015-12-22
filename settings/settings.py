@@ -26,45 +26,13 @@ LOGGING = {
         },
         'mongolog': {
             'level': 'DEBUG',
-            #'class': 'mongolog.BaseMongoLogHandler',
-            #'class': 'mongolog.SimpleMongoLogHandler',
-            #'class': 'mongolog.VerboseMongoHandler',
-            'class': 'mongolog.SimpleHttpLogHandler',
-            'connection': 'mongodb://localhost:27017',
-            'w': 0,
-            'j': False,
-            'verbose': False,
-            'record_type': "embedded",
-
-            # utc/local.  Only used with record_type=simple
-            'time_zone': 'local',
-        },
-    },
-    'loggers': {
-        '': {
-            'handlers': ['mongolog'],
-            'level': 'DEBUG',
-            'propagate': True
-        },
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': True
-        }
-    },
-}
-
-LOGGING = {
-    'version': 1,
-    'handlers': {
-        'mongolog': {
-            'level': 'DEBUG',
             #'class': 'mongolog.SimpleMongoLogHandler',
             'class': 'mongolog.SimpleHttpLogHandler',
-            'connection': 'mongodb://jfurr:gnuLNX123@localhost:27017',
-            #'connection': 'mongodb://localhost:27017',
-            'username': 'jfurr',
-            'password': 'gnuLNX123'
+            'customer_id': '4e487f07a84011e5a3403c15c2bcc424',
+            #'connection': 'mongodb://jfurr:gnuLNX123@localhost:27017',
+            'connection': 'mongodb://192.168.33.11:27017',
+            #'username': 'jfurr',
+            #'password': 'gnuLNX123'
         },
     },
     'loggers': {

@@ -311,6 +311,10 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
 class SimpleHttpLogHandler(SimpleMongoLogHandler):
     count = 1
 
+    def __init__(self, level=NOTSET, customer_id=None, *args, **kwargs):
+        self.customer_id = customer_id
+        super(SimpleHttpLogHandler, self).__init__(level, *args, **kwargs)
+
     def emit(self, record):
         
         """ 
@@ -325,10 +329,9 @@ class SimpleHttpLogHandler(SimpleMongoLogHandler):
         if self.verbose:
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))  
 
-
-        r = requests.post('http://192.168.33.10', data={'dump': json.dumps(log_record, default=str)})
-        print(r)
-        print(self.count, r, r.content)
+        r = requests.post('http://192.168.33.10/%s/' % self.customer_id, json=json.dumps(log_record, default=str))
+        print(r.json())
+        #r = requests.post('http://192.168.33.10/4e487f07a84011e5a3403c15c2bcc424/', json=json.dumps(log_record, default=str))
         self.count = self.count+1
 
 
