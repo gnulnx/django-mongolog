@@ -93,7 +93,10 @@ class BaseMongoLogHandler(Handler):
         self.connect()
 
         # Make sure the indexes are setup properly
-        #self.ensure_collections_indexed()
+        try:
+            self.ensure_collections_indexed()
+        except pymongo.errors.ServerSelectionTimeoutError:
+            pass
 
     def __unicode__(self):
         return u'%s' % self.connection
@@ -310,13 +313,13 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
 
 class SimpleHttpLogHandler(SimpleMongoLogHandler):
     count = 1
+    base_url = 'http://192.168.33.21/%s/'
 
     def __init__(self, level=NOTSET, customer_id=None, *args, **kwargs):
         self.customer_id = customer_id
         super(SimpleHttpLogHandler, self).__init__(level, *args, **kwargs)
 
     def emit(self, record):
-        
         """ 
         From python:  type(record) == LogRecord
         https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
@@ -329,10 +332,10 @@ class SimpleHttpLogHandler(SimpleMongoLogHandler):
         if self.verbose:
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))  
 
-        print('http://192.168.33.21/%s/' % self.customer_id)
-        r = requests.post('http://192.168.33.21/%s/' % self.customer_id, json=json.dumps(log_record, default=str))
-        print(r.json())
-        #r = requests.post('http://192.168.33.10/4e487f07a84011e5a3403c15c2bcc424/', json=json.dumps(log_record, default=str))
+        url = self.base_url % self.customer_id
+        r = requests.post(url, json=json.dumps(log_record, default=str))
+        print(url, self.count, json.dumps(r.json(), indent=4, sort_keys=True, default=str))
+
         self.count = self.count+1
 
 
