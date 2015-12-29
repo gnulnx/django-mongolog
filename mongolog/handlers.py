@@ -93,7 +93,7 @@ class BaseMongoLogHandler(Handler):
         self.connect()
 
         # Make sure the indexes are setup properly
-        self.ensure_collections_indexed()
+        #self.ensure_collections_indexed()
 
     def __unicode__(self):
         return u'%s' % self.connection
@@ -329,7 +329,8 @@ class SimpleHttpLogHandler(SimpleMongoLogHandler):
         if self.verbose:
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))  
 
-        r = requests.post('http://192.168.33.10/%s/' % self.customer_id, json=json.dumps(log_record, default=str))
+        print('http://192.168.33.21/%s/' % self.customer_id)
+        r = requests.post('http://192.168.33.21/%s/' % self.customer_id, json=json.dumps(log_record, default=str))
         print(r.json())
         #r = requests.post('http://192.168.33.10/4e487f07a84011e5a3403c15c2bcc424/', json=json.dumps(log_record, default=str))
         self.count = self.count+1
