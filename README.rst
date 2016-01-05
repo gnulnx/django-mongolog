@@ -1,6 +1,7 @@
 MongoLog 
 ========
 
+change for Amneet
 MongoLog is a simple Mongo based log handler that can be easly used
 with standard python/django logging.
 
