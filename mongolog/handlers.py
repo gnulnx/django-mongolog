@@ -311,12 +311,12 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
         return mongolog_record
 
 
-class SimpleHttpLogHandler(SimpleMongoLogHandler):
+class HttpLogHandler(SimpleMongoLogHandler):
     def __init__(self, level=NOTSET, client_auth='', timeout=3, *args, **kwargs):
         # Make sure there is a trailing slash or reqests 2.8.1 will try a GET instead of POST
         self.client_auth = client_auth if client_auth.endswith('/') else "%s/" % client_auth
         self.timeout = timeout
-        super(SimpleHttpLogHandler, self).__init__(level, connection='', *args, **kwargs)
+        super(HttpLogHandler, self).__init__(level, connection='', *args, **kwargs)
 
     def emit(self, record):
         """ 
