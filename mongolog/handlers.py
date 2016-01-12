@@ -324,14 +324,12 @@ class HttpLogHandler(SimpleMongoLogHandler):
 
         # TODO move this to a validate log_record method and add more validation
         log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
+        if self.verbose:
+            print("Inserting", json.dumps(log_record, sort_keys=True, indent=4, default=str))
         
         r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout)
-        if self.verbose:
-            print(
-                "Inserting", json.dumps(log_record, sort_keys=True, indent=4, default=str),
-                "\n",
-                "Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str)
-            )
+        # uncomment to debug
+        # print ("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
 
 
 class VerboseMongoLogHandler(BaseMongoLogHandler):
