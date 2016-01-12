@@ -312,9 +312,10 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
 
 
 class SimpleHttpLogHandler(SimpleMongoLogHandler):
-    def __init__(self, level=NOTSET, client_auth='', *args, **kwargs):
+    def __init__(self, level=NOTSET, client_auth='', timeout=3, *args, **kwargs):
         # Make sure there is a trailing slash or reqests 2.8.1 will try a GET instead of POST
         self.client_auth = client_auth if client_auth.endswith('/') else "%s/" % client_auth
+        self.timeout = timeout
         super(SimpleHttpLogHandler, self).__init__(level, connection='', *args, **kwargs)
 
     def emit(self, record):
@@ -327,11 +328,13 @@ class SimpleHttpLogHandler(SimpleMongoLogHandler):
         # TODO move this to a validate log_record method and add more validation
         log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
         
+        r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout)
         if self.verbose:
-            print(json.dumps(log_record, sort_keys=True, indent=4, default=str))  
-
-        r = requests.post(self.client_auth, json=json.dumps(log_record, default=str))
-        print(self.client_auth, json.dumps(r.json(), indent=4, sort_keys=True, default=str))
+            print(
+                "Inserting", json.dumps(log_record, sort_keys=True, indent=4, default=str),
+                "\n",
+                "Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str)
+            )
 
 
 class VerboseMongoLogHandler(BaseMongoLogHandler):
