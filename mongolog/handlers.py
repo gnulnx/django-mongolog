@@ -62,9 +62,6 @@ class BaseMongoLogHandler(Handler):
         if record_type not in valid_record_types:
             raise ValueError("record_type myst be one of %s" % valid_record_types)
        
-        # A list of options supported by pymongo
-        self.options = kwargs
-
         # The type of document we store
         self.record_type = record_type
 
