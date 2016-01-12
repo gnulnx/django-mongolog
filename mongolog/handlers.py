@@ -312,12 +312,10 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
 
 
 class SimpleHttpLogHandler(SimpleMongoLogHandler):
-    count = 1
-    base_url = 'http://192.168.33.21/%s/'
-
-    def __init__(self, level=NOTSET, customer_id=None, *args, **kwargs):
-        self.customer_id = customer_id
-        super(SimpleHttpLogHandler, self).__init__(level, *args, **kwargs)
+    def __init__(self, level=NOTSET, client_auth='', *args, **kwargs):
+        # Make sure there is a trailing slash or reqests 2.8.1 will try a GET instead of POST
+        self.client_auth = client_auth if client_auth.endswith('/') else "%s/" % client_auth
+        super(SimpleHttpLogHandler, self).__init__(level, connection='', *args, **kwargs)
 
     def emit(self, record):
         """ 
@@ -332,11 +330,8 @@ class SimpleHttpLogHandler(SimpleMongoLogHandler):
         if self.verbose:
             print(json.dumps(log_record, sort_keys=True, indent=4, default=str))  
 
-        url = self.base_url % self.customer_id
-        r = requests.post(url, json=json.dumps(log_record, default=str))
-        print(url, self.count, json.dumps(r.json(), indent=4, sort_keys=True, default=str))
-
-        self.count = self.count+1
+        r = requests.post(self.client_auth, json=json.dumps(log_record, default=str))
+        print(self.client_auth, json.dumps(r.json(), indent=4, sort_keys=True, default=str))
 
 
 class VerboseMongoLogHandler(BaseMongoLogHandler):

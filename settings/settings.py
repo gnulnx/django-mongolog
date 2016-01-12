@@ -28,9 +28,11 @@ LOGGING = {
             'level': 'DEBUG',
             #'class': 'mongolog.SimpleMongoLogHandler',
             'class': 'mongolog.SimpleHttpLogHandler',
-            'customer_id': '4e487f07a84011e5a3403c15c2bcc424',
+            # Interesting Note:  requests 2.8.1 will turn this into a GET if it's missing a trailing slash
+            # We automagically add the trailing slash
+            'client_auth': 'http://192.168.33.21/4e487f07a84011e5a3403c15c2bcc424',
+            #'connection': 'mongodb://192.168.33.11:27017',
             #'connection': 'mongodb://jfurr:gnuLNX123@localhost:27017',
-            'connection': 'mongodb://192.168.33.11:27017',
             #'username': 'jfurr',
             #'password': 'gnuLNX123'
         },
