@@ -36,7 +36,7 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'mongolog.SimpleMongoLogHandler',
             'connection': 'mongodb://localhost:27017',
-            #'connection': 'mongodb://192.168.33.31:27017',
+            # 'connection': 'mongodb://192.168.33.31:27017',
             'w': 1,
             'j': False,
 
@@ -447,7 +447,7 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 class TestHttpLogHandler(unittest.TestCase):
     def setUp(self):
         LOGGING['handlers']['mongolog']['class'] = 'mongolog.HttpLogHandler'
-        LOGGING['handlers']['mongolog']['client_auth'] ='http://192.168.33.51/4e487f07a84011e5a3403c15c2bcc424'
+        LOGGING['handlers']['mongolog']['client_auth'] = 'http://192.168.33.51/4e487f07a84011e5a3403c15c2bcc424'
         # This is only a test no reason to wait any longer than necassary
         LOGGING['handlers']['mongolog']['timeout'] = 0.0001
         del(LOGGING['handlers']['mongolog']['connection'])
