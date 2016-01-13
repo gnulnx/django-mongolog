@@ -2,7 +2,7 @@ import os
 import subprocess
 from setuptools import setup
 
-VERSION = "0.6.0"
+VERSION = "0.6.1"
 
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
     README = readme.read()
@@ -22,7 +22,7 @@ setup(
     ),
     include_package_data=True,
     license='GPL V3',
-    description='A simple mongo based logger',
+    description='A simple mongo based log handler for python/django',
     long_description=README,
     url='https://github.com/gnulnx/django-mongolog',
     download_url='https://github.com/gnulnx/django-mongolog/tree/%s'%(VERSION),
