@@ -1,9 +1,10 @@
 Change Log
 ==========
 
-v0.5.1
+v0.6.0
 ------
     * using codacy to check code quality
+    * HttpLogHandler and tests
 
 v0.5.0
 -------
