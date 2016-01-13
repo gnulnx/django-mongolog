@@ -327,7 +327,7 @@ class HttpLogHandler(SimpleMongoLogHandler):
         if self.verbose:
             print("Inserting", json.dumps(log_record, sort_keys=True, indent=4, default=str))
         
-        r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout)
+        r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout)  # noqa
         # uncomment to debug
         # print ("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
 

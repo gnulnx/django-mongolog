@@ -448,7 +448,7 @@ class TestHttpLogHandler(unittest.TestCase):
     def setUp(self):
         LOGGING['handlers']['mongolog']['class'] = 'mongolog.HttpLogHandler'
         LOGGING['handlers']['mongolog']['client_auth'] = 'http://192.168.33.51/4e487f07a84011e5a3403c15c2bcc424'
-        LOGGING['handlers']['mongolog']['verbose'] =  True
+        LOGGING['handlers']['mongolog']['verbose'] = True
         # This is only a test no reason to wait any longer than necassary
         LOGGING['handlers']['mongolog']['timeout'] = 0.0001
         del(LOGGING['handlers']['mongolog']['connection'])
