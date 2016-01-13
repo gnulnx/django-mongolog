@@ -23,6 +23,7 @@ from datetime import datetime as dt
 import json
 import uuid
 import pymongo
+import requests
 pymongo_version = int(pymongo.version.split(".")[0])
 if pymongo_version >= 3:
     from pymongo.collection import ReturnDocument
@@ -53,9 +54,8 @@ class BaseMongoLogHandler(Handler):
     REFERENCE = 'reference'
     EMBEDDED = 'embedded'
 
-    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="embedded"):  # noqa
+    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="embedded", *args, **kwargs):  # noqa
         super(BaseMongoLogHandler, self).__init__(level)
-
         self.connection = connection
 
         valid_record_types = [self.REFERENCE, self.EMBEDDED]
@@ -90,7 +90,10 @@ class BaseMongoLogHandler(Handler):
         self.connect()
 
         # Make sure the indexes are setup properly
-        self.ensure_collections_indexed()
+        try:
+            self.ensure_collections_indexed()
+        except pymongo.errors.ServerSelectionTimeoutError:
+            pass
 
     def __unicode__(self):
         return u'%s' % self.connection
@@ -173,7 +176,7 @@ class BaseMongoLogHandler(Handler):
         # we need to create the dates array
         if self.record_type == self.EMBEDDED:
             record['dates'] = [record['time']]
-        
+
         return record
 
     def ensure_collections_indexed(self):
@@ -190,7 +193,7 @@ class BaseMongoLogHandler(Handler):
         ])
 
     def emit(self, record):
-        """ 
+        """
         From python:  type(record) == LogRecord
         https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
         """
@@ -303,6 +306,30 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
                 'trace': record['exc_text'].split("\n") if record['exc_text'] else None,
             }
         return mongolog_record
+
+
+class HttpLogHandler(SimpleMongoLogHandler):
+    def __init__(self, level=NOTSET, client_auth='', timeout=3, *args, **kwargs):
+        # Make sure there is a trailing slash or reqests 2.8.1 will try a GET instead of POST
+        self.client_auth = client_auth if client_auth.endswith('/') else "%s/" % client_auth
+        self.timeout = timeout
+        super(HttpLogHandler, self).__init__(level, connection='', *args, **kwargs)
+
+    def emit(self, record):
+        """ 
+        From python:  type(record) == LogRecord
+        https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
+        """
+        log_record = self.create_log_record(record)
+
+        # TODO move this to a validate log_record method and add more validation
+        log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
+        if self.verbose:
+            print("Inserting", json.dumps(log_record, sort_keys=True, indent=4, default=str))
+        
+        r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout)  # noqa
+        # uncomment to debug
+        # print ("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
 
 
 class VerboseMongoLogHandler(BaseMongoLogHandler):

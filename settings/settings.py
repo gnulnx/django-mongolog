@@ -26,17 +26,21 @@ LOGGING = {
         },
         'mongolog': {
             'level': 'DEBUG',
-            #'class': 'mongolog.BaseMongoLogHandler',
-            'class': 'mongolog.SimpleMongoLogHandler',
-            #'class': 'mongolog.VerboseMongoHandler',
-            'connection': 'mongodb://localhost:27017',
-            'w': 0,
-            'j': False,
-            'verbose': False,
-            'record_type': "embedded",
+            # Uncomment section to play with SimpleMongoLogHandler
+            #'class': 'mongolog.SimpleMongoLogHandler',
+            #'connection': 'mongodb://192.168.33.11:27017',
+            #'connection': 'mongodb://192.168.33.11:27017',
+            #'connection': 'mongodb://jfurr:gnuLNX123@localhost:27017',
+            #'username': 'jfurr',
+            #'password': 'gnuLNX123',
 
-            # utc/local.  Only used with record_type=simple
-            'time_zone': 'local',
+            # This section for HttpLogHandler
+            'class': 'mongolog.HttpLogHandler',
+            # Interesting Note:  requests 2.8.1 will turn this into a GET if it's missing a trailing slash
+            # We automagically add the trailing slash
+            'client_auth': 'http://192.168.33.21/4e487f07a84011e5a3403c15c2bcc424',
+            'verbose': True,
+            
         },
     },
     'loggers': {
@@ -45,11 +49,6 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True
         },
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': True
-        }
     },
 }
 
