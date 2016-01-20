@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+v0.6.2
+------
+    * Added middleware request logger
+
 v0.6.1
 ------
     * Added requests to the list of required packages
