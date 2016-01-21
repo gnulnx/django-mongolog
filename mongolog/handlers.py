@@ -164,6 +164,8 @@ class BaseMongoLogHandler(Handler):
     def check_keys(self, record):
         """
         Check for . and $ in two levels of keys below msg.
+        TODO:   Make this a recursive function that looks for these keys
+                n levels deep
         """
         if not isinstance(record['msg'], dict):
             return record
