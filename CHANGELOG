@@ -5,6 +5,7 @@ v0.6.2
 ------
     * Added middleware request logger
     * replace kyes with . and $ with their unicode wide equivalents
+    * give the middleware logger a name
 
 v0.6.1
 ------
