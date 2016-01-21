@@ -86,7 +86,7 @@ class BaseMongoLogHandler(Handler):
             print("Will try to connect with default")
 
             # Set a defaul connection key
-            self.connection = u'mongodb://localhost:27020/'
+            self.connection = u'mongodb://localhost:27017/'
 
         self.connect()
 
