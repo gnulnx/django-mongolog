@@ -4,6 +4,7 @@ Change Log
 v0.6.2
 ------
     * Added middleware request logger
+    * Added simple  check_keys to scan for . and $ in document keys
 
 v0.6.1
 ------
