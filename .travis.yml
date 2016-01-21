@@ -24,6 +24,7 @@ services:
 install: 
   #- pip install -r requirements.txt
   - pip install coveralls
+  - pip install django
   - pip install pymongo$PYMONGO
   - pip freeze
 # command to run tests
