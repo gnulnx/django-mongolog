@@ -86,7 +86,7 @@ class BaseMongoLogHandler(Handler):
             print("Will try to connect with default")
 
             # Set a defaul connection key
-            self.connection = u'mongodb://localhost:27017/'
+            self.connection = u'mongodb://localhost:27020/'
 
         self.connect()
 
@@ -150,16 +150,30 @@ class BaseMongoLogHandler(Handler):
         """
         return getattr(self, "mongolog", None)
 
+    def new_key(self, old_key):
+        """
+        Repalce . and $ with Unicode full width equivalents
+        """
+        if "." in old_key:
+            return old_key.replace(u".", u"．")
+        elif "$" in old_key:
+            return old_key.replace(u"$", u"＄")
+        else:
+            return old_key
+
     def check_keys(self, record):
+        """
+        Check for . and $ in two levels of keys below msg.
+        """
+        if not isinstance(record['msg'], dict):
+            return record
+
         for k, v in record['msg'].items():
-            print("checking k(%s)" % k)
+            record['msg'][self.new_key(k)] = record['msg'].pop(k)
+
             if isinstance(v, dict):
                 for old_key in record['msg'][k].keys():
-                    if "." in old_key:
-                        print("old_key(%s)" %old_key)
-                        new_key = old_key.replace(".", "(dot)")
-                        print("old_key(%s) new_key(%s)" %(old_key, new_key))
-                        record['msg'][k][new_key] = record['msg'][k].pop(old_key)
+                    record['msg'][k][self.new_key(old_key)] = record['msg'][k].pop(old_key) 
 
         return record
  

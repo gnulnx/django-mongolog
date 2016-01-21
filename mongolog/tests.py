@@ -35,7 +35,7 @@ LOGGING = {
         'mongolog': {
             'level': 'DEBUG',
             'class': 'mongolog.SimpleMongoLogHandler',
-            'connection': 'mongodb://localhost:27017',
+            'connection': 'mongodb://localhost:27020',
             # 'connection': 'mongodb://192.168.33.31:27017',
             'w': 1,
             'j': False,
@@ -154,6 +154,16 @@ class TestBaseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         self.collection = self.handler.get_collection()
 
         self.remove_test_entries()
+
+    def test_dot_in_key(self):
+        logger.info({
+            'META': {
+                'user.name': 'jfurr', 
+                'user$name': 'jfurr'
+             },
+            'user.name': 'jfurr',
+            'user$name': 'jfurr'
+        })
 
     def test_write_concert(self):
         LOGGING['handlers']['mongolog']['w'] = 0
