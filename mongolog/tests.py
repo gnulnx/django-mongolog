@@ -35,7 +35,7 @@ LOGGING = {
         'mongolog': {
             'level': 'DEBUG',
             'class': 'mongolog.SimpleMongoLogHandler',
-            'connection': 'mongodb://localhost:27017',
+            'connection': 'mongodb://localhost:27020',
             # 'connection': 'mongodb://192.168.33.31:27017',
             'w': 1,
             'j': False,
