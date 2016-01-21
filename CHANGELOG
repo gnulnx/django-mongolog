@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+v0.6.2
+------
+    * Added middleware request logger
+    * replace kyes with . and $ with their unicode wide equivalents
+
 v0.6.1
 ------
     * Added requests to the list of required packages

@@ -22,12 +22,12 @@ env:
 services:
   - mongodb
 install: 
-  #- pip install -r requirements.txt
+  - pip install -r requirements.txt
   - pip install coveralls
   - pip install pymongo$PYMONGO
   - pip freeze
 # command to run tests
-script: coverage run --source=mongolog/ -m unittest discover
+script: coverage run --source=mongolog/ manage.py test
 after_success: 
   - coverage report
   - coveralls

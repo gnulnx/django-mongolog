@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python
 """
     django-mongolog.  Simple Mongo based logger for Django
@@ -148,7 +149,36 @@ class BaseMongoLogHandler(Handler):
         Return the collection being used by MongoLogHandler
         """
         return getattr(self, "mongolog", None)
-    
+
+    def new_key(self, old_key):
+        """
+        Repalce . and $ with Unicode full width equivalents
+        """
+        if "." in old_key:
+            return old_key.replace(u".", u"．")
+        elif "$" in old_key:
+            return old_key.replace(u"$", u"＄")
+        else:
+            return old_key
+
+    def check_keys(self, record):
+        """
+        Check for . and $ in two levels of keys below msg.
+        TODO:   Make this a recursive function that looks for these keys
+                n levels deep
+        """
+        if not isinstance(record['msg'], dict):
+            return record
+
+        for k, v in record['msg'].items():
+            record['msg'][self.new_key(k)] = record['msg'].pop(k)
+
+            if isinstance(v, dict):
+                for old_key in record['msg'][k].keys():
+                    record['msg'][k][self.new_key(old_key)] = record['msg'][k].pop(old_key) 
+
+        return record
+ 
     def create_log_record(self, record):
         """
         Convert the python LogRecord to a MongoLog Record.
@@ -158,6 +188,7 @@ class BaseMongoLogHandler(Handler):
         See SimpleMongoLogHandler and VerboseMongoLogHandler
         """
         record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
+        record = self.check_keys(record)
 
         # The UUID is a combination of the record.levelname and the record.msg
         record.update({
