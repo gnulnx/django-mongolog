@@ -61,7 +61,7 @@ class BaseMongoLogHandler(Handler):
 
         valid_record_types = [self.REFERENCE, self.EMBEDDED]
         if record_type not in valid_record_types:
-            raise ValueError("record_type myst be one of %s" % valid_record_types)
+            raise ValueError("record_type must be one of %s" % valid_record_types)
        
         # The type of document we store
         self.record_type = record_type
