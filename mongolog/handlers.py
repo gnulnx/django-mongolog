@@ -23,6 +23,7 @@ from logging import Handler, NOTSET
 from datetime import datetime as dt
 import json
 import uuid
+import socket
 import pymongo
 import requests
 pymongo_version = int(pymongo.version.split(".")[0])
@@ -188,12 +189,15 @@ class BaseMongoLogHandler(Handler):
         record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
         record = self.check_keys(record)
 
-        # The UUID is a combination of the record.levelname and the record.msg
+        hostname = socket.gethostname()
+
+        # The UUID is a combination of the record.levelname the record.msg, and the hostname
         record.update({
             'uuid': uuid.uuid5(
                 uuid_namespace, 
-                str(record['msg']) + str(record['levelname']) 
+                str(record['msg']) + str(record['levelname'] + hostname) 
             ).hex,
+            'hostname': hostname,
             # NOTE: if the user is using django and they have USE_TZ=True in their settings
             # then the timezone displayed will be what is specified in TIME_ZONE
             # For instance if they have TIME_ZONE='UTC' then both dt.now() and dt.utcnow()
@@ -323,6 +327,7 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
             'filename': record['filename'],
             'uuid': record['uuid'],
             'time': record['time'],
+            'hostname': record['hostname'],
         })
 
         if record.get('dates'):
@@ -366,6 +371,7 @@ class VerboseMongoLogHandler(BaseMongoLogHandler):
         record = super(VerboseMongoLogHandler, self).create_log_record(record) 
         mongolog_record = LogRecord({
             'name': record['name'],
+            'hostname': records['hostname'],
             'thread': {
                 'num': record['thread'],
                 'name': record['threadName'],
