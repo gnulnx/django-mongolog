@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
     django-mongolog.  Simple Mongo based logger for Django
     Copyright (C) 2015 - John Furr
@@ -79,7 +80,8 @@ TEST_MSG = {
             'Bacteria': [
                 {
                     'name': ValueError,
-                    'description': 'Just a bad description'
+                    'description': 'Just a bad description',
+                    'unicode_test': 'ऄࢩ ࢩ ࢩǢ',
                 }
             ],
             'Archaea': [],
@@ -134,11 +136,7 @@ class TestRemoveEntriesMixin(object):
         Remove all current test entries
         Called in setUp and tearDown
         """
-        if pymongo_major_version < 3:
-            self.collection.remove({test_key: True})
-        else:
-            self.collection.delete_many({test_key: True})
-
+        self.collection.remove({test_key: True}) if pymongo_major_version < 3 else self.collection.delete_many({test_key: True})
         # Ensure that we don't have any test entries
         self.assertEqual(0, self.collection.find({test_key: True}).count())
 

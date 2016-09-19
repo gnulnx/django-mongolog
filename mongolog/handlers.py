@@ -22,6 +22,7 @@ import logging
 from logging import Handler, NOTSET
 from datetime import datetime as dt
 import json
+import sys
 import uuid
 import pymongo
 import requests
@@ -191,11 +192,13 @@ class BaseMongoLogHandler(Handler):
         record = self.check_keys(record)
 
         # The UUID is a combination of the record.levelname and the record.msg
+        if sys.version_info.major >= 3:
+            uuid_key = str(record['msg']) + str(record['levelname'])
+        else:
+            uuid_key = (unicode(record['msg']) + unicode(record['levelname'])).encode('utf-8', 'replace')
+        
         record.update({
-            'uuid': uuid.uuid5(
-                uuid_namespace, 
-                str(record['msg']) + str(record['levelname']) 
-            ).hex,
+            'uuid': uuid.uuid5(uuid_namespace, uuid_key).hex,
             # NOTE: if the user is using django and they have USE_TZ=True in their settings
             # then the timezone displayed will be what is specified in TIME_ZONE
             # For instance if they have TIME_ZONE='UTC' then both dt.now() and dt.utcnow()
