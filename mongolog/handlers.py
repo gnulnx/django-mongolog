@@ -193,7 +193,7 @@ class BaseMongoLogHandler(Handler):
 
         # The UUID is a combination of the record.levelname and the record.msg
         if sys.version_info.major >= 3:
-            uuid_key = (str(record['msg']) + str(record['levelname'])).encode('utf-8', 'replace')
+            uuid_key = str(record['msg']) + str(record['levelname'])
         else:
             uuid_key = (unicode(record['msg']) + unicode(record['levelname'])).encode('utf-8', 'replace')
         
