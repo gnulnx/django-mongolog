@@ -194,7 +194,7 @@ class BaseMongoLogHandler(Handler):
         record.update({
             'uuid': uuid.uuid5(
                 uuid_namespace, 
-                str(record['msg']) + str(record['levelname']) 
+                (record['msg'] + record['levelname']).encode('utf-8', 'replace'),
             ).hex,
             # NOTE: if the user is using django and they have USE_TZ=True in their settings
             # then the timezone displayed will be what is specified in TIME_ZONE
