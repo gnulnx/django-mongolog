@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
     django-mongolog.  Simple Mongo based logger for Django
     Copyright (C) 2015 - John Furr
@@ -79,7 +80,8 @@ TEST_MSG = {
             'Bacteria': [
                 {
                     'name': ValueError,
-                    'description': 'Just a bad description'
+                    'description': 'Just a bad description',
+                    'unicode_test': 'ऄࢩ ࢩ ࢩǢ',
                 }
             ],
             'Archaea': [],
