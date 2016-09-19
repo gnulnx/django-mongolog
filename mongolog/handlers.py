@@ -22,6 +22,7 @@ import logging
 from logging import Handler, NOTSET
 from datetime import datetime as dt
 import json
+import sys
 import uuid
 import pymongo
 import requests
