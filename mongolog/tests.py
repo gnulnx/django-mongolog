@@ -28,6 +28,9 @@ from mongolog.handlers import (
     get_mongolog_handler, SimpleMongoLogHandler
 )
 
+from django.core.management import call_command
+
+
 # Use plain python logging instead of django to decouple project
 # from django versions
 LOGGING = {
@@ -475,3 +478,7 @@ class TestHttpLogHandler(unittest.TestCase):
     def test_invalid_connection(self):
         with self.assertRaises(ConnectionError):
             logger.warn("Danger Will Robinson!")
+
+class TestManagementCommands(unittest.TestCase):
+    def test_analog(self):
+        call_command('analog', '--limit', 10)

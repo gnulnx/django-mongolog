@@ -56,6 +56,8 @@ class Command(BaseCommand):
             )
 
     def print_results(self, results):
+        results = list(results)
+        results.reverse()
         for r in results:
             level = r.get('level', None)
             if level == 'INFO':
@@ -78,11 +80,10 @@ class Command(BaseCommand):
         query = options['query'] if options['query'] else {}
         proj = {'_id': 1, 'level': 1, 'msg': 1}
         limit = options['limit']
-        return self.collection.find(query, proj).limit(limit).sort('_id', pymongo.ASCENDING)
+        return self.collection.find(query, proj).sort('created', pymongo.DESCENDING).limit(limit)
 
     def tail(self, options):
-        results = self.fetch_results(options)
-        self.print_results(results)
+        raise NotImplementedError("--tail flag not implemented yet")
 
     def handle(self, *args, **options):
         if options['query']:
@@ -93,3 +94,7 @@ class Command(BaseCommand):
 
         if options['tail']:
             self.tail(options)
+        else:
+            results = self.fetch_results(options)
+            self.print_results(results)
+            
