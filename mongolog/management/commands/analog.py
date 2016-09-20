@@ -22,11 +22,9 @@ class Command(BaseCommand):
             help='Limit Results',
         )
 
-    def __init__(self, *args, **kwargs):
+    def handle(self, *args, **options):
         handler = get_mongolog_handler()
         self.collection = handler.get_collection()
-    
-    def handle(self, *args, **options):
         print("Hello from AnaLog", options)
         print("Collection: ", self.collection)
 
