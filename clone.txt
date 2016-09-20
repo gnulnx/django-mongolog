@@ -1,2 +1,3 @@
 # To Pip install from a specific branch user
-pip install https://github.com/gnulnx/django-mongolog/zipball/jf/management
+pip uninstall django-mongolog;
+pip install https://github.com/gnulnx/django-mongolog/archive/jf/management.zip
