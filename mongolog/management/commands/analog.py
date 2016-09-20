@@ -16,13 +16,11 @@ from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-   if django.VERSION[1] <= 7:
+    if django.VERSION[1] <= 7:
         from optparse import make_option
         option_list = BaseCommand.option_list + (
-        make_option('--delete',
-            action='store_true',
-            dest='delete',
-            default=False,
+        make_option(
+            '-l', '--limit', default=10, type=int, action='store', dest='limit',
             help='Delete poll instead of closing it'),
         )
 
