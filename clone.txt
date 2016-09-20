@@ -1,0 +1,2 @@
+# To Pip install from a specific branch user
+pip install https://github.com/gnulnx/django-mongolog/zipball/jf/management
