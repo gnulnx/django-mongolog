@@ -56,7 +56,7 @@ class Command(BaseCommand):
             )
 
     def print_results(self, results):
-        results = list(results)
+        results = list(results['result'])
         results.reverse()
         for r in results:
             level = r.get('level', None)
@@ -78,15 +78,14 @@ class Command(BaseCommand):
 
     def fetch_results(self, options):
         query = options['query'] if options['query'] else {}
-        proj = {'_id': 1, 'level': 1, 'msg': 1}
+        proj = {'_id': 1, 'level': 1, 'msg': 1,}
         limit = options['limit']
-        return self.colelction.aggregate([
+        return self.collection.aggregate([
             {"$match": query},
-            {"$project", proj},
-            {"$sort", {'created': pymongo.DESCENDING}},
-            {"$limit", limt},
+            {"$project": proj},
+            {"$sort": {'created': pymongo.DESCENDING}},
+            {"$limit": limit},
         ])
-        #return self.collection.find(query, proj).sort('created', pymongo.DESCENDING).limit(limit)
 
     def tail(self, options):
         raise NotImplementedError("--tail flag not implemented yet")
