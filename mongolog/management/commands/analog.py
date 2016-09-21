@@ -97,4 +97,3 @@ class Command(BaseCommand):
         else:
             results = self.fetch_results(options)
             self.print_results(results)
-            

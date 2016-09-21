@@ -20,6 +20,7 @@ import unittest
 import logging
 from logging import config  # noqa
 import sys
+from StringIO import StringIO
 import pymongo
 from requests.exceptions import ConnectionError
 pymongo_major_version = int(pymongo.version.split(".")[0])
@@ -496,4 +497,8 @@ class TestManagementCommands(unittest.TestCase, TestRemoveEntriesMixin):
         logger.error("Error")
         logger.critical("Critical")        
 
-        call_command('analog', '--limit', 10)
+        query = '{"name": "root"}'
+        call_command('analog', limit=10, query='{"name": "root"}')
+
+        with self.assertRaises(NotImplementedError) as cm:
+            call_command('analog', limit=20, tail=True)
