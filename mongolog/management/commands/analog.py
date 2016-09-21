@@ -17,7 +17,8 @@ from mongolog.handlers import get_mongolog_handler
 
 from django.core.management.base import BaseCommand
 
-logger = logging.getLogger(__name__)
+#logger = logging.getLogger(__name__)
+logger = logging.getLogger('mongolog')
 
 
 class Command(BaseCommand):
@@ -60,8 +61,8 @@ class Command(BaseCommand):
             results = list(results['result'])
         except TypeError as e:
             if "'CommandCursor' object has no attribute '__getitem__'" in str(e):
-                print("FAIL: result(%s)" % result)
-                print("result.__dict__: ", result.__dict__)
+                print("FAIL: result(%s)" % results)
+                print("result.__dict__: ", results.__dict__)
             else:
                 raise
 
@@ -96,6 +97,8 @@ class Command(BaseCommand):
         ])
 
     def tail(self, options):
+        initial = self.fetch_results(options)
+        self.print_results(initial)
         raise NotImplementedError("--tail flag not implemented yet")
 
     def handle(self, *args, **options):
@@ -103,6 +106,7 @@ class Command(BaseCommand):
             options['query'] = json.loads(options['query'])
 
         handler = get_mongolog_handler()
+        print("handler: ", handler)
         self.collection = handler.get_collection()
 
         if options['tail']:
