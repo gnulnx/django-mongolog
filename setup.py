@@ -2,7 +2,7 @@ import os
 import subprocess
 from setuptools import setup
 
-VERSION = "0.6.3"
+VERSION = "0.6.4"
 
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
     README = readme.read()
