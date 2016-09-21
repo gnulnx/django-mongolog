@@ -20,13 +20,23 @@ import unittest
 import logging
 from logging import config  # noqa
 import sys
-import pymongo
 from requests.exceptions import ConnectionError
+
+# Different imports for python2/3
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+
+import pymongo
 pymongo_major_version = int(pymongo.version.split(".")[0])
 
 from mongolog.handlers import (
     get_mongolog_handler, SimpleMongoLogHandler
 )
+
+from django.core.management import call_command
+
 
 # Use plain python logging instead of django to decouple project
 # from django versions
@@ -475,3 +485,26 @@ class TestHttpLogHandler(unittest.TestCase):
     def test_invalid_connection(self):
         with self.assertRaises(ConnectionError):
             logger.warn("Danger Will Robinson!")
+
+class TestManagementCommands(unittest.TestCase, TestRemoveEntriesMixin):
+    def setUp(self):
+        LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
+        LOGGING['handlers']['mongolog']['record_type'] = 'reference'
+        logging.config.dictConfig(LOGGING)
+        self.handler = get_mongolog_handler()
+        self.collection = self.handler.get_collection()
+
+        self.remove_test_entries()
+
+    def test_analog(self):
+        logger.debug("Debug")
+        logger.info("Info")
+        logger.warn("Warn")
+        logger.error("Error")
+        logger.critical("Critical")
+
+        query = '{"name": "root"}'
+        call_command('analog', limit=10, query='{"name": "root"}')
+
+        with self.assertRaises(NotImplementedError) as cm:
+            call_command('analog', limit=20, tail=True)

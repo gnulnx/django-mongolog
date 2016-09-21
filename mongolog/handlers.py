@@ -189,6 +189,8 @@ class BaseMongoLogHandler(Handler):
         See SimpleMongoLogHandler and VerboseMongoLogHandler
         """
         record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
+        if "mongolog.management.commands" in record['name']:
+            return {'uuid': 'none', 'time': 'none', 'level': 'MONGOLOG-INTERNAL'}
         record = self.check_keys(record)
 
         # The UUID is a combination of the record.levelname and the record.msg
@@ -315,6 +317,8 @@ class BaseMongoLogHandler(Handler):
 class SimpleMongoLogHandler(BaseMongoLogHandler):
     def create_log_record(self, record):
         record = super(SimpleMongoLogHandler, self).create_log_record(record)
+        if record['uuid'] == 'none':
+            return record
         mongolog_record = LogRecord({
             'name': record['name'],
             'thread': record['thread'],
