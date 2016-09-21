@@ -501,7 +501,7 @@ class TestManagementCommands(unittest.TestCase, TestRemoveEntriesMixin):
         logger.info("Info")
         logger.warn("Warn")
         logger.error("Error")
-        logger.critical("Critical")        
+        logger.critical("Critical")
 
         query = '{"name": "root"}'
         call_command('analog', limit=10, query='{"name": "root"}')
