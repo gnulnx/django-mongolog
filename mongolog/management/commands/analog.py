@@ -56,7 +56,15 @@ class Command(BaseCommand):
             )
 
     def print_results(self, results):
-        results = list(results['result'])
+        try:
+            results = list(results['result'])
+        except TypeError as e:
+            if "'CommandCursor' object has no attribute '__getitem__'" in str(e):
+                print("FAIL: result(%s)" % result)
+                print("result.__dict__: ", result.__dict__)
+            else:
+                raise
+
         results.reverse()
         for r in results:
             level = r.get('level', None)
