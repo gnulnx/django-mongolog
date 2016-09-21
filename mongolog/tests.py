@@ -479,6 +479,21 @@ class TestHttpLogHandler(unittest.TestCase):
         with self.assertRaises(ConnectionError):
             logger.warn("Danger Will Robinson!")
 
-class TestManagementCommands(unittest.TestCase):
+class TestManagementCommands(unittest.TestCase, TestRemoveEntriesMixin):
+    def setUp(self):
+        LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
+        LOGGING['handlers']['mongolog']['record_type'] = 'reference'
+        logging.config.dictConfig(LOGGING)
+        self.handler = get_mongolog_handler()
+        self.collection = self.handler.get_collection()
+
+        self.remove_test_entries()
+
     def test_analog(self):
+        logger.debug("Debug")
+        logger.info("Info")
+        logger.warn("Warn")
+        logger.error("Error")
+        logger.critical("Critical")        
+
         call_command('analog', '--limit', 10)
