@@ -80,7 +80,13 @@ class Command(BaseCommand):
         query = options['query'] if options['query'] else {}
         proj = {'_id': 1, 'level': 1, 'msg': 1}
         limit = options['limit']
-        return self.collection.find(query, proj).sort('created', pymongo.DESCENDING).limit(limit)
+        return self.colelction.aggregate([
+            {"$match": query},
+            {"$project", proj},
+            {"$sort", {'created': pymongo.DESCENDING}},
+            {"$limit", limt},
+        ])
+        #return self.collection.find(query, proj).sort('created', pymongo.DESCENDING).limit(limit)
 
     def tail(self, options):
         raise NotImplementedError("--tail flag not implemented yet")
