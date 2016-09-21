@@ -20,9 +20,15 @@ import unittest
 import logging
 from logging import config  # noqa
 import sys
-from StringIO import StringIO
-import pymongo
 from requests.exceptions import ConnectionError
+
+# Different imports for python2/3
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+
+import pymongo
 pymongo_major_version = int(pymongo.version.split(".")[0])
 
 from mongolog.handlers import (
