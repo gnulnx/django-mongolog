@@ -42,7 +42,7 @@ def get_mongolog_handler():
     Return the first MongoLogHander found in the list of defined loggers.  
     NOTE: If more than one is defined, only the first one is used.
     """
-    logger_names = logging.Logger.manager.loggerDict.keys()
+    logger_names = [''] + logging.Logger.manager.loggerDict.keys()
 
     for name in logger_names:
         logger = logging.getLogger(name)
