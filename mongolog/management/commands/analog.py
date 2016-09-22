@@ -59,6 +59,7 @@ class Command(BaseCommand):
     def print_results(self, results):
         try:
             results = list(results['result'])
+            results.reverse()
         except TypeError as e:
             if "'CommandCursor' object has no attribute '__getitem__'" in str(e):
                 print("FAIL: result(%s)" % results)
@@ -66,7 +67,6 @@ class Command(BaseCommand):
             else:
                 raise
 
-        results.reverse()
         for r in results:
             level = r.get('level', None)
             if level == 'INFO':
