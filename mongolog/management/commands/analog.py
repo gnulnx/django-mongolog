@@ -57,16 +57,14 @@ class Command(BaseCommand):
             )
 
     def print_results(self, results):
+        # older versions of pymongo didn't use a CommandCursor object to iterate over the results.
+        # We check by trying to convert to a list and if there is a TypeError we continue on 
+        # and try to iterate over 'results' as thought it were a Cursor object.
         try:
             results = list(results['result'])
             results.reverse()
         except TypeError as e:
             pass
-            #if "'CommandCursor' object has no attribute '__getitem__'" in str(e):
-            #    print("FAIL: result(%s)" % results)
-            #    print("result.__dict__: ", results.__dict__)
-            #else:
-            #    raise
 
         for r in results:
             level = r.get('level', None)
@@ -100,14 +98,13 @@ class Command(BaseCommand):
     def tail(self, options):
         initial = self.fetch_results(options)
         self.print_results(initial)
-        raise NotImplementedError("--tail flag not implemented yet")
+        raise NotImplementedError("--tail not finshed")
 
     def handle(self, *args, **options):
         if options['query']:
             options['query'] = json.loads(options['query'])
 
         handler = get_mongolog_handler()
-        print("handler: ", handler)
         self.collection = handler.get_collection()
 
         if options['tail']:
