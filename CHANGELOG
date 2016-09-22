@@ -1,6 +1,16 @@
 Change Log
 ==========
 
+v0.7.0
+------
+    * Major bug fix in get_mongolog_handler().  monglog can now work with handlers other than those defined in the root logger.
+    * fetch_results now uses aggregation framework to return results
+
+v0.6.4
+------
+    * Major: added analog management command
+    * internal log record: return {'uuid': 'none', 'time': 'none', 'level': 'MONGOLOG-INTERNAL'}
+
 v0.6.3
 ------
     * Fixed unicode bug
