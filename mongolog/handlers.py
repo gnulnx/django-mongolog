@@ -39,15 +39,23 @@ uuid_namespace = uuid.UUID('8296424f-28b7-5982-a434-e6ec8ef529b3')
 
 def get_mongolog_handler():
     """
-    Return the first MongoLogHander found in the current loggers
-    list of handlers
+    Return the first MongoLogHander found in the list of defined loggers.  
+    NOTE: If more than one is defined, only the first one is used.
     """
-    logger = logging.getLogger('')
-    handler = None
-    for _handler in logger.handlers:
-        if isinstance(_handler, BaseMongoLogHandler):
-            handler = _handler
+    logger_names = [''] + list(logging.Logger.manager.loggerDict)
+
+    for name in logger_names:
+        logger = logging.getLogger(name)
+        handler = None
+        for _handler in logger.handlers:
+            if isinstance(_handler, BaseMongoLogHandler):
+                handler = _handler
+                break
+        if handler:
             break
+
+    if not handler:
+        raise ValueError("No BaseMongoLogHandler could be found.  Did you add on to you logging config?")
     return handler
 
 

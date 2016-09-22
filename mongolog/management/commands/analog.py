@@ -17,7 +17,8 @@ from mongolog.handlers import get_mongolog_handler
 
 from django.core.management.base import BaseCommand
 
-logger = logging.getLogger(__name__)
+#logger = logging.getLogger(__name__)
+logger = logging.getLogger('mongolog')
 
 
 class Command(BaseCommand):
@@ -56,8 +57,15 @@ class Command(BaseCommand):
             )
 
     def print_results(self, results):
-        results = list(results)
-        results.reverse()
+        # older versions of pymongo didn't use a CommandCursor object to iterate over the results.
+        # We check by trying to convert to a list and if there is a TypeError we continue on 
+        # and try to iterate over 'results' as thought it were a Cursor object.
+        try:
+            results = list(results['result'])
+            results.reverse()
+        except TypeError as e:
+            pass
+
         for r in results:
             level = r.get('level', None)
             if level == 'INFO':
@@ -78,12 +86,19 @@ class Command(BaseCommand):
 
     def fetch_results(self, options):
         query = options['query'] if options['query'] else {}
-        proj = {'_id': 1, 'level': 1, 'msg': 1}
+        proj = {'_id': 1, 'level': 1, 'msg': 1,}
         limit = options['limit']
-        return self.collection.find(query, proj).sort('created', pymongo.DESCENDING).limit(limit)
+        return self.collection.aggregate([
+            {"$match": query},
+            {"$project": proj},
+            {"$sort": {'created': pymongo.DESCENDING}},
+            {"$limit": limit},
+        ])
 
     def tail(self, options):
-        raise NotImplementedError("--tail flag not implemented yet")
+        initial = self.fetch_results(options)
+        self.print_results(initial)
+        raise NotImplementedError("--tail not finshed")
 
     def handle(self, *args, **options):
         if options['query']:
