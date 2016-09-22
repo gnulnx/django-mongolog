@@ -39,7 +39,8 @@ uuid_namespace = uuid.UUID('8296424f-28b7-5982-a434-e6ec8ef529b3')
 
 def get_mongolog_handler():
     """
-    Return the first MongoLogHander found in the list of defined loggers
+    Return the first MongoLogHander found in the list of defined loggers.  
+    NOTE: If more than one is defined, only the first one is used.
     """
     logger_names = logging.Logger.manager.loggerDict.keys()
 
