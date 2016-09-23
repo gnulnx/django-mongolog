@@ -223,7 +223,6 @@ an object it doesn't know how to natively serialize it will try to convert it to
 
 The next steps are to create a set of most used query operations for probing the log.
 
-I am very interested in feedback and feature requests from anyone using mongolog.  So again
-please visit the `MongoLog Users Group <https://groups.google.com/forum/#!forum/mongolog-users>`_ with any questions/suggestions/comments/or general feedback.   
+Please give a shout out with `feedback <https://groups.google.com/forum/#!forum/mongolog-users>`_ and feature requests.
 
 Thanks
