@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+v0.7.2
+------
+* Added python-color-logger
+
+v0.7.1
+------
+    * Added django-extensions
+
 v0.7.0
 ------
     * Major bug fix in get_mongolog_handler().  monglog can now work with handlers other than those defined in the root logger.

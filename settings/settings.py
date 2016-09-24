@@ -21,14 +21,15 @@ LOGGING = {
     'handlers': {
         'console': {
             'level': 'DEBUG',
-            # TODO Use python-color-logger here
-            'class': 'logging.StreamHandler',
-            'stream': sys.stdout
+            'class': 'settings.colorlog.ColorLogHandler',
+            'info': 'white',
+            'stream': 'ext://sys.stdout',
         },
         'simple': {
             'level': 'DEBUG',
+            # Uncomment section to play with SimpleMongoLogHandler
             'class': 'mongolog.SimpleMongoLogHandler',
-            'connection': 'mongodb://localhost:27017'
+            'connection': 'mongodb://localhost:27017',
             #'connection': 'mongodb://192.168.33.11:27017',
             #'connection': 'mongodb://jfurr:gnuLNX123@localhost:27017',
             #'username': 'jfurr',
@@ -45,10 +46,20 @@ LOGGING = {
     },
     'loggers': {
         '': {
+<<<<<<< HEAD
             'handlers': ['console'],
+=======
+>>>>>>> 017a3b82a5571923b20cf5705c854e94b754e6ef
             'level': 'DEBUG',
+            'handlers': ['console'],
             'propagate': True
         },
+        'simple': {
+            'level': 'DEBUG',
+            'handlers': ['simple'],
+            'propagate': True
+        },
+<<<<<<< HEAD
         'simple': {
             'handlers': ['simple'],
             'level': 'DEBUG',
@@ -58,9 +69,20 @@ LOGGING = {
             'handlers': ['http'],
             'level': 'DEBUG',
             'propagate': True
+=======
+        'http': {
+            'level': 'DEBUG',
+            'handlers': ['http'],
+            'propagate': True,
+>>>>>>> 017a3b82a5571923b20cf5705c854e94b754e6ef
         }
     },
 }
+
+SHELL_PLUS_PRE_IMPORTS = (
+    'logging',
+    ('logging', 'getLogger'),
+)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
@@ -84,6 +106,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'mongolog',
+    'django_extensions',
 )
 
 MIDDLEWARE_CLASSES = (
