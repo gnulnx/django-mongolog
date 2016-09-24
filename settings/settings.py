@@ -21,34 +21,44 @@ LOGGING = {
     'handlers': {
         'console': {
             'level': 'DEBUG',
+            # TODO Use python-color-logger here
             'class': 'logging.StreamHandler',
             'stream': sys.stdout
         },
-        'mongolog': {
+        'simple': {
             'level': 'DEBUG',
-            # Uncomment section to play with SimpleMongoLogHandler
-            #'class': 'mongolog.SimpleMongoLogHandler',
-            #'connection': 'mongodb://192.168.33.11:27017',
+            'class': 'mongolog.SimpleMongoLogHandler',
+            'connection': 'mongodb://localhost:27017'
             #'connection': 'mongodb://192.168.33.11:27017',
             #'connection': 'mongodb://jfurr:gnuLNX123@localhost:27017',
             #'username': 'jfurr',
             #'password': 'gnuLNX123',
-
+        },
+        'http': {
+            'level': 'DEBUG',
             # This section for HttpLogHandler
             'class': 'mongolog.HttpLogHandler',
             # Interesting Note:  requests 2.8.1 will turn this into a GET if it's missing a trailing slash
             # We automagically add the trailing slash
             'client_auth': 'http://192.168.33.21/4e487f07a84011e5a3403c15c2bcc424',
-            'verbose': True,
-            
         },
     },
     'loggers': {
         '': {
-            'handlers': ['mongolog'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True
         },
+        'simple': {
+            'handlers': ['simple'],
+            'level': 'DEBUG',
+            'propagate': True
+        },
+        'http': {
+            'handlers': ['http'],
+            'level': 'DEBUG',
+            'propagate': True
+        }
     },
 }
 

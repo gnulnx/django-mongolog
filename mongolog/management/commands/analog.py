@@ -18,7 +18,7 @@ from mongolog.handlers import get_mongolog_handler
 from django.core.management.base import BaseCommand
 
 #logger = logging.getLogger(__name__)
-logger = logging.getLogger('mongolog')
+logger = logging.getLogger('simple')
 
 
 class Command(BaseCommand):
@@ -59,20 +59,24 @@ class Command(BaseCommand):
     def print_results(self, results):
         # older versions of pymongo didn't use a CommandCursor object to iterate over the results.
         # We check by trying to convert to a list and if there is a TypeError we continue on 
-        # and try to iterate over 'results' as thought it were a Cursor object.
+        # and try to iterate over 'results' as though it were a Cursor object.
+        print("print_results results(%s)" % results)
         try:
             results = list(results['result'])
             results.reverse()
         except TypeError as e:
             pass
 
+        print("print_results results(%s)" % results)
         for r in results:
             level = r.get('level', None)
+            print("r(%s) level(%s)" % (r, level))
             if level == 'INFO':
                 logger.info(r)
             elif level == 'WARNING':
                 logger.warn(r)
             elif level == 'ERROR':
+                print("-----Right before logger.error: ", r)
                 logger.error(r)
             elif level == 'DEBUG':
                 logger.debug(r)
@@ -96,19 +100,29 @@ class Command(BaseCommand):
         ])
 
     def tail(self, options):
+        print("Before fetch_results")
         initial = self.fetch_results(options)
+        print("After fetch_results")
         self.print_results(initial)
+        print("After print_results")
         raise NotImplementedError("--tail not finshed")
 
     def handle(self, *args, **options):
+        print("----------------------Enter handle---------------------")
         if options['query']:
             options['query'] = json.loads(options['query'])
 
         handler = get_mongolog_handler()
+        print("----------------------handler(%s)---------------------" % handler)
         self.collection = handler.get_collection()
+        print("----------------------collection(%s)---------------------" % self.collection)
 
         if options['tail']:
+            print("---Before tail")
             self.tail(options)
+            print("---After tail")
         else:
             results = self.fetch_results(options)
             self.print_results(results)
+        print("----------------------Leaving Handle---------------------")
+

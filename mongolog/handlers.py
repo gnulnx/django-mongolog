@@ -55,14 +55,79 @@ def get_mongolog_handler():
             break
 
     if not handler:
-        raise ValueError("No BaseMongoLogHandler could be found.  Did you add on to you logging config?")
+        raise ValueError("No BaseMongoLogHandler could be found.\nNOTE: analog command does not work with HttpLogHandler")
+    print("Handler: ", handler)
     return handler
 
 
-class BaseMongoLogHandler(Handler):
-
+class CreateLogRecordBaseMixin(object):
     REFERENCE = 'reference'
     EMBEDDED = 'embedded'
+    def new_key(self, old_key):
+        """
+        Repalce . and $ with Unicode full width equivalents
+        """
+        if "." in old_key:
+            return old_key.replace(u".", u"．")
+        elif "$" in old_key:
+            return old_key.replace(u"$", u"＄")
+        else:
+            return old_key
+
+    def check_keys(self, record):
+        """
+        Check for . and $ in two levels of keys below msg.
+        TODO:   Make this a recursive function that looks for these keys
+                n levels deep
+        """
+        if not isinstance(record['msg'], dict):
+            return record
+
+        for k, v in record['msg'].items():
+            record['msg'][self.new_key(k)] = record['msg'].pop(k)
+
+            if isinstance(v, dict):
+                for old_key in record['msg'][k].keys():
+                    record['msg'][k][self.new_key(old_key)] = record['msg'][k].pop(old_key) 
+
+        return record
+ 
+    def create_log_record(self, record):
+        """
+        Convert the python LogRecord to a MongoLog Record.
+        Also add a UUID which is a combination of the log message and log level.
+
+        Override in subclasses to change log record formatting.
+        See SimpleMongoLogHandler and VerboseMongoLogHandler
+        """
+        record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
+        if "mongolog.management.commands" in record['name']:
+            return {'uuid': 'none', 'time': 'none', 'level': 'MONGOLOG-INTERNAL'}
+        record = self.check_keys(record)
+
+        # The UUID is a combination of the record.levelname and the record.msg
+        if sys.version_info.major >= 3:
+            uuid_key = str(record['msg']) + str(record['levelname'])
+        else:
+            uuid_key = (unicode(record['msg']) + unicode(record['levelname'])).encode('utf-8', 'replace')
+        
+        record.update({
+            'uuid': uuid.uuid5(uuid_namespace, uuid_key).hex,
+            # NOTE: if the user is using django and they have USE_TZ=True in their settings
+            # then the timezone displayed will be what is specified in TIME_ZONE
+            # For instance if they have TIME_ZONE='UTC' then both dt.now() and dt.utcnow()
+            # will be equivalent.
+            'time': dt.utcnow() if self.time_zone == 'utc' else dt.now(),
+        })
+
+        # If we are using an embedded document type
+        # we need to create the dates array
+        if self.record_type == self.EMBEDDED:
+            record['dates'] = [record['time']]
+
+        return record
+
+class BaseMongoLogHandler(Handler, CreateLogRecordBaseMixin):
 
     def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="embedded", *args, **kwargs):  # noqa
         super(BaseMongoLogHandler, self).__init__(level)
@@ -158,70 +223,6 @@ class BaseMongoLogHandler(Handler):
         Return the collection being used by MongoLogHandler
         """
         return getattr(self, "mongolog", None)
-
-    def new_key(self, old_key):
-        """
-        Repalce . and $ with Unicode full width equivalents
-        """
-        if "." in old_key:
-            return old_key.replace(u".", u"．")
-        elif "$" in old_key:
-            return old_key.replace(u"$", u"＄")
-        else:
-            return old_key
-
-    def check_keys(self, record):
-        """
-        Check for . and $ in two levels of keys below msg.
-        TODO:   Make this a recursive function that looks for these keys
-                n levels deep
-        """
-        if not isinstance(record['msg'], dict):
-            return record
-
-        for k, v in record['msg'].items():
-            record['msg'][self.new_key(k)] = record['msg'].pop(k)
-
-            if isinstance(v, dict):
-                for old_key in record['msg'][k].keys():
-                    record['msg'][k][self.new_key(old_key)] = record['msg'][k].pop(old_key) 
-
-        return record
- 
-    def create_log_record(self, record):
-        """
-        Convert the python LogRecord to a MongoLog Record.
-        Also add a UUID which is a combination of the log message and log level.
-
-        Override in subclasses to change log record formatting.
-        See SimpleMongoLogHandler and VerboseMongoLogHandler
-        """
-        record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
-        if "mongolog.management.commands" in record['name']:
-            return {'uuid': 'none', 'time': 'none', 'level': 'MONGOLOG-INTERNAL'}
-        record = self.check_keys(record)
-
-        # The UUID is a combination of the record.levelname and the record.msg
-        if sys.version_info.major >= 3:
-            uuid_key = str(record['msg']) + str(record['levelname'])
-        else:
-            uuid_key = (unicode(record['msg']) + unicode(record['levelname'])).encode('utf-8', 'replace')
-        
-        record.update({
-            'uuid': uuid.uuid5(uuid_namespace, uuid_key).hex,
-            # NOTE: if the user is using django and they have USE_TZ=True in their settings
-            # then the timezone displayed will be what is specified in TIME_ZONE
-            # For instance if they have TIME_ZONE='UTC' then both dt.now() and dt.utcnow()
-            # will be equivalent.
-            'time': dt.utcnow() if self.time_zone == 'utc' else dt.now(),
-        })
-
-        # If we are using an embedded document type
-        # we need to create the dates array
-        if self.record_type == self.EMBEDDED:
-            record['dates'] = [record['time']]
-
-        return record
 
     def ensure_collections_indexed(self):
         """
@@ -354,12 +355,17 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
         return mongolog_record
 
 
-class HttpLogHandler(SimpleMongoLogHandler):
-    def __init__(self, level=NOTSET, client_auth='', timeout=3, *args, **kwargs):
+#class HttpLogHandler(SimpleMongoLogHandler):
+class HttpLogHandler(Handler, CreateLogRecordBaseMixin):
+    def __init__(self, level=NOTSET, client_auth='', timeout=3, time_zone="local", verbose=None, *args, **kwargs):
+        super(HttpLogHandler, self).__init__(level, *args, **kwargs)
         # Make sure there is a trailing slash or reqests 2.8.1 will try a GET instead of POST
         self.client_auth = client_auth if client_auth.endswith('/') else "%s/" % client_auth
+        print("self.client_auth: ", self.client_auth)
         self.timeout = timeout
-        super(HttpLogHandler, self).__init__(level, connection='', *args, **kwargs)
+        self.time_zone = time_zone
+        self.record_type="embedded"
+        self.verbose = verbose
 
     def emit(self, record):
         """ 
@@ -371,11 +377,23 @@ class HttpLogHandler(SimpleMongoLogHandler):
         # TODO move this to a validate log_record method and add more validation
         log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
         if self.verbose:
-            print("Inserting", json.dumps(log_record, sort_keys=True, indent=4, default=str))
-        
+            print("HttpLogHandler: Inserting", json.dumps(log_record, sort_keys=True, indent=4, default=str))
+       
+        print("emit self.client_auth", self.client_auth)
+        t = requests.get(self.client_auth)
+        if t.status_code == 200:
+            print("t.json(): ", json.dumps(t.json())) 
+        else:
+            print("t: ", t.__dict__)
+        self.timeout=125
+        print("self.timeout: ", self.timeout)
         r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout)  # noqa
+        print("r: ", r)
+        for k, v in r.__dict__.iteritems():
+            print("k(%s), v(%s)" % (k, v))  
+        print("r: ", r.__dict__)
         # uncomment to debug
-        # print ("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
+        #print ("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
 
 
 class VerboseMongoLogHandler(BaseMongoLogHandler):
