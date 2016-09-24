@@ -46,10 +46,6 @@ LOGGING = {
     },
     'loggers': {
         '': {
-<<<<<<< HEAD
-            'handlers': ['console'],
-=======
->>>>>>> 017a3b82a5571923b20cf5705c854e94b754e6ef
             'level': 'DEBUG',
             'handlers': ['console'],
             'propagate': True
@@ -59,22 +55,10 @@ LOGGING = {
             'handlers': ['simple'],
             'propagate': True
         },
-<<<<<<< HEAD
-        'simple': {
-            'handlers': ['simple'],
-            'level': 'DEBUG',
-            'propagate': True
-        },
-        'http': {
-            'handlers': ['http'],
-            'level': 'DEBUG',
-            'propagate': True
-=======
         'http': {
             'level': 'DEBUG',
             'handlers': ['http'],
             'propagate': True,
->>>>>>> 017a3b82a5571923b20cf5705c854e94b754e6ef
         }
     },
 }
