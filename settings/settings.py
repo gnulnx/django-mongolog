@@ -21,8 +21,10 @@ LOGGING = {
     'handlers': {
         'console': {
             'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'stream': sys.stdout
+            'class': 'mongolog.colorlog.ColorLogHandler',
+            'info': 'white',
+            #'class': 'logging.StreamHandler',
+            'stream': 'ext://sys.stdout',
         },
         'mongolog': {
             'level': 'DEBUG',
