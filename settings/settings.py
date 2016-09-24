@@ -35,6 +35,31 @@ LOGGING = {
             #'username': 'jfurr',
             #'password': 'gnuLNX123',
         },
+        'simple_reference': {
+            'level': 'DEBUG',
+            'record_type': 'reference',
+            'class': 'mongolog.SimpleMongoLogHandler',
+            'connection': 'mongodb://localhost:27017',
+            'w': 1,
+            'j': False,
+
+            # utc/local.  Only used with record_type=simple
+            'time_zone': 'local',
+            'verbose': True,
+        },
+        'verbose': {
+            'level': 'DEBUG',
+            'class': 'mongolog.VerboseMongoLogHandler',
+            'connection': 'mongodb://localhost:27017',
+
+            'w': 1,
+            'j': False,
+
+            # utc/local.  Only used with record_type=simple
+            'time_zone': 'local',
+            'verbose': True,
+            'record_type': 'embedded',
+        },
         'http': {
             'level': 'DEBUG',
             # This section for HttpLogHandler
@@ -42,6 +67,13 @@ LOGGING = {
             # Interesting Note:  requests 2.8.1 will turn this into a GET if it's missing a trailing slash
             # We automagically add the trailing slash
             'client_auth': 'http://192.168.33.21/4e487f07a84011e5a3403c15c2bcc424',
+        },
+        'invalid_handler': {
+            'level': 'DEBUG',
+            'class': 'mongolog.HttpLogHandler',
+            'timeout': 0.0001,
+            'client_auth': 'http://192.168.33.51/4e487f07a84011e5a3403c15c2bcc424',
+            'test': True,
         },
     },
     'loggers': {
@@ -55,10 +87,19 @@ LOGGING = {
             'handlers': ['simple'],
             'propagate': True
         },
+        'simple.reference': {
+            'handlers': ['simple_reference'],
+            'propagate': True,
+        },
         'http': {
             'level': 'DEBUG',
             'handlers': ['http'],
             'propagate': True,
+        },
+        'http_test_invalid_connection': {
+            'level': 'DEBUG',
+            'handlers': ['invalid_handler'],
+            'propagate': False
         }
     },
 }
