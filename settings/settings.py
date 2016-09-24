@@ -21,19 +21,22 @@ LOGGING = {
     'handlers': {
         'console': {
             'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'stream': sys.stdout
+            'class': 'settings.colorlog.ColorLogHandler',
+            'info': 'white',
+            'stream': 'ext://sys.stdout',
         },
-        'mongolog': {
+        'simple': {
             'level': 'DEBUG',
             # Uncomment section to play with SimpleMongoLogHandler
-            #'class': 'mongolog.SimpleMongoLogHandler',
-            #'connection': 'mongodb://192.168.33.11:27017',
+            'class': 'mongolog.SimpleMongoLogHandler',
+            'connection': 'mongodb://localhost:27017',
             #'connection': 'mongodb://192.168.33.11:27017',
             #'connection': 'mongodb://jfurr:gnuLNX123@localhost:27017',
             #'username': 'jfurr',
             #'password': 'gnuLNX123',
-
+        },
+        'http': {
+            'level': 'DEBUG',
             # This section for HttpLogHandler
             'class': 'mongolog.HttpLogHandler',
             # Interesting Note:  requests 2.8.1 will turn this into a GET if it's missing a trailing slash
@@ -45,12 +48,27 @@ LOGGING = {
     },
     'loggers': {
         '': {
-            'handlers': ['mongolog'],
             'level': 'DEBUG',
+            'handlers': ['console'],
             'propagate': True
         },
+        'simple': {
+            'level': 'DEBUG',
+            'handlers': ['simple'],
+            'propagate': True
+        },
+        'http': {
+            'level': 'DEBUG',
+            'handlers': ['http'],
+            'propagate': True,
+        }
     },
 }
+
+SHELL_PLUS_PRE_IMPORTS = (
+    'logging',
+    ('logging', 'getLogger'),
+)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
