@@ -74,6 +74,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'mongolog',
+    'django_extensions',
 )
 
 MIDDLEWARE_CLASSES = (
