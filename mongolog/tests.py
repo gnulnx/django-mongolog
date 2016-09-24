@@ -20,6 +20,7 @@ import unittest
 import logging
 from logging import config  # noqa
 import sys
+from django.conf import settings
 from requests.exceptions import ConnectionError
 
 # Different imports for python2/3
@@ -333,10 +334,17 @@ class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMix
 
 class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
-        LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
-        LOGGING['handlers']['mongolog']['record_type'] = 'reference'
-        logging.config.dictConfig(LOGGING)
-        self.handler = get_mongolog_handler()
+        logger = logging.getLogger('simple.reference')
+        #
+        #LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
+        #LOGGING['handlers']['mongolog']['record_type'] = 'reference'
+        #print("--------------------------")
+        #print("LOGGING['handlers']['mongolog']", LOGGING['handlers']['mongolog'])
+        #print("--------------------------")
+        #print("settings.LOGGING['handlers']['simple_reference']", settings.LOGGING['handlers']['simple_reference'])
+        #logging.config.dictConfig(LOGGING)
+        self.handler = get_mongolog_handler('simple.reference')
+        print("self.handler: ", self.handler.__dict__)
         self.collection = self.handler.get_collection()
 
         self.remove_test_entries()
@@ -345,7 +353,6 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
         """
         Test the simple log record structure
         """
-
         self.handler.setLevel("DEBUG")
 
         # now test a serielazable dict with an exception call
@@ -362,6 +369,7 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
             logger.exception(log_msg)
 
         rec = self.collection.find_one({'msg.fruits': ['apple', 'orange']})
+        print("rec.keys(): ", rec.keys())
         self.assertEqual(set(rec.keys()), expected_keys)
 
         # Python 2 duplicate entry test
@@ -398,8 +406,9 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
         
 class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
-        LOGGING['handlers']['mongolog']['class'] = 'mongolog.VerboseMongoLogHandler'
-        logging.config.dictConfig(LOGGING)
+        #LOGGING['handlers']['mongolog']['class'] = 'mongolog.VerboseMongoLogHandler'
+        #logging.config.dictConfig(LOGGING)
+        logger = logging.getLogger('verbose')
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()
 
@@ -479,10 +488,14 @@ class TestHttpLogHandler(unittest.TestCase):
         LOGGING['handlers']['mongolog']['timeout'] = 0.0001
         del(LOGGING['handlers']['mongolog']['connection'])
         logging.config.dictConfig(LOGGING)
+        #logger = logging.getLogger('http_test_invalid_connection')
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()
 
     def test_invalid_connection(self):
+        #logger = logging.getLogger("http_test_invalid_connection")
+        #logger.warn("Say what")
+        #print "dict: ", logger.__dict__
         with self.assertRaises(ConnectionError):
             logger.warn("Danger Will Robinson!")
 

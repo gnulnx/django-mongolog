@@ -37,12 +37,15 @@ logger = logging.getLogger('')
 uuid_namespace = uuid.UUID('8296424f-28b7-5982-a434-e6ec8ef529b3')
 
 
-def get_mongolog_handler():
+def get_mongolog_handler(logger_name=None):
     """
     Return the first MongoLogHander found in the list of defined loggers.  
     NOTE: If more than one is defined, only the first one is used.
     """
-    logger_names = [''] + list(logging.Logger.manager.loggerDict)
+    if logger_name:
+        logger_names = [logger_name]
+    else:           
+        logger_names = [''] + list(logging.Logger.manager.loggerDict)
 
     for name in logger_names:
         logger = logging.getLogger(name)
@@ -61,8 +64,10 @@ def get_mongolog_handler():
 
 
 class CreateLogRecordBaseMixin(object):
+    
     REFERENCE = 'reference'
     EMBEDDED = 'embedded'
+
     def new_key(self, old_key):
         """
         Repalce . and $ with Unicode full width equivalents
@@ -323,9 +328,10 @@ class BaseMongoLogHandler(Handler, CreateLogRecordBaseMixin):
         })
 
 
-class SimpleMongoLogHandler(BaseMongoLogHandler):
+class SimpleMongoLogHandler(BaseMongoLogHandler, CreateLogRecordBaseMixin):
     def create_log_record(self, record):
         record = super(SimpleMongoLogHandler, self).create_log_record(record)
+        print("record: ", json.dumps(record, indent=4, sort_keys=True, default=str))
         if record['uuid'] == 'none':
             return record
         mongolog_record = LogRecord({
@@ -355,23 +361,26 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
         return mongolog_record
 
 
-#class HttpLogHandler(SimpleMongoLogHandler):
-class HttpLogHandler(Handler, CreateLogRecordBaseMixin):
-    def __init__(self, level=NOTSET, client_auth='', timeout=3, time_zone="local", verbose=None, *args, **kwargs):
+class HttpLogHandler(SimpleMongoLogHandler):
+#class HttpLogHandler(Handler, CreateLogRecordBaseMixin):
+    def __init__(self, level=NOTSET, client_auth='', timeout=3, w=1, j=False, test=False, time_zone="local", record_type='embedded', verbose=None, *args, **kwargs):
         super(HttpLogHandler, self).__init__(level, *args, **kwargs)
         # Make sure there is a trailing slash or reqests 2.8.1 will try a GET instead of POST
         self.client_auth = client_auth if client_auth.endswith('/') else "%s/" % client_auth
         print("self.client_auth: ", self.client_auth)
         self.timeout = timeout
         self.time_zone = time_zone
-        self.record_type="embedded"
+        self.record_type = record_type
         self.verbose = verbose
+        self.test = test
+        #raise Exception(self.test)
 
     def emit(self, record):
         """ 
         From python:  type(record) == LogRecord
         https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
         """
+        print("emit self.client_auth", self.client_auth)
         log_record = self.create_log_record(record)
 
         # TODO move this to a validate log_record method and add more validation
@@ -379,9 +388,8 @@ class HttpLogHandler(Handler, CreateLogRecordBaseMixin):
         if self.verbose:
             print("HttpLogHandler: Inserting", json.dumps(log_record, sort_keys=True, indent=4, default=str))
        
-        print("emit self.client_auth", self.client_auth)
         t = requests.get(self.client_auth)
-        if t.status_code == 200:
+        if t.status_code == 200 and t.json().get('status') == 'UP':
             print("t.json(): ", json.dumps(t.json())) 
         else:
             print("t: ", t.__dict__)
@@ -393,10 +401,10 @@ class HttpLogHandler(Handler, CreateLogRecordBaseMixin):
             print("k(%s), v(%s)" % (k, v))  
         print("r: ", r.__dict__)
         # uncomment to debug
-        #print ("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
+        print ("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
 
 
-class VerboseMongoLogHandler(BaseMongoLogHandler):
+class VerboseMongoLogHandler(SimpleMongoLogHandler):
     def create_log_record(self, record):
         record = super(VerboseMongoLogHandler, self).create_log_record(record) 
         mongolog_record = LogRecord({
