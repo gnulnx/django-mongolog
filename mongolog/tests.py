@@ -489,13 +489,16 @@ class TestHttpLogHandler(unittest.TestCase):
         self.logger = logging.getLogger("test.http")
         self.handler = get_mongolog_handler("test.http")
         self.collection = self.handler.get_collection()
+        console.error("self.collection(%s)" % self.collection)
     
     @skipIf(sys.version_info.major == 3, "SKipping TestHttpLogHandler.test_timeout because of python version")
     def test_timeout(self):
         console.debug(self)
         timeout = LOGGING['handlers']['test_http_invalid']['timeout']
         LOGGING['handlers']['test_http_invalid']['timeout'] = 1
+
         logging.config.dictConfig(LOGGING)
+
         self.logger = logging.getLogger("test.http")
 
         with self.assertRaises(ConnectionError):
@@ -509,6 +512,7 @@ class TestHttpLogHandler(unittest.TestCase):
         console.debug(self)
         with self.assertRaises(ConnectionError):
             self.logger.warn("Danger Will Robinson!")
+
 
 class TestManagementCommands(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):

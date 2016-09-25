@@ -58,7 +58,7 @@ def get_mongolog_handler(logger_name=None):
                 handler = _handler
                 break
         if handler:
-            logger.info("found handler: %s", handler)
+            console.info("found handler: %s", handler)
             break
 
     if not handler:
