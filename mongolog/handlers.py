@@ -39,12 +39,16 @@ console = logging.getLogger('console')
 uuid_namespace = uuid.UUID('8296424f-28b7-5982-a434-e6ec8ef529b3')
 
 
-def get_mongolog_handler():
+def get_mongolog_handler(logger_name=None):
     """
     Return the first MongoLogHander found in the list of defined loggers.  
     NOTE: If more than one is defined, only the first one is used.
     """
-    logger_names = [''] + list(logging.Logger.manager.loggerDict)
+    if logger_name:
+        logger_names = [logger_name]
+    else:
+        logger_names = [''] + list(logging.Logger.manager.loggerDict)
+    console.warn("Logger_names: %s", json.dumps(logger_names, indent=4, sort_keys=True))
 
     for name in logger_names:
         logger = logging.getLogger(name)
@@ -54,6 +58,7 @@ def get_mongolog_handler():
                 handler = _handler
                 break
         if handler:
+            logger.info("found handler: %s", handler)
             break
 
     if not handler:
@@ -414,8 +419,8 @@ class HttpLogHandler(SimpleMongoLogHandler):
         log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
         if self.verbose:
             print("Inserting", json.dumps(log_record, sort_keys=True, indent=4, default=str))
-        
-        r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout)  # noqa
+
+        r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout, proxies={'http':''})  # noqa
         # uncomment to debug
-        # print ("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
+        print ("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
 
