@@ -253,7 +253,6 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
 class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
         console.debug(self)
-        logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger('test.embedded')
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()
@@ -331,12 +330,9 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
     These two collections are related to each other via the uuid key.   
     """
     def setUp(self):
-        console.debug(self)
-        logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger('test.reference')
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()
-
         self.remove_test_entries()
 
 
@@ -345,16 +341,17 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
         Test the simple log record structure
         """
         console.debug(self)
-        self.handler.setLevel("DEBUG")
+        #self.handler.setLevel("DEBUG")
+        SMH_Obj = SimpleMongoLogHandler(connection=LOGGING['handlers']['simple']['connection'])
 
-        # now test a serielazable dict with an exception call
-        log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
+        # now test a serializable dict with an exception call
+        log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SMH_Obj)}
         expected_keys = set([
             '_id', 'exception', 'name', 'thread', 'time', 
             'process', 'level', 'msg', 'path', 'module', 
             'line', 'func', 'filename', 'uuid'
         ])
-
+        #self.exit(0)
         try:
             raise ValueError
         except ValueError:
@@ -364,7 +361,7 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
         self.assertEqual(set(rec.keys()), expected_keys)
         
         # Python 2 duplicate entry test
-        log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
+        log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SMH_Obj)}
         try:
             raise ValueError
         except ValueError:
@@ -387,7 +384,7 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
                     {}
                 ],
                 'object': SimpleMongoLogHandler,
-                'instance': SimpleMongoLogHandler(),
+                'instance': SMH_Obj,
             }
             self.logger.exception(log_msg)
 
@@ -398,7 +395,6 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
 class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
         console.debug(self)
-        logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger("test.verbose")
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()
@@ -475,7 +471,7 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 class TestHttpLogHandler(unittest.TestCase):
     def setUp(self):
         console.debug(self)
-        logging.config.dictConfig(LOGGING)
+        #logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger("test.http")
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()

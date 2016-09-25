@@ -91,10 +91,12 @@ class BaseMongoLogHandler(Handler):
         # If True will print each log_record to console before writing to mongo
         self.verbose = verbose
 
+        console.info("self(%s) args(%s) kwargs(%s)", type(self), args, kwargs)
         if not self.connection:
-            console.warn("'connection' key not provided to handler type(%s)", self.__dict__)
+            console.error("self(%s) args(%s) kwargs(%s)", type(self), args, kwargs)
+            console.warn("'connection' key not provided to handler type(%s): %s" % (self.__dict__, self))
             console.warn("Will try to connect with default")
-
+            console.error("-------------------------------------------\n")
             # Set a defaul connection key
             self.connection = u'mongodb://localhost:27017/'
 
