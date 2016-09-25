@@ -38,37 +38,13 @@ from mongolog.handlers import (
 from django.core.management import call_command
 
 
-# Use plain python logging instead of django to decouple project
-# from django versions
-LOGGING = {
-    'version': 1,
-    'handlers': {
-        'mongolog': {
-            'level': 'DEBUG',
-            'class': 'mongolog.SimpleMongoLogHandler',
-            'connection': 'mongodb://localhost:27017',
-            # 'connection': 'mongodb://192.168.33.31:27017',
-            'w': 1,
-            'j': False,
+# Use plain python logging instead of django to decouple project from django versions
+from mongolog.test_logging import LOGGING
 
-            # utc/local.  Only used with record_type=simple
-            'time_zone': 'local',
-            'verbose': True,
-            'record_type': 'embedded',
-        },
-    },
-    'loggers': {
-        '': {
-            'handlers': ['mongolog'],
-            'level': 'DEBUG',
-            'propagate': True
-        },
-    },
-}
 # Must instantiate root logger in order to access the correct 
 # monglog collection from the MongoLogHandler
-logging.config.dictConfig(LOGGING)
-logger = logging.getLogger('')
+#logging.config.dictConfig(LOGGING)
+#logger = logging.getLogger('')
 
 """
     All log tests should log a dictionary with a 'test' key
@@ -126,7 +102,7 @@ TEST_MSG = {
 }
 
 
-def raiseException():
+def raiseException(logger = None):
     """
     Used to test logger.exceptions.
     Use like:
@@ -143,8 +119,9 @@ def raiseException():
 class TestRemoveEntriesMixin(object):
     def remove_test_entries(self, test_key="msg.test"):
         """
-        Remove all current test entries
-        Called in setUp and tearDown
+        Remove all current test entries.
+        Called in setUp and tearDown.
+        TODO: Remove entries from timestamp collection
         """
         self.collection.remove({test_key: True}) if pymongo_major_version < 3 else self.collection.delete_many({test_key: True})
         # Ensure that we don't have any test entries
@@ -262,10 +239,10 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
 
 class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
-        LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
-        LOGGING['handlers']['mongolog']['record_type'] = 'embedded'
+        #LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
+        #LOGGING['handlers']['mongolog']['record_type'] = 'embedded'
         logging.config.dictConfig(LOGGING)
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger('test.embedded')
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()
 
@@ -291,7 +268,7 @@ class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMix
 
     def test_exception(self):
         with self.assertRaises(ValueError):
-            raiseException()
+            raiseException(self.logger)
 
         records = self.collection.find({
             'msg.test': True, 
@@ -312,7 +289,7 @@ class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMix
         # now create anthe rduplicate entry and show that only one record is still present
         # however now it should have 2 values in 'dates'
         with self.assertRaises(ValueError):
-            raiseException()
+            raiseException(self.logger)
 
         records = self.collection.find({
             'msg.test': True, 
@@ -332,14 +309,24 @@ class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMix
 
 
 class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMixin):
+    """
+    Test the mongolog reference storage capability.
+    In 'reference' mode there are two collections created
+    1) mongolog that holds that latest record and a single 'date'
+    2) timestamp collection that holds that individual timestamps
+
+    These two collections are related to each other via the uuid key.   
+    """
     def setUp(self):
-        LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
-        LOGGING['handlers']['mongolog']['record_type'] = 'reference'
+        #LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
+        #LOGGING['handlers']['mongolog']['record_type'] = 'reference'
         logging.config.dictConfig(LOGGING)
+        self.logger = logging.getLogger('test.reference')
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()
 
         self.remove_test_entries()
+
 
     def test_logstructure_simple_reference(self):
         """
@@ -359,17 +346,17 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
         try:
             raise ValueError
         except ValueError:
-            logger.exception(log_msg)
-
+            self.logger.exception(log_msg)
+        
         rec = self.collection.find_one({'msg.fruits': ['apple', 'orange']})
         self.assertEqual(set(rec.keys()), expected_keys)
-
+        
         # Python 2 duplicate entry test
         log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
         try:
             raise ValueError
         except ValueError:
-            logger.exception(log_msg)
+            self.logger.exception(log_msg)
 
         rec = self.collection.find_one({'msg.fruits': ['apple', 'orange']})
         self.assertEqual(set(rec.keys()), expected_keys)
@@ -390,7 +377,7 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
                 'object': SimpleMongoLogHandler,
                 'instance': SimpleMongoLogHandler(),
             }
-            logger.exception(log_msg)
+            self.logger.exception(log_msg)
 
         rec = self.collection.find_one({'msg.fruits': {'$in': ['apple', 'orange']}})
         self.assertEqual(set(rec.keys()), expected_keys)
