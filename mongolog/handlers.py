@@ -62,7 +62,7 @@ def get_mongolog_handler(logger_name=None):
             break
 
     if not handler:
-        raise ValueError("No BaseMongoLogHandler could be found.  Did you add on to you logging config?")
+        raise ValueError("No BaseMongoLogHandler could be found.  Did you add on to youy logging config?")
     return handler
 
 
@@ -71,7 +71,7 @@ class BaseMongoLogHandler(Handler):
     REFERENCE = 'reference'
     EMBEDDED = 'embedded'
 
-    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="embedded", *args, **kwargs):  # noqa
+    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="embedded", max_keep=25, *args, **kwargs):  # noqa
         super(BaseMongoLogHandler, self).__init__(level)
         self.connection = connection
 
@@ -83,7 +83,7 @@ class BaseMongoLogHandler(Handler):
         self.record_type = record_type
 
         # number of dates to keep in embedded document
-        self.num_dates = 25
+        self.max_keep = max_keep
          
         # The write concern
         self.w = w
@@ -286,7 +286,7 @@ class BaseMongoLogHandler(Handler):
                 "$push": {
                     'dates': {
                         '$each': [log_record['time']],
-                        "$slice": -self.num_dates  # only keep the last n entries
+                        "$slice": -self.max_keep  # only keep the last n entries
                     }
                 },
                 # Keep a counter of the number of times we see this record

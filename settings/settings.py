@@ -34,6 +34,8 @@ LOGGING = {
             # Uncomment section to play with SimpleMongoLogHandler
             'class': 'mongolog.SimpleMongoLogHandler',
             'connection': 'mongodb://localhost:27017',
+            'max_keep': 5,
+            'record_type': 'embedded'
         },
         'http': {
             'level': 'DEBUG',
@@ -129,7 +131,7 @@ LOGGING = {
             'class': 'mongolog.HttpLogHandler',
             # Interesting Note:  requests 2.8.1 will turn this into a GET if it's missing a trailing slash
             # We automagically add the trailing slash
-            'client_auth': 'http://192.168.33.51/4e487f07a84011e5a3403c15c2bcc424',
+            'client_auth': 'http://192.168.33.51/4e487f07a84011e5a3403c15c2bcc424/',
             'verbose': TEST_VERBOSITY,
             'timeout': 1,
         },
