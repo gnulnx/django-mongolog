@@ -133,8 +133,6 @@ from django.core.urlresolvers import reverse
 
 class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
     def setUp(self):
-        #LOGGING['handlers']['mongolog']['class'] = 'mongolog.BaseMongoLogHandler'
-        #LOGGING['handlers']['mongolog']['record_type'] = 'reference'
         logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger("test.base.reference")
 
@@ -481,20 +479,22 @@ class TestHttpLogHandler(unittest.TestCase):
 
 class TestManagementCommands(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
-        LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
-        LOGGING['handlers']['mongolog']['record_type'] = 'reference'
+        #LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
+        #LOGGING['handlers']['mongolog']['record_type'] = 'reference'
         logging.config.dictConfig(LOGGING)
+        self.logger = logging.getLogger('test.reference')
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()
 
         self.remove_test_entries()
+        self.remove_test_entries(test_key='info.msg.test')
 
     def test_analog(self):
-        logger.debug("Debug")
-        logger.info("Info")
-        logger.warn("Warn")
-        logger.error("Error")
-        logger.critical("Critical")
+        self.logger.debug({'test': True, 'logger': 'Debug'})
+        self.logger.info({'test': True, 'logger': 'Info'})
+        self.logger.warn({'test': True, 'logger': 'Warn'})
+        self.logger.error({'test': True, 'logger': 'Error'})
+        self.logger.critical({'test': True, 'logger': 'Critical'})
 
         query = '{"name": "root"}'
         call_command('analog', limit=10, query='{"name": "root"}')

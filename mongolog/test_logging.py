@@ -1,19 +1,18 @@
 LOGGING = {
     'version': 1,
     'handlers': {
-        'mongolog': {
-            'level': 'DEBUG',
-            'class': 'mongolog.SimpleMongoLogHandler',
-            'connection': 'mongodb://localhost:27017',
-            # 'connection': 'mongodb://192.168.33.31:27017',
-            'w': 1,
-            'j': False,
-
-            # utc/local.  Only used with record_type=simple
-            'time_zone': 'local',
-            'verbose': True,
-            'record_type': 'reference',
-        },
+        #'mongolog': {
+        #    'level': 'DEBUG',
+        #    'class': 'mongolog.SimpleMongoLogHandler',
+        #    'connection': 'mongodb://localhost:27017',
+        #    # 'connection': 'mongodb://192.168.33.31:27017',
+        #    'w': 1,
+        #    'j': False,
+        #    # utc/local.  Only used with record_type=simple
+        #    'time_zone': 'local',
+        #    'verbose': True,
+        #    'record_type': 'reference',
+        #},
         'test_reference': {
             'level': 'DEBUG',
             'class': 'mongolog.SimpleMongoLogHandler',
@@ -86,10 +85,16 @@ LOGGING = {
             'verbose': True,
             'record_type': 'reference',
         },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'settings.colorlog.ColorLogHandler',
+            'info': 'white',
+            'stream': 'ext://sys.stdout',
+        },
     },
     'loggers': {
         '': {
-            'handlers': ['mongolog'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True
         },
