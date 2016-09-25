@@ -133,10 +133,10 @@ from django.core.urlresolvers import reverse
 
 class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
     def setUp(self):
-        
-        LOGGING['handlers']['mongolog']['class'] = 'mongolog.BaseMongoLogHandler'
-        LOGGING['handlers']['mongolog']['record_type'] = 'reference'
+        #LOGGING['handlers']['mongolog']['class'] = 'mongolog.BaseMongoLogHandler'
+        #LOGGING['handlers']['mongolog']['record_type'] = 'reference'
         logging.config.dictConfig(LOGGING)
+        self.logger = logging.getLogger("test.base.reference")
 
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()
@@ -149,7 +149,7 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
         self.assertContains(response, "HERE YOU ARE ON monglog/home.html")
 
     def test_dot_in_key(self):
-        logger.info({
+        self.logger.info({
             'META': {
                 'user.name': 'jfurr', 
                 'user$name': 'jfurr'
@@ -158,15 +158,20 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
             'user$name': 'jfurr'
         })
 
-    def test_write_concert(self):
-        LOGGING['handlers']['mongolog']['w'] = 0
+    def test_write_concern(self):
         logging.config.dictConfig(LOGGING)
+        self.logging = logging.getLogger("test.base.reference.w0")
         self.test_basehandler_exception()
 
     def test_valid_record_type(self):
-        LOGGING['handlers']['mongolog']['record_type'] = 'invalid type'
+        record_type = LOGGING['handlers']['base_invalid']['record_type']
+        LOGGING['handlers']['base_invalid']['record_type'] = 'invalid type'
         with self.assertRaises(ValueError):
             logging.config.dictConfig(LOGGING)
+
+        # Reset the log handler
+        LOGGING['handlers']['base_invalid']['record_type'] = record_type
+        logging.config.dictConfig(LOGGING)
 
     def test_connection_error(self):
         if pymongo_major_version >= 3:
@@ -176,7 +181,7 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
     def test_basehandler_exception(self):
         
         with self.assertRaises(ValueError):
-            raiseException()
+            raiseException(self.logger)
 
         records = self.collection.find({
             'msg.test': True, 
@@ -228,9 +233,9 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
         except NameError:
             self.assertEqual(str, type(record['msg']['Life']['Domain']['Bacteria'][0]['name'])) 
         
-        logger.info("Just some friendly info")
-        logger.error("Just some friendly info")
-        logger.debug("Just some friendly info")
+        self.logger.info("Just some friendly info")
+        self.logger.error("Just some friendly info")
+        self.logger.debug("Just some friendly info")
         
     def test_str_unicode_mongologhandler(self):
         self.assertEqual(self.handler.connection, u"%s" % self.handler)
