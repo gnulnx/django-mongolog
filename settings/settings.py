@@ -31,10 +31,6 @@ LOGGING = {
             # Uncomment section to play with SimpleMongoLogHandler
             'class': 'mongolog.SimpleMongoLogHandler',
             'connection': 'mongodb://localhost:27017',
-            #'connection': 'mongodb://192.168.33.11:27017',
-            #'connection': 'mongodb://jfurr:gnuLNX123@localhost:27017',
-            #'username': 'jfurr',
-            #'password': 'gnuLNX123',
         },
         'http': {
             'level': 'DEBUG',
