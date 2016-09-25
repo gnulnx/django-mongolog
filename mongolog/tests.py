@@ -39,7 +39,9 @@ from django.core.management import call_command
 
 
 # Use plain python logging instead of django to decouple project from django versions
-from mongolog.test_logging import LOGGING
+#from mongolog.test_logging import LOGGING
+from django.conf import settings
+LOGGING = settings.LOGGING
 
 # Must instantiate root logger in order to access the correct 
 # monglog collection from the MongoLogHandler
