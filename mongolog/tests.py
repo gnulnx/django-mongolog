@@ -120,6 +120,10 @@ class TestRemoveEntriesMixin(object):
         Called in setUp and tearDown.
         TODO: Remove entries from timestamp collection
         """
+        if not self.collection:
+            self.handler = get_mongolog_handler()
+            self.collection = self.handler.get_collection()
+            
         self.collection.remove({test_key: True}) if pymongo_major_version < 3 else self.collection.delete_many({test_key: True})
         # Ensure that we don't have any test entries
         self.assertEqual(0, self.collection.find({test_key: True}).count())
