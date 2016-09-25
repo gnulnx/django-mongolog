@@ -20,7 +20,7 @@ import unittest
 import logging
 from logging import config  # noqa
 import sys
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, ConnectTimeout
 
 # Different imports for python2/3
 try:
@@ -242,8 +242,6 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
 
 class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
-        #LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
-        #LOGGING['handlers']['mongolog']['record_type'] = 'embedded'
         logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger('test.embedded')
         self.handler = get_mongolog_handler()
@@ -321,8 +319,6 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
     These two collections are related to each other via the uuid key.   
     """
     def setUp(self):
-        #LOGGING['handlers']['mongolog']['class'] = 'mongolog.SimpleMongoLogHandler'
-        #LOGGING['handlers']['mongolog']['record_type'] = 'reference'
         logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger('test.reference')
         self.handler = get_mongolog_handler()
@@ -388,7 +384,6 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
         
 class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
-        #LOGGING['handlers']['mongolog']['class'] = 'mongolog.VerboseMongoLogHandler'
         logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger("test.verbose")
         self.handler = get_mongolog_handler()
@@ -463,19 +458,24 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 
 class TestHttpLogHandler(unittest.TestCase):
     def setUp(self):
-        #LOGGING['handlers']['mongolog']['class'] = 'mongolog.HttpLogHandler'
-        #LOGGING['handlers']['mongolog']['client_auth'] = 'http://192.168.33.51/4e487f07a84011e5a3403c15c2bcc424'
-        #LOGGING['handlers']['mongolog']['verbose'] = True
-        # This is only a test no reason to wait any longer than necassary
-        #LOGGING['handlers']['mongolog']['timeout'] = 0.0001
-        #del(LOGGING['handlers']['mongolog']['connection'])
         logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger("test.http")
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()
 
+    def test_timeout(self):
+        timeout = LOGGING['handlers']['http_invalid']['timeout']
+        LOGGING['handlers']['http_invalid']['timeout'] = 0.0001
+        logging.config.dictConfig(LOGGING)
+        self.logger = logging.getLogger("test.http")
+
+        with self.assertRaises(ConnectTimeout):
+            self.logger.warn("Danger Will Robinson!")
+
+        LOGGING['handlers']['http_invalid']['timeout'] = timeout
+        logging.config.dictConfig(LOGGING)
+
     def test_invalid_connection(self):
-        #self.logger.info({'test': True, 'info': 'info'})
         with self.assertRaises(ConnectionError):
             self.logger.warn("Danger Will Robinson!")
 
