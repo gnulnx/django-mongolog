@@ -33,6 +33,7 @@ if pymongo_version >= 3:
 from mongolog.models import LogRecord
 
 logger = logging.getLogger('')
+console = logging.getLogger('console')
 
 uuid_namespace = uuid.UUID('8296424f-28b7-5982-a434-e6ec8ef529b3')
 
@@ -91,8 +92,8 @@ class BaseMongoLogHandler(Handler):
         self.verbose = verbose
 
         if not self.connection:
-            print("'connection' key not provided in logging config")
-            print("Will try to connect with default")
+            console.warn("'connection' key not provided to handler type(%s)", self.__dict__)
+            console.warn("Will try to connect with default")
 
             # Set a defaul connection key
             self.connection = u'mongodb://localhost:27017/'
