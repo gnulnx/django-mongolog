@@ -16,11 +16,15 @@ import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Set to True to turn on verbose=True flag in test handlers
+TEST_VERBOSITY = False
+# Set the output level of the console logger.  'DEBUG' good for testing
+CONSOLE = 'DEBUG'
 LOGGING = {
     'version': 1,
     'handlers': {
         'console': {
-            'level': 'DEBUG',
+            'level': CONSOLE,
             'class': 'settings.colorlog.ColorLogHandler',
             'info': 'white',
             'stream': 'ext://sys.stdout',
@@ -30,10 +34,6 @@ LOGGING = {
             # Uncomment section to play with SimpleMongoLogHandler
             'class': 'mongolog.SimpleMongoLogHandler',
             'connection': 'mongodb://localhost:27017',
-            #'connection': 'mongodb://192.168.33.11:27017',
-            #'connection': 'mongodb://jfurr:gnuLNX123@localhost:27017',
-            #'username': 'jfurr',
-            #'password': 'gnuLNX123',
         },
         'http': {
             'level': 'DEBUG',
@@ -42,8 +42,96 @@ LOGGING = {
             # Interesting Note:  requests 2.8.1 will turn this into a GET if it's missing a trailing slash
             # We automagically add the trailing slash
             'client_auth': 'http://192.168.33.51/4e487f07a84011e5a3403c15c2bcc424',
-            'verbose': True,
-            
+            'verbose': True,            
+        },
+        ################## Test Handlers
+        'test_reference': {
+            'level': 'DEBUG',
+            'class': 'mongolog.SimpleMongoLogHandler',
+            'connection': 'mongodb://localhost:27017',
+            'w': 1,
+            'j': False,
+
+            # utc/local.  Only used with record_type=simple
+            'time_zone': 'local',
+            'verbose': TEST_VERBOSITY,
+            'record_type': 'reference',
+        },
+        'test_embedded': {
+            'level': 'DEBUG',
+            'class': 'mongolog.SimpleMongoLogHandler',
+            'connection': 'mongodb://localhost:27017',
+            'w': 1,
+            'j': False,
+
+            # utc/local.  Only used with record_type=simple
+            'time_zone': 'local',
+            'verbose': TEST_VERBOSITY,
+            'record_type': 'embedded',
+        },
+        'test_base_reference': {
+            'level': 'DEBUG',
+            'class': 'mongolog.BaseMongoLogHandler',
+            'connection': 'mongodb://localhost:27017',
+            'w': 1,
+            'j': False,
+
+            # utc/local.  Only used with record_type=simple
+            'time_zone': 'local',
+            'verbose': TEST_VERBOSITY,
+            'record_type': 'reference',
+        },
+        'test_base_reference_w0': {
+            'level': 'DEBUG',
+            'class': 'mongolog.BaseMongoLogHandler',
+            'connection': 'mongodb://localhost:27017',
+            'w': 0,
+            'j': False,
+
+            # utc/local.  Only used with record_type=simple
+            'time_zone': 'local',
+            'verbose': TEST_VERBOSITY,
+            'record_type': 'reference',
+        },
+        'test_base_invalid': {
+            'level': 'DEBUG',
+            'class': 'mongolog.BaseMongoLogHandler',
+            'connection': 'mongodb://localhost:27017',
+            'w': 0,
+            'j': False,
+
+            # utc/local.  Only used with record_type=simple
+            'time_zone': 'local',
+            'verbose': TEST_VERBOSITY,
+            'record_type': 'reference',
+        },
+        'test_verbose': {
+            'level': 'DEBUG',
+            'class': 'mongolog.VerboseMongoLogHandler',
+            'connection': 'mongodb://localhost:27017',
+            'w': 0,
+            'j': False,
+
+            # utc/local.  Only used with record_type=simple
+            'time_zone': 'local',
+            'verbose': TEST_VERBOSITY,
+            'record_type': 'reference',
+        },
+        'test_console': {
+            'level': 'DEBUG',
+            'class': 'settings.colorlog.ColorLogHandler',
+            'info': 'white',
+            'stream': 'ext://sys.stdout',
+        },
+        'test_http_invalid': {
+            'level': 'DEBUG',
+            # This section for HttpLogHandler
+            'class': 'mongolog.HttpLogHandler',
+            # Interesting Note:  requests 2.8.1 will turn this into a GET if it's missing a trailing slash
+            # We automagically add the trailing slash
+            'client_auth': 'http://192.168.33.51/4e487f07a84011e5a3403c15c2bcc424',
+            'verbose': TEST_VERBOSITY,
+            'timeout': 1,
         },
     },
     'loggers': {
@@ -52,9 +140,9 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': True
         },
-        'test': {
+        'console': {
             'level': 'DEBUG',
-            'handlers': ['console', 'simple'],
+            'handlers': ['console'],
             'propagate': False
         },
         'simple': {
@@ -65,6 +153,34 @@ LOGGING = {
         'http': {
             'level': 'DEBUG',
             'handlers': ['http'],
+           'propagate': True,
+        },
+        ##################### Test Loggers
+        'test': {
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'test.reference': {
+            'handlers': ['test_reference'],
+        },
+        'test.embedded': {
+            'handlers': ['test_embedded'],
+        },
+        'test.base.reference': {
+            'handlers': ['test_base_reference'],  
+        },
+        'test.base.reference.w0': {
+            'handlers': ['test_base_reference_w0'],  
+        },
+        'test.base.invalid': {
+            'handlers': ['test_base_invalid'],  
+        },
+        'test.verbose': {
+            'handlers': ['test_verbose'],  
+        },
+        'test.http': {
+            'level': 'DEBUG',
+            'handlers': ['test_http_invalid'],
             'propagate': True,
         }
     },

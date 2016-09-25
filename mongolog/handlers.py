@@ -31,18 +31,24 @@ if pymongo_version >= 3:
     from pymongo.collection import ReturnDocument
 
 from mongolog.models import LogRecord
+from mongolog.exceptions import MissingConnectionError
 
 logger = logging.getLogger('')
+console = logging.getLogger('console')
 
 uuid_namespace = uuid.UUID('8296424f-28b7-5982-a434-e6ec8ef529b3')
 
 
-def get_mongolog_handler():
+def get_mongolog_handler(logger_name=None):
     """
     Return the first MongoLogHander found in the list of defined loggers.  
     NOTE: If more than one is defined, only the first one is used.
     """
-    logger_names = [''] + list(logging.Logger.manager.loggerDict)
+    if logger_name:
+        logger_names = [logger_name]
+    else:
+        logger_names = [''] + list(logging.Logger.manager.loggerDict)
+    console.warn("Logger_names: %s", json.dumps(logger_names, indent=4, sort_keys=True))
 
     for name in logger_names:
         logger = logging.getLogger(name)
@@ -52,6 +58,7 @@ def get_mongolog_handler():
                 handler = _handler
                 break
         if handler:
+            console.info("found handler: %s", handler)
             break
 
     if not handler:
@@ -90,20 +97,22 @@ class BaseMongoLogHandler(Handler):
         # If True will print each log_record to console before writing to mongo
         self.verbose = verbose
 
-        if not self.connection:
-            print("'connection' key not provided in logging config")
-            print("Will try to connect with default")
+        handler_type = str(type(self))
+        if self.connection:
+            self.connect()
 
-            # Set a defaul connection key
-            self.connection = u'mongodb://localhost:27017/'
+            # Make sure the indexes are setup properly
+            try:
+                self.ensure_collections_indexed()
+            except pymongo.errors.ServerSelectionTimeoutError:
+                pass
 
-        self.connect()
-
-        # Make sure the indexes are setup properly
-        try:
-            self.ensure_collections_indexed()
-        except pymongo.errors.ServerSelectionTimeoutError:
-            pass
+        elif 'HttpLogHandler' not in handler_type:
+            console.error("\n----------- Connection Error ------------")
+            console.error("Hanlder(%s) missing 'connection' key", type(self))
+            console.error("%s", json.dumps(self.__dict__, indent=4, sort_keys=True, default=str))
+            console.error("------------------------------------------\n")
+            raise MissingConnectionError("Missing 'connection' key")
 
     def __unicode__(self):
         return u'%s' % self.connection
@@ -410,8 +419,8 @@ class HttpLogHandler(SimpleMongoLogHandler):
         log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
         if self.verbose:
             print("Inserting", json.dumps(log_record, sort_keys=True, indent=4, default=str))
-        
-        r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout)  # noqa
+
+        r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout, proxies={'http':''})  # noqa
         # uncomment to debug
-        # print ("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
+        print ("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
 

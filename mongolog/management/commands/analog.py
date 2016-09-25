@@ -18,7 +18,7 @@ from mongolog.handlers import get_mongolog_handler
 from django.core.management.base import BaseCommand
 
 #logger = logging.getLogger(__name__)
-logger = logging.getLogger('mongolog')
+logger = logging.getLogger('console')
 
 
 class Command(BaseCommand):
@@ -104,7 +104,7 @@ class Command(BaseCommand):
         if options['query']:
             options['query'] = json.loads(options['query'])
 
-        handler = get_mongolog_handler()
+        handler = get_mongolog_handler('simple')
         self.collection = handler.get_collection()
 
         if options['tail']:

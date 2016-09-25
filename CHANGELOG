@@ -3,7 +3,9 @@ Change Log
 
 v0.7.3
 ------
-    * Working on test refactor
+    * Moved all test logging to settings.LOGGING
+    * added console loggers to test.py and handlers.py
+    * started custom exception.py file
 
 v0.7.2
 ------

@@ -20,7 +20,8 @@ import unittest
 import logging
 from logging import config  # noqa
 import sys
-from requests.exceptions import ConnectionError, ConnectTimeout
+from unittest import skip, skipIf
+from requests.exceptions import ConnectionError
 
 # Different imports for python2/3
 try:
@@ -34,17 +35,17 @@ pymongo_major_version = int(pymongo.version.split(".")[0])
 from mongolog.handlers import (
     get_mongolog_handler, SimpleMongoLogHandler
 )
+from mongolog.exceptions import MissingConnectionError
+
 
 from django.core.management import call_command
 
+from django.conf import settings
+LOGGING = settings.LOGGING
+console = logging.getLogger("console")
 
-# Use plain python logging instead of django to decouple project from django versions
-from mongolog.test_logging import LOGGING
+console.error("LOGGERS(%s)" % list(logging.Logger.manager.loggerDict))
 
-# Must instantiate root logger in order to access the correct 
-# monglog collection from the MongoLogHandler
-#logging.config.dictConfig(LOGGING)
-#logger = logging.getLogger('')
 
 """
     All log tests should log a dictionary with a 'test' key
@@ -131,22 +132,25 @@ from django.test import TestCase
 from django.test import Client
 from django.core.urlresolvers import reverse
 
+
 class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
     def setUp(self):
-        logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger("test.base.reference")
 
-        self.handler = get_mongolog_handler()
+        self.handler = get_mongolog_handler("test.base.reference")
+        console.error("self.handler(%s)" % self.handler)
         self.collection = self.handler.get_collection()
 
         self.remove_test_entries()
 
     def test_middleware(self):
+        console.debug(self)
         c = Client()
         response = c.get(reverse("home"))
         self.assertContains(response, "HERE YOU ARE ON monglog/home.html")
 
     def test_dot_in_key(self):
+        console.debug(self)
         self.logger.info({
             'META': {
                 'user.name': 'jfurr', 
@@ -157,27 +161,29 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
         })
 
     def test_write_concern(self):
-        logging.config.dictConfig(LOGGING)
+        console.debug(self)
         self.logging = logging.getLogger("test.base.reference.w0")
         self.test_basehandler_exception()
 
     def test_valid_record_type(self):
-        record_type = LOGGING['handlers']['base_invalid']['record_type']
-        LOGGING['handlers']['base_invalid']['record_type'] = 'invalid type'
+        console.debug(self)
+        record_type = LOGGING['handlers']['test_base_invalid']['record_type']
+        LOGGING['handlers']['test_base_invalid']['record_type'] = 'invalid type'
         with self.assertRaises(ValueError):
             logging.config.dictConfig(LOGGING)
 
         # Reset the log handler
-        LOGGING['handlers']['base_invalid']['record_type'] = record_type
+        LOGGING['handlers']['test_base_invalid']['record_type'] = record_type
         logging.config.dictConfig(LOGGING)
 
     def test_connection_error(self):
+        console.debug(self)
         if pymongo_major_version >= 3:
             with self.assertRaises(pymongo.errors.ServerSelectionTimeoutError):
                 self.handler.connect(test=True)
 
     def test_basehandler_exception(self):
-        
+        console.debug(self)
         with self.assertRaises(ValueError):
             raiseException(self.logger)
 
@@ -236,15 +242,16 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
         self.logger.debug("Just some friendly info")
         
     def test_str_unicode_mongologhandler(self):
+        console.debug(self)
         self.assertEqual(self.handler.connection, u"%s" % self.handler)
         self.assertEqual(self.handler.connection, "%s" % self.handler)
 
 
 class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
-        logging.config.dictConfig(LOGGING)
+        console.debug(self)
         self.logger = logging.getLogger('test.embedded')
-        self.handler = get_mongolog_handler()
+        self.handler = get_mongolog_handler('test.embedded')
         self.collection = self.handler.get_collection()
 
         self.remove_test_entries()
@@ -267,7 +274,26 @@ class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMix
             'name'
         ]) 
 
+    def test_missing_connection_key(self):
+        LOGGING['handlers']['simple_no_connection'] = {
+            'level': 'DEBUG',
+            # Uncomment section to play with SimpleMongoLogHandler
+            'class': 'mongolog.SimpleMongoLogHandler',
+        }
+        LOGGING['loggers']['simple.no.connection'] = {
+            'level': 'DEBUG',
+            'handlers': ['simple_no_connection'],
+            'propagate': True
+        }
+        with self.assertRaises(ValueError):
+            logging.config.dictConfig(LOGGING)
+
+        del LOGGING['handlers']['simple_no_connection']
+        del LOGGING['loggers']['simple.no.connection']
+
+
     def test_exception(self):
+        console.debug(self)
         with self.assertRaises(ValueError):
             raiseException(self.logger)
 
@@ -319,23 +345,22 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
     These two collections are related to each other via the uuid key.   
     """
     def setUp(self):
-        logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger('test.reference')
-        self.handler = get_mongolog_handler()
+        self.handler = get_mongolog_handler('test.reference')
         self.collection = self.handler.get_collection()
-
         self.remove_test_entries()
-
 
     def test_logstructure_simple_reference(self):
         """
         Test the simple log record structure
         """
+        console.debug(self)
 
-        self.handler.setLevel("DEBUG")
+        # Used in test dictionaries to test mongo serialization
+        SMH_Obj = SimpleMongoLogHandler(connection=LOGGING['handlers']['simple']['connection'])
 
-        # now test a serielazable dict with an exception call
-        log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
+        # now test a serializable dict with an exception call
+        log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SMH_Obj)}
         expected_keys = set([
             '_id', 'exception', 'name', 'thread', 'time', 
             'process', 'level', 'msg', 'path', 'module', 
@@ -351,7 +376,7 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
         self.assertEqual(set(rec.keys()), expected_keys)
         
         # Python 2 duplicate entry test
-        log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SimpleMongoLogHandler())}
+        log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SMH_Obj)}
         try:
             raise ValueError
         except ValueError:
@@ -374,7 +399,7 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
                     {}
                 ],
                 'object': SimpleMongoLogHandler,
-                'instance': SimpleMongoLogHandler(),
+                'instance': SMH_Obj,
             }
             self.logger.exception(log_msg)
 
@@ -384,9 +409,9 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
         
 class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
-        logging.config.dictConfig(LOGGING)
+        console.debug(self)
         self.logger = logging.getLogger("test.verbose")
-        self.handler = get_mongolog_handler()
+        self.handler = get_mongolog_handler("test.verbose")
         self.collection = self.handler.get_collection()
 
         self.remove_test_entries(test_key="info.msg.test")
@@ -395,6 +420,7 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         """
         Test the verbose log record strucute
         """
+        console.debug(self)
         with self.assertRaises(ValueError):
             raiseException(self.logger)
 
@@ -428,6 +454,7 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         """
         TODO:  Beef this test up a bit
         """
+        console.debug(self)
         self.handler.setLevel("WARNING")
         log_msg = {'test': True, 'msg': 'WARNING', 'msg2': 'DANGER'}
         query = {
@@ -458,38 +485,47 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 
 class TestHttpLogHandler(unittest.TestCase):
     def setUp(self):
-        logging.config.dictConfig(LOGGING)
+        console.debug(self)
         self.logger = logging.getLogger("test.http")
-        self.handler = get_mongolog_handler()
+        self.handler = get_mongolog_handler("test.http")
         self.collection = self.handler.get_collection()
-
+        console.error("self.collection(%s)" % self.collection)
+    
+    @skipIf(sys.version_info.major == 3, "SKipping TestHttpLogHandler.test_timeout because of python version")
     def test_timeout(self):
-        timeout = LOGGING['handlers']['http_invalid']['timeout']
-        LOGGING['handlers']['http_invalid']['timeout'] = 0.0001
+        console.debug(self)
+        timeout = LOGGING['handlers']['test_http_invalid']['timeout']
+        LOGGING['handlers']['test_http_invalid']['timeout'] = 1
+
         logging.config.dictConfig(LOGGING)
+
         self.logger = logging.getLogger("test.http")
 
-        with self.assertRaises(ConnectTimeout):
+        with self.assertRaises(ConnectionError):
             self.logger.warn("Danger Will Robinson!")
 
-        LOGGING['handlers']['http_invalid']['timeout'] = timeout
+        LOGGING['handlers']['test_http_invalid']['timeout'] = timeout
         logging.config.dictConfig(LOGGING)
 
+    @skipIf(sys.version_info.major == 3, "SKipping TestHttpLogHandler.test_invalid_connection because of python version")
     def test_invalid_connection(self):
-        with self.assertRaises(ConnectTimeout):
+        console.debug(self)
+        with self.assertRaises(ConnectionError):
             self.logger.warn("Danger Will Robinson!")
+
 
 class TestManagementCommands(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
-        logging.config.dictConfig(LOGGING)
+        console.debug(self)
         self.logger = logging.getLogger('test.reference')
-        self.handler = get_mongolog_handler()
+        self.handler = get_mongolog_handler('test.reference')
         self.collection = self.handler.get_collection()
 
         self.remove_test_entries()
         self.remove_test_entries(test_key='info.msg.test')
 
     def test_analog(self):
+        console.debug(self)
         self.logger.debug({'test': True, 'logger': 'Debug'})
         self.logger.info({'test': True, 'logger': 'Info'})
         self.logger.warn({'test': True, 'logger': 'Warn'})
