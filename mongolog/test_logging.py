@@ -87,8 +87,7 @@ LOGGING = {
             # We automagically add the trailing slash
             'client_auth': 'http://192.168.33.51/4e487f07a84011e5a3403c15c2bcc424',
             'verbose': True,
-            'timeout': 90,
-            
+            'timeout': 0.001,
         },
     },
     'loggers': {

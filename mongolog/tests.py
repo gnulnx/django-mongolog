@@ -476,7 +476,7 @@ class TestHttpLogHandler(unittest.TestCase):
         logging.config.dictConfig(LOGGING)
 
     def test_invalid_connection(self):
-        with self.assertRaises(ConnectionError):
+        with self.assertRaises(ConnectTimeout):
             self.logger.warn("Danger Will Robinson!")
 
 class TestManagementCommands(unittest.TestCase, TestRemoveEntriesMixin):
