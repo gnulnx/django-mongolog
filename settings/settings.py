@@ -41,7 +41,7 @@ LOGGING = {
             'class': 'mongolog.HttpLogHandler',
             # Interesting Note:  requests 2.8.1 will turn this into a GET if it's missing a trailing slash
             # We automagically add the trailing slash
-            'client_auth': 'http://192.168.33.21/4e487f07a84011e5a3403c15c2bcc424',
+            'client_auth': 'http://192.168.33.51/4e487f07a84011e5a3403c15c2bcc424',
             'verbose': True,
             
         },
@@ -51,6 +51,11 @@ LOGGING = {
             'level': 'DEBUG',
             'handlers': ['console'],
             'propagate': True
+        },
+        'test': {
+            'level': 'DEBUG',
+            'handlers': ['console', 'simple'],
+            'propagate': False
         },
         'simple': {
             'level': 'DEBUG',

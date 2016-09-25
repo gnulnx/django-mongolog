@@ -354,30 +354,6 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
         return mongolog_record
 
 
-class HttpLogHandler(SimpleMongoLogHandler):
-    def __init__(self, level=NOTSET, client_auth='', timeout=3, *args, **kwargs):
-        # Make sure there is a trailing slash or reqests 2.8.1 will try a GET instead of POST
-        self.client_auth = client_auth if client_auth.endswith('/') else "%s/" % client_auth
-        self.timeout = timeout
-        super(HttpLogHandler, self).__init__(level, connection='', *args, **kwargs)
-
-    def emit(self, record):
-        """ 
-        From python:  type(record) == LogRecord
-        https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
-        """
-        log_record = self.create_log_record(record)
-
-        # TODO move this to a validate log_record method and add more validation
-        log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
-        if self.verbose:
-            print("Inserting", json.dumps(log_record, sort_keys=True, indent=4, default=str))
-        
-        r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout)  # noqa
-        # uncomment to debug
-        # print ("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
-
-
 class VerboseMongoLogHandler(BaseMongoLogHandler):
     def create_log_record(self, record):
         record = super(VerboseMongoLogHandler, self).create_log_record(record) 
@@ -414,3 +390,28 @@ class VerboseMongoLogHandler(BaseMongoLogHandler):
             }
 
         return mongolog_record
+
+
+class HttpLogHandler(SimpleMongoLogHandler):
+    def __init__(self, level=NOTSET, client_auth='', timeout=3, *args, **kwargs):
+        # Make sure there is a trailing slash or reqests 2.8.1 will try a GET instead of POST
+        self.client_auth = client_auth if client_auth.endswith('/') else "%s/" % client_auth
+        self.timeout = timeout
+        super(HttpLogHandler, self).__init__(level, connection='', *args, **kwargs)
+
+    def emit(self, record):
+        """ 
+        From python:  type(record) == LogRecord
+        https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
+        """
+        log_record = self.create_log_record(record)
+
+        # TODO move this to a validate log_record method and add more validation
+        log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
+        if self.verbose:
+            print("Inserting", json.dumps(log_record, sort_keys=True, indent=4, default=str))
+        
+        r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout)  # noqa
+        # uncomment to debug
+        # print ("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
+
