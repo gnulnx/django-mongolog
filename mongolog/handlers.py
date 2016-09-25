@@ -31,6 +31,7 @@ if pymongo_version >= 3:
     from pymongo.collection import ReturnDocument
 
 from mongolog.models import LogRecord
+from mongolog.exceptions import MissingConnectionError
 
 logger = logging.getLogger('')
 console = logging.getLogger('console')
@@ -91,22 +92,22 @@ class BaseMongoLogHandler(Handler):
         # If True will print each log_record to console before writing to mongo
         self.verbose = verbose
 
-        console.info("self(%s) args(%s) kwargs(%s)", type(self), args, kwargs)
-        if not self.connection:
-            console.error("self(%s) args(%s) kwargs(%s)", type(self), args, kwargs)
-            console.warn("'connection' key not provided to handler type(%s): %s" % (self.__dict__, self))
-            console.warn("Will try to connect with default")
-            console.error("-------------------------------------------\n")
-            # Set a defaul connection key
-            self.connection = u'mongodb://localhost:27017/'
+        handler_type = str(type(self))
+        if self.connection:
+            self.connect()
 
-        self.connect()
+            # Make sure the indexes are setup properly
+            try:
+                self.ensure_collections_indexed()
+            except pymongo.errors.ServerSelectionTimeoutError:
+                pass
 
-        # Make sure the indexes are setup properly
-        try:
-            self.ensure_collections_indexed()
-        except pymongo.errors.ServerSelectionTimeoutError:
-            pass
+        elif 'HttpLogHandler' not in handler_type:
+            console.error("\n----------- Connection Error ------------")
+            console.error("Hanlder(%s) missing 'connection' key", type(self))
+            console.error("%s", json.dumps(self.__dict__, indent=4, sort_keys=True, default=str))
+            console.error("------------------------------------------\n")
+            raise MissingConnectionError("Missing 'connection' key")
 
     def __unicode__(self):
         return u'%s' % self.connection
