@@ -43,6 +43,7 @@ from django.core.management import call_command
 from django.conf import settings
 LOGGING = settings.LOGGING
 
+console = logging.getLogger("console")
 # Must instantiate root logger in order to access the correct 
 # monglog collection from the MongoLogHandler
 #logging.config.dictConfig(LOGGING)
@@ -133,6 +134,7 @@ from django.test import TestCase
 from django.test import Client
 from django.core.urlresolvers import reverse
 
+
 class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
     def setUp(self):
         logging.config.dictConfig(LOGGING)
@@ -144,11 +146,13 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
         self.remove_test_entries()
 
     def test_middleware(self):
+        console.debug(self)
         c = Client()
         response = c.get(reverse("home"))
         self.assertContains(response, "HERE YOU ARE ON monglog/home.html")
 
     def test_dot_in_key(self):
+        console.debug(self)
         self.logger.info({
             'META': {
                 'user.name': 'jfurr', 
@@ -159,11 +163,13 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
         })
 
     def test_write_concern(self):
+        console.debug(self)
         logging.config.dictConfig(LOGGING)
         self.logging = logging.getLogger("test.base.reference.w0")
         self.test_basehandler_exception()
 
     def test_valid_record_type(self):
+        console.debug(self)
         record_type = LOGGING['handlers']['test_base_invalid']['record_type']
         LOGGING['handlers']['test_base_invalid']['record_type'] = 'invalid type'
         with self.assertRaises(ValueError):
@@ -174,12 +180,13 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
         logging.config.dictConfig(LOGGING)
 
     def test_connection_error(self):
+        console.debug(self)
         if pymongo_major_version >= 3:
             with self.assertRaises(pymongo.errors.ServerSelectionTimeoutError):
                 self.handler.connect(test=True)
 
     def test_basehandler_exception(self):
-        
+        console.debug(self)
         with self.assertRaises(ValueError):
             raiseException(self.logger)
 
@@ -238,12 +245,14 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
         self.logger.debug("Just some friendly info")
         
     def test_str_unicode_mongologhandler(self):
+        console.debug(self)
         self.assertEqual(self.handler.connection, u"%s" % self.handler)
         self.assertEqual(self.handler.connection, "%s" % self.handler)
 
 
 class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
+        console.debug(self)
         logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger('test.embedded')
         self.handler = get_mongolog_handler()
@@ -270,6 +279,7 @@ class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMix
         ]) 
 
     def test_exception(self):
+        console.debug(self)
         with self.assertRaises(ValueError):
             raiseException(self.logger)
 
@@ -321,6 +331,7 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
     These two collections are related to each other via the uuid key.   
     """
     def setUp(self):
+        console.debug(self)
         logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger('test.reference')
         self.handler = get_mongolog_handler()
@@ -333,7 +344,7 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
         """
         Test the simple log record structure
         """
-
+        console.debug(self)
         self.handler.setLevel("DEBUG")
 
         # now test a serielazable dict with an exception call
@@ -386,6 +397,7 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
         
 class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
+        console.debug(self)
         logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger("test.verbose")
         self.handler = get_mongolog_handler()
@@ -397,6 +409,7 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         """
         Test the verbose log record strucute
         """
+        console.debug(self)
         with self.assertRaises(ValueError):
             raiseException(self.logger)
 
@@ -430,6 +443,7 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         """
         TODO:  Beef this test up a bit
         """
+        console.debug(self)
         self.handler.setLevel("WARNING")
         log_msg = {'test': True, 'msg': 'WARNING', 'msg2': 'DANGER'}
         query = {
@@ -460,12 +474,14 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 
 class TestHttpLogHandler(unittest.TestCase):
     def setUp(self):
+        console.debug(self)
         logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger("test.http")
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()
 
     def test_timeout(self):
+        console.debug(self)
         timeout = LOGGING['handlers']['test_http_invalid']['timeout']
         LOGGING['handlers']['test_http_invalid']['timeout'] = 0.0001
         logging.config.dictConfig(LOGGING)
@@ -478,11 +494,13 @@ class TestHttpLogHandler(unittest.TestCase):
         logging.config.dictConfig(LOGGING)
 
     def test_invalid_connection(self):
+        console.debug(self)
         with self.assertRaises(ConnectionError):
             self.logger.warn("Danger Will Robinson!")
 
 class TestManagementCommands(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
+        console.debug(self)
         logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger('test.reference')
         self.handler = get_mongolog_handler()
@@ -492,6 +510,7 @@ class TestManagementCommands(unittest.TestCase, TestRemoveEntriesMixin):
         self.remove_test_entries(test_key='info.msg.test')
 
     def test_analog(self):
+        console.debug(self)
         self.logger.debug({'test': True, 'logger': 'Debug'})
         self.logger.info({'test': True, 'logger': 'Info'})
         self.logger.warn({'test': True, 'logger': 'Warn'})

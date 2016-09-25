@@ -16,12 +16,15 @@ import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Set to True to turn on verbose=True flag in test handlers
 TEST_VERBOSITY = False
+# Set the output level of the console logger.  'DEBUG' good for testing
+CONSOLE = 'DEBUG'
 LOGGING = {
     'version': 1,
     'handlers': {
         'console': {
-            'level': 'DEBUG',
+            'level': CONSOLE,
             'class': 'settings.colorlog.ColorLogHandler',
             'info': 'white',
             'stream': 'ext://sys.stdout',
@@ -39,8 +42,7 @@ LOGGING = {
             # Interesting Note:  requests 2.8.1 will turn this into a GET if it's missing a trailing slash
             # We automagically add the trailing slash
             'client_auth': 'http://192.168.33.51/4e487f07a84011e5a3403c15c2bcc424',
-            'verbose': True,
-            
+            'verbose': True,            
         },
         ################## Test Handlers
         'test_reference': {
@@ -138,9 +140,9 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': True
         },
-        'test': {
+        'console': {
             'level': 'DEBUG',
-            'handlers': ['console', 'simple'],
+            'handlers': ['console'],
             'propagate': False
         },
         'simple': {
@@ -151,7 +153,7 @@ LOGGING = {
         'http': {
             'level': 'DEBUG',
             'handlers': ['http'],
-            'propagate': True,
+           'propagate': True,
         },
         ##################### Test Loggers
         'test': {
