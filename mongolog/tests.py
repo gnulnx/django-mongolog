@@ -390,8 +390,9 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
         
 class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
-        LOGGING['handlers']['mongolog']['class'] = 'mongolog.VerboseMongoLogHandler'
+        #LOGGING['handlers']['mongolog']['class'] = 'mongolog.VerboseMongoLogHandler'
         logging.config.dictConfig(LOGGING)
+        self.logger = logging.getLogger("test.verbose")
         self.handler = get_mongolog_handler()
         self.collection = self.handler.get_collection()
 
@@ -402,7 +403,7 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         Test the verbose log record strucute
         """
         with self.assertRaises(ValueError):
-            raiseException()
+            raiseException(self.logger)
 
         records = self.collection.find({
             'info.msg.test': True, 
@@ -442,7 +443,7 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
             'info.msg.msg2': log_msg['msg2'],
             'level.name': 'WARNING'
         }
-        logger.warn(log_msg)
+        self.logger.warn(log_msg)
         self.assertEqual(1, self.collection.find(query).count())
 
         rec = self.collection.find_one(query)

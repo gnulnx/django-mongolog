@@ -73,8 +73,19 @@ LOGGING = {
             'time_zone': 'local',
             'verbose': True,
             'record_type': 'reference',
-        }
+        },
+        'verbose': {
+            'level': 'DEBUG',
+            'class': 'mongolog.VerboseMongoLogHandler',
+            'connection': 'mongodb://localhost:27017',
+            'w': 0,
+            'j': False,
 
+            # utc/local.  Only used with record_type=simple
+            'time_zone': 'local',
+            'verbose': True,
+            'record_type': 'reference',
+        },
     },
     'loggers': {
         '': {
@@ -105,6 +116,9 @@ LOGGING = {
         },
         'test.base.invalid': {
             'handlers': ['base_invalid'],  
+        },
+        'test.verbose': {
+            'handlers': ['verbose'],  
         },
     },
 }
