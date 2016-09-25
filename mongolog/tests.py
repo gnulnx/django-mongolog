@@ -20,7 +20,7 @@ import unittest
 import logging
 from logging import config  # noqa
 import sys
-from requests.exceptions import ConnectionError, ConnectTimeout
+from requests.exceptions import ConnectionError
 
 # Different imports for python2/3
 try:
@@ -162,13 +162,13 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
         self.test_basehandler_exception()
 
     def test_valid_record_type(self):
-        record_type = LOGGING['handlers']['base_invalid']['record_type']
-        LOGGING['handlers']['base_invalid']['record_type'] = 'invalid type'
+        record_type = LOGGING['handlers']['test_base_invalid']['record_type']
+        LOGGING['handlers']['test_base_invalid']['record_type'] = 'invalid type'
         with self.assertRaises(ValueError):
             logging.config.dictConfig(LOGGING)
 
         # Reset the log handler
-        LOGGING['handlers']['base_invalid']['record_type'] = record_type
+        LOGGING['handlers']['test_base_invalid']['record_type'] = record_type
         logging.config.dictConfig(LOGGING)
 
     def test_connection_error(self):
@@ -464,19 +464,19 @@ class TestHttpLogHandler(unittest.TestCase):
         self.collection = self.handler.get_collection()
 
     def test_timeout(self):
-        timeout = LOGGING['handlers']['http_invalid']['timeout']
-        LOGGING['handlers']['http_invalid']['timeout'] = 0.0001
+        timeout = LOGGING['handlers']['test_http_invalid']['timeout']
+        LOGGING['handlers']['test_http_invalid']['timeout'] = 0.0001
         logging.config.dictConfig(LOGGING)
         self.logger = logging.getLogger("test.http")
 
-        with self.assertRaises(ConnectTimeout):
+        with self.assertRaises(ConnectionError):
             self.logger.warn("Danger Will Robinson!")
 
-        LOGGING['handlers']['http_invalid']['timeout'] = timeout
+        LOGGING['handlers']['test_http_invalid']['timeout'] = timeout
         logging.config.dictConfig(LOGGING)
 
     def test_invalid_connection(self):
-        with self.assertRaises(ConnectTimeout):
+        with self.assertRaises(ConnectionError):
             self.logger.warn("Danger Will Robinson!")
 
 class TestManagementCommands(unittest.TestCase, TestRemoveEntriesMixin):

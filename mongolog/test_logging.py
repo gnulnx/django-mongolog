@@ -25,7 +25,7 @@ LOGGING = {
             'verbose': True,
             'record_type': 'embedded',
         },
-        'base_reference': {
+        'test_base_reference': {
             'level': 'DEBUG',
             'class': 'mongolog.BaseMongoLogHandler',
             'connection': 'mongodb://localhost:27017',
@@ -37,7 +37,7 @@ LOGGING = {
             'verbose': True,
             'record_type': 'reference',
         },
-        'base_reference_w0': {
+        'test_base_reference_w0': {
             'level': 'DEBUG',
             'class': 'mongolog.BaseMongoLogHandler',
             'connection': 'mongodb://localhost:27017',
@@ -49,7 +49,7 @@ LOGGING = {
             'verbose': True,
             'record_type': 'reference',
         },
-        'base_invalid': {
+        'test_base_invalid': {
             'level': 'DEBUG',
             'class': 'mongolog.BaseMongoLogHandler',
             'connection': 'mongodb://localhost:27017',
@@ -61,7 +61,7 @@ LOGGING = {
             'verbose': True,
             'record_type': 'reference',
         },
-        'verbose': {
+        'test_verbose': {
             'level': 'DEBUG',
             'class': 'mongolog.VerboseMongoLogHandler',
             'connection': 'mongodb://localhost:27017',
@@ -73,13 +73,13 @@ LOGGING = {
             'verbose': True,
             'record_type': 'reference',
         },
-        'console': {
+        'test_console': {
             'level': 'DEBUG',
             'class': 'settings.colorlog.ColorLogHandler',
             'info': 'white',
             'stream': 'ext://sys.stdout',
         },
-        'http_invalid': {
+        'test_http_invalid': {
             'level': 'DEBUG',
             # This section for HttpLogHandler
             'class': 'mongolog.HttpLogHandler',
@@ -92,7 +92,7 @@ LOGGING = {
     },
     'loggers': {
         '': {
-            'handlers': ['console'],
+            'handlers': ['test_console'],
             'level': 'DEBUG',
             'propagate': True
         },
@@ -107,20 +107,20 @@ LOGGING = {
             'handlers': ['test_embedded'],
         },
         'test.base.reference': {
-            'handlers': ['base_reference'],  
+            'handlers': ['test_base_reference'],  
         },
         'test.base.reference.w0': {
-            'handlers': ['base_reference_w0'],  
+            'handlers': ['test_base_reference_w0'],  
         },
         'test.base.invalid': {
-            'handlers': ['base_invalid'],  
+            'handlers': ['test_base_invalid'],  
         },
         'test.verbose': {
-            'handlers': ['verbose'],  
+            'handlers': ['test_verbose'],  
         },
         'test.http': {
             'level': 'DEBUG',
-            'handlers': ['http_invalid'],
+            'handlers': ['test_http_invalid'],
             'propagate': True,
         }
     },
