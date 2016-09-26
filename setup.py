@@ -2,7 +2,7 @@ import os
 import subprocess
 from setuptools import setup
 
-VERSION = "0.7.3" 
+VERSION = "0.7.4" 
 
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
     README = readme.read()
@@ -15,7 +15,8 @@ setup(
     version=VERSION,
     packages=['mongolog'],
     install_requires=(
-        'django>=1.7.10',
+        # TODO Can this actually work with a lower django version?
+        'django>=1.7',
         'pymongo>=2.4',
         'requests>=2.8',
         'coverage',
