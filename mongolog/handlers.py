@@ -106,8 +106,7 @@ class BaseMongoLogHandler(Handler):
                 self.ensure_collections_indexed()
             except pymongo.errors.ServerSelectionTimeoutError:
                 pass
-
-        elif 'HttpLogHandler' not in handler_type:
+        else:
             console.error("\n----------- Connection Error ------------")
             console.error("Hanlder(%s) missing 'connection' key", type(self))
             console.error("%s", json.dumps(self.__dict__, indent=4, sort_keys=True, default=str))
@@ -402,11 +401,27 @@ class VerboseMongoLogHandler(BaseMongoLogHandler):
 
 
 class HttpLogHandler(SimpleMongoLogHandler):
-    def __init__(self, level=NOTSET, client_auth='', timeout=3, *args, **kwargs):
+    def __init__(self, level=NOTSET, client_auth='', timeout=3, verbose=False, time_zone="local",  *args, **kwargs):
         # Make sure there is a trailing slash or reqests 2.8.1 will try a GET instead of POST
         self.client_auth = client_auth if client_auth.endswith('/') else "%s/" % client_auth
+
         self.timeout = timeout
-        super(HttpLogHandler, self).__init__(level, connection='', *args, **kwargs)
+
+        # Used to determine which time setting is used in the simple record_type
+        self.time_zone = time_zone
+
+        # Intentionally hard coded in HttpLogHandler
+        self.record_type='reference'
+
+        # If True will print each log_record to console before writing to mongo
+        self.verbose = verbose
+
+        # Don't call super here.  We don't want to call BaseMongoLogHandler.__init__ here.
+        # But we still need this to be a python  Handler subclass with SimpleMongoLogger.create_log_record
+        Handler.__init__(self, level=level)
+
+    def __unicode__(self):
+        return u'%s' % self.client_auth
 
     def emit(self, record):
         """ 
