@@ -268,12 +268,18 @@ class BaseMongoLogHandler(Handler):
                 self.reference_log_pymongo_3(log_record)
 
     def insert_embedded(self, log_record):
+        """
+        Insert an embedded document.  Embedded documents have a 'counter'
+        variable that increments each time the document is seen.  The 'date'
+        array is capped at the last 'max_keep'
+        """
         query = {'uuid': log_record['uuid']}
         result = self.mongolog.find(query)
         if result.count() == 0:
 
             # First time this record has been seen add a created field and insert it
             log_record['created'] = log_record.pop('time')
+            log_record['counter'] = 1
             if pymongo_version == 2:
                 self.mongolog.insert(log_record)
             elif pymongo_version == 3:

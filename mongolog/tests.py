@@ -537,3 +537,24 @@ class TestManagementCommands(unittest.TestCase, TestRemoveEntriesMixin):
 
         with self.assertRaises(NotImplementedError) as cm:
             call_command('analog', limit=20, tail=True)
+
+class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
+    def setUp(self):
+        self.handler = get_mongolog_handler('test.embedded')
+        self.collection = self.handler.get_collection()
+        self.remove_test_entries()
+        self.remove_test_entries(test_key='msg.Test')
+
+
+    def test_embedded(self):
+        console.debug(self)
+
+        self.logger = logging.getLogger('test.embedded')
+        for _ in xrange(100):
+            console.debug({'Test': True})
+            self.logger.info({'Test': True})
+
+        results = self.collection.find({'msg.Test': True})
+        self.assertEqual(1, results.count())
+        rec = results[0]
+        self.assertEqual(100, rec['counter'])
