@@ -560,6 +560,9 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
         if iterations > self.handler.max_keep:
             expected_date_len = self.handler.max_keep
 
+        if len(rec['dates']) > expected_date_len:
+            console.error("GREATER: date(%s)", rec['dates'])
+
         self.assertEqual(len(rec['dates']), expected_date_len)
 
     def test_embedded(self):

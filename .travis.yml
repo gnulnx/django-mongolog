@@ -14,7 +14,7 @@ env:
   # Test out support for lowest/highest pymongo/django combos
   #- PYMONGO="==2.4" DJANGO="==1.8"
   #- PYMONGO=">=3.0" DJANGO=">=1.9" 
-  - PYMONGO="==2.7"
+  - PYMONGO="==2.4"
   - PYMONGO=">=3.0"
 # command to install dependencies
 services:
