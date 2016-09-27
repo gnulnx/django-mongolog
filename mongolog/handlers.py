@@ -48,7 +48,7 @@ def get_mongolog_handler(logger_name=None):
         logger_names = [logger_name]
     else:
         logger_names = [''] + list(logging.Logger.manager.loggerDict)
-    console.warn("Logger_names: %s", json.dumps(logger_names, indent=4, sort_keys=True))
+    console.info("get_mongolog_handler(): Logger_names: %s", json.dumps(logger_names, indent=4, sort_keys=True))
 
     for name in logger_names:
         logger = logging.getLogger(name)

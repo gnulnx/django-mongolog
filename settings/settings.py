@@ -70,6 +70,7 @@ LOGGING = {
             'time_zone': 'local',
             'verbose': TEST_VERBOSITY,
             'record_type': 'embedded',
+            'max_keep': 6,
         },
         'test_base_reference': {
             'level': 'DEBUG',
