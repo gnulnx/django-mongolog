@@ -571,7 +571,7 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
         console.info("Starting embedded test:  max_keep(%s) iteration(%s)", self.handler.max_keep, iterations)
 
         start = time.time()
-        for i in xrange(iterations):
+        for i in range(iterations):
             self.logger.info({'Test': True})
             results = self.collection.find({'msg.Test': True})
             self._check_results(results, i+1)
@@ -593,7 +593,7 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
         console.info("Starting embedded test:  max_keep(%s) iteration(%s)", self.handler.max_keep, iterations)
 
         start = time.time()
-        for i in xrange(iterations):
+        for i in range(iterations):
             self.logger.info({'Test': True})
             results = self.collection.find({'msg.Test': True})
             self._check_results(results, i+1)
