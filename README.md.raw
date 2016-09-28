@@ -18,15 +18,15 @@ Quick start
 -----------
 
 1.  Add "mongolog" to your INSTALLED\_APPS like this
-    :   ``` {.sourceCode .python}
+    :   
         INSTALLED_APPS = (
             ...
             'mongolog',
         )
-        ```
+        
 
 2.  Add the SimpleMongoLogHandler to your LOGGING config.
-    :   ``` {.sourceCode .python}
+    :   
         LOGGING = {
             'version': 1,
             'handlers': {
@@ -44,25 +44,25 @@ Quick start
                 },
             },
         }
-        ```
+        
 
 3)  Start your management shell:
 
         ./manage.py shell
 
 4)  Create a couple of log entries
-    :   ``` {.sourceCode .python}
+    :  
         import logging
         import pymongo
         logger = logging.getLogger(__name__)
-        ```
+        
 
         One of the cool things about mongolog is that it can log complex
         data structures in a way that makes them both human parsable and
         queryable. So for instance if we create the following log
         message:
 
-        ``` {.sourceCode .python}
+        
         # Pro Tip: You can copy and paste all of this
 
         LOG_MSG = {
@@ -94,11 +94,11 @@ Quick start
                 } 
             }
         }
-        ```
+        
 
         Now let's log our message at each of the defined log levels...
 
-        ``` {.sourceCode .python}
+        
         logger.debug(LOG_MSG)
         logger.info(LOG_MSG)
         logger.warn(LOG_MSG)
@@ -108,19 +108,19 @@ Quick start
         except ValueError as e:
             logger.exception(LOG_MSG)
             raise
-        ```
+       
 
 5)  Now log into your mongo shell and look at some results
-    :   ``` {.sourceCode .python}
+    :  
         ./mongo
 
         use mongolog
         db.mongolog.findOne({'level': "INFO"})
-        ```
+        
 
         Will produde a mongo document like:
 
-        ``` {.sourceCode .python}
+        
         {
             "_id" : ObjectId("5664a22bdd162ca58f0693d2"),
             "name" : "__builtin__",
@@ -163,7 +163,7 @@ Quick start
             "path" : "<console>",
             "line" : 1
         }
-        ```
+        
 
         Take a look at the "msg" section and you will notice that all of
         the information from our LOG\_MSG is contained under that key in
@@ -171,7 +171,7 @@ Quick start
         based on our log message. For example in your mongo shell try
         the following queries:
 
-        ``` {.sourceCode .javascript}
+ 
         // Find all documents logged with a 'test' key
         > db.mongolog.find({'msg.test': {$exists: true}}).count()
         5
