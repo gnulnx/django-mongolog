@@ -560,6 +560,9 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
         if iterations > self.handler.max_keep:
             expected_date_len = self.handler.max_keep
 
+        if len(rec['dates']) > expected_date_len:
+            console.error("GREATER: date(%s)", rec['dates'])
+
         self.assertEqual(len(rec['dates']), expected_date_len)
 
     def test_embedded(self):
@@ -567,13 +570,14 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
 
         self.logger = logging.getLogger('test.embedded')
         
-        iterations = 1000
+        iterations = 100
         console.info("Starting embedded test:  max_keep(%s) iteration(%s)", self.handler.max_keep, iterations)
 
         start = time.time()
         for i in range(iterations):
-            self.logger.info({'Test': True})
-            results = self.collection.find({'msg.Test': True})
+            console.warn("i(%s)" % i)
+            self.logger.info({'Test': True, 'Test1': 1})
+            results = self.collection.find({'msg.Test': True, 'msg.Test1': 1})
             self._check_results(results, i+1)
 
         end = time.time()
