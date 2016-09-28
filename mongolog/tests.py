@@ -20,6 +20,8 @@ import unittest
 import logging
 from logging import config  # noqa
 import sys
+import time
+import json
 from unittest import skip, skipIf
 from requests.exceptions import ConnectionError
 
@@ -44,7 +46,9 @@ from django.conf import settings
 LOGGING = settings.LOGGING
 console = logging.getLogger("console")
 
-console.error("LOGGERS(%s)" % list(logging.Logger.manager.loggerDict))
+console.info(
+    "Available LOGGERS(%s)" % json.dumps(
+        logging.Logger.manager.loggerDict, indent=4, sort_keys=True, default=str))
 
 
 """
@@ -271,7 +275,8 @@ class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMix
             'path', 
             'line', 
             '_id', 
-            'name'
+            'name',
+            'counter',
         ]) 
 
     def test_missing_connection_key(self):
@@ -537,3 +542,72 @@ class TestManagementCommands(unittest.TestCase, TestRemoveEntriesMixin):
 
         with self.assertRaises(NotImplementedError) as cm:
             call_command('analog', limit=20, tail=True)
+
+class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
+    def setUp(self):
+        self.handler = get_mongolog_handler('test.embedded')
+        self.collection = self.handler.get_collection()
+        self.remove_test_entries()
+        self.remove_test_entries(test_key='msg.Test')
+
+
+    def _check_results(self, results, iterations):
+        self.assertEqual(1, results.count())
+        rec = results[0]
+        self.assertEqual(iterations, rec['counter'])
+
+        expected_date_len = iterations 
+        if iterations > self.handler.max_keep:
+            expected_date_len = self.handler.max_keep
+
+        if len(rec['dates']) > expected_date_len:
+            console.error("GREATER: date(%s)", rec['dates'])
+
+        self.assertEqual(len(rec['dates']), expected_date_len)
+
+    def test_embedded(self):
+        console.debug(self)
+
+        self.logger = logging.getLogger('test.embedded')
+        
+        iterations = 100
+        console.info("Starting embedded test:  max_keep(%s) iteration(%s)", self.handler.max_keep, iterations)
+
+        start = time.time()
+        for i in range(iterations):
+            console.warn("i(%s)" % i)
+            self.logger.info({'Test': True, 'Test1': 1})
+            results = self.collection.find({'msg.Test': True, 'msg.Test1': 1})
+            self._check_results(results, i+1)
+
+        end = time.time()
+        results = self.collection.find({'msg.Test': True})
+        self._check_results(results, iterations)
+        console.warn("Test time: %s", end-start)
+
+
+        # rerun with larger max_keep
+        max_keep = LOGGING['handlers']['test_embedded']['max_keep']
+        LOGGING['handlers']['test_embedded']['max_keep'] = 50
+        logging.config.dictConfig(LOGGING)
+        self.setUp()
+        self.logger = logging.getLogger('test.embedded')
+        
+
+        console.info("Starting embedded test:  max_keep(%s) iteration(%s)", self.handler.max_keep, iterations)
+
+        start = time.time()
+        for i in range(iterations):
+            self.logger.info({'Test': True})
+            results = self.collection.find({'msg.Test': True})
+            self._check_results(results, i+1)
+        end = time.time()
+        results = self.collection.find({'msg.Test': True})
+        self._check_results(results, iterations)
+        console.warn("Test time: %s", end-start)
+
+
+        LOGGING['handlers']['test_embedded']['max_keep'] = max_keep
+        logging.config.dictConfig(LOGGING)
+        self.setUp()
+        self.logger = logging.getLogger('test.embedded')

@@ -19,6 +19,12 @@ env:
 # command to install dependencies
 services:
   - mongodb
+addons:
+  apt:
+    sources:
+    - mongodb-3.2-precise
+    packages:
+    - mongodb-org-server
 install: 
   - pip install -r requirements.txt
   - pip install coveralls

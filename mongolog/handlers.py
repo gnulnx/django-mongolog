@@ -48,7 +48,7 @@ def get_mongolog_handler(logger_name=None):
         logger_names = [logger_name]
     else:
         logger_names = [''] + list(logging.Logger.manager.loggerDict)
-    console.warn("Logger_names: %s", json.dumps(logger_names, indent=4, sort_keys=True))
+    console.info("get_mongolog_handler(): Logger_names: %s", json.dumps(logger_names, indent=4, sort_keys=True))
 
     for name in logger_names:
         logger = logging.getLogger(name)
@@ -268,12 +268,18 @@ class BaseMongoLogHandler(Handler):
                 self.reference_log_pymongo_3(log_record)
 
     def insert_embedded(self, log_record):
+        """
+        Insert an embedded document.  Embedded documents have a 'counter'
+        variable that increments each time the document is seen.  The 'date'
+        array is capped at the last 'max_keep'
+        """
         query = {'uuid': log_record['uuid']}
         result = self.mongolog.find(query)
         if result.count() == 0:
 
             # First time this record has been seen add a created field and insert it
             log_record['created'] = log_record.pop('time')
+            log_record['counter'] = 1
             if pymongo_version == 2:
                 self.mongolog.insert(log_record)
             elif pymongo_version == 3:
