@@ -16,6 +16,60 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+import pymongo
+import json
+pymongo_version = int(pymongo.version.split(".")[0])
+if pymongo_version >= 3:
+    from pymongo.collection import ReturnDocument
+
+
+class Mongolog(object):
+    """
+    This class provides a set of queriable functions.
+    """
+
+    @staticmethod
+    def find(logger=None, query=None, project=None, uuid=None, level=None, limit=None, **kwargs):
+        from mongolog.handlers import get_mongolog_handler
+        from pymongo import MongoClient
+        handler = get_mongolog_handler(logger_name=logger)
+        client = MongoClient(handler.connection)
+        db = client.mongolog
+
+        aggregate_commands = []
+
+        if not query:
+            query = {}
+
+
+        if uuid:
+            query.update({'uuid': uuid})
+
+        if level:
+            query.update({'level': level})
+
+        """
+         return self.collection.aggregate([
+            {"$match": query},
+            {"$project": proj},
+            {"$sort": {'created': pymongo.DESCENDING}},
+            {"$limit": limit},
+        ])
+        """
+        
+        aggregate_commands.append({"$match": query})
+
+        if project:
+            aggregate_commands.append({"$project": project})
+
+        aggregate_commands.append({"$sort": {'created': pymongo.DESCENDING}})
+
+        if limit:
+            aggregate_commands.append({"$limit": limit})
+        
+        print("aggregate_commands(%s)" % aggregate_commands)
+
+        return db.mongolog.aggregate(aggregate_commands)
 
 
 class LogRecord(dict):
