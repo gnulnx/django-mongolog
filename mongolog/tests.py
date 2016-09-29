@@ -627,9 +627,7 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
 
     def test_reference(self):
         console.debug(self)
-
         self.logger = logging.getLogger('test.reference')
-
         console.info("Starting embedded test:  max_keep(%s) iteration(%s)", self.handler.max_keep, self.iterations)
 
         start = time.time()
