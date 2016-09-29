@@ -134,6 +134,21 @@ class BaseMongoLogHandler(Handler):
         # This is the timestamp collection
         self.timestamp = self.db.timestamp
 
+    def get_db(self):
+        """
+        Return a handler to the database handler
+        """
+        return getattr(self, "db", None) 
+
+    def get_timestamp_collection(self):
+        return getattr(self, "timestamp", None)
+    
+    def get_collection(self):
+        """
+        Return the collection being used by MongoLogHandler
+        """
+        return getattr(self, "mongolog", None)
+
     def connect_pymongo3(self, test=False):
 
         try:
@@ -159,12 +174,6 @@ class BaseMongoLogHandler(Handler):
         self.client = pymongo.MongoClient(self.connection)
         self.client.server_info()
         return self.client
-
-    def get_collection(self):
-        """
-        Return the collection being used by MongoLogHandler
-        """
-        return getattr(self, "mongolog", None)
 
     def new_key(self, old_key):
         """

@@ -178,7 +178,11 @@ Quick start
         5
 
         // Find all documents that have a Eukaryota name in the list of  ["Amoebozoa", "Opisthokonta"]
-        > db.mongolog.find({'msg.Life.Domain.Eukaryota.name': {$in: ["Amoebozoa", "Opisthokonta"]}}).count()
+        > db.mongolog.find({
+            'msg.Life.Domain.Eukaryota.name': {
+                $in: ["Amoebozoa", "Opisthokonta"]
+            }
+          }).count()
         1
 
         // Same as above but only those documents logged at level INFO
