@@ -41,7 +41,9 @@ from mongolog.exceptions import MissingConnectionError
 
 
 from django.core.management import call_command
-
+from django.test import TestCase
+from django.test import Client
+from django.core.urlresolvers import reverse
 from django.conf import settings
 LOGGING = settings.LOGGING
 console = logging.getLogger("console")
@@ -128,13 +130,12 @@ class TestRemoveEntriesMixin(object):
         Called in setUp and tearDown.
         TODO: Remove entries from timestamp collection
         """
-        self.collection.remove({test_key: True}) if pymongo_major_version < 3 else self.collection.delete_many({test_key: True})
+        #self.collection.remove({test_key: True}) if pymongo_major_version < 3 else self.collection.delete_many({test_key: True})
+        # Drop the timetamp collection completely
+        self.handler.get_db().command("dropDatabase")
+
         # Ensure that we don't have any test entries
         self.assertEqual(0, self.collection.find({test_key: True}).count())
-
-from django.test import TestCase
-from django.test import Client
-from django.core.urlresolvers import reverse
 
 
 class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
@@ -546,12 +547,17 @@ class TestManagementCommands(unittest.TestCase, TestRemoveEntriesMixin):
 class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
         self.handler = get_mongolog_handler('test.embedded')
+
+        # Get some pointers to the collections for easy querying
         self.collection = self.handler.get_collection()
+        self.timestamp = self.handler.get_timestamp_collection()
+
         self.remove_test_entries()
         self.remove_test_entries(test_key='msg.Test')
+        self.iterations = 100
 
 
-    def _check_results(self, results, iterations):
+    def _check_embedded_results(self, results, iterations):
         self.assertEqual(1, results.count())
         rec = results[0]
         self.assertEqual(iterations, rec['counter'])
@@ -570,19 +576,17 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
 
         self.logger = logging.getLogger('test.embedded')
         
-        iterations = 100
-        console.info("Starting embedded test:  max_keep(%s) iteration(%s)", self.handler.max_keep, iterations)
+        console.info("Starting embedded test:  max_keep(%s) iteration(%s)", self.handler.max_keep, self.iterations)
 
         start = time.time()
-        for i in range(iterations):
-            console.warn("i(%s)" % i)
+        for i in range(self.iterations):
             self.logger.info({'Test': True, 'Test1': 1})
             results = self.collection.find({'msg.Test': True, 'msg.Test1': 1})
-            self._check_results(results, i+1)
+            self._check_embedded_results(results, i+1)
 
         end = time.time()
         results = self.collection.find({'msg.Test': True})
-        self._check_results(results, iterations)
+        self._check_embedded_results(results, self.iterations)
         console.warn("Test time: %s", end-start)
 
 
@@ -594,16 +598,16 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
         self.logger = logging.getLogger('test.embedded')
         
 
-        console.info("Starting embedded test:  max_keep(%s) iteration(%s)", self.handler.max_keep, iterations)
+        console.info("Starting embedded test:  max_keep(%s) iteration(%s)", self.handler.max_keep, self.iterations)
 
         start = time.time()
-        for i in range(iterations):
+        for i in range(self.iterations):
             self.logger.info({'Test': True})
             results = self.collection.find({'msg.Test': True})
-            self._check_results(results, i+1)
+            self._check_embedded_results(results, i+1)
         end = time.time()
         results = self.collection.find({'msg.Test': True})
-        self._check_results(results, iterations)
+        self._check_embedded_results(results, self.iterations)
         console.warn("Test time: %s", end-start)
 
 
@@ -611,3 +615,24 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
         logging.config.dictConfig(LOGGING)
         self.setUp()
         self.logger = logging.getLogger('test.embedded')
+
+    def _check_reference_results(self, results, i):
+        # confirm that only one document is ever created for the same message
+        self.assertEqual(1, len(results))
+        uuid = results[0]['uuid']
+        ts_results = self.timestamp.find({'uuid': uuid})
+        td_results = list(ts_results)
+        self.assertEqual(i+1, len(td_results))
+        
+
+    def test_reference(self):
+        console.debug(self)
+        self.logger = logging.getLogger('test.reference')
+        console.info("Starting embedded test:  max_keep(%s) iteration(%s)", self.handler.max_keep, self.iterations)
+
+        start = time.time()
+        for i in range(self.iterations):
+            self.logger.info({'Test': True, 'Test1': 1})
+            results = list(self.collection.find({'msg.Test': True, 'msg.Test1': 1}))
+
+            self._check_reference_results(results, i)

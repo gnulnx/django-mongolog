@@ -6,6 +6,7 @@ v0.7.4
     * Added base paramter 'max_keep' that is used for embedded documents to determine how many records to keep
     * Lower Django major version number to 1.7. 
     * embedded document type unit test
+    * reference document unit test
     * Bumped mongo version up to 3.2 in .travis.yml
 
 v0.7.3
