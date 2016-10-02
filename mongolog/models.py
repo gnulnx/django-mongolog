@@ -72,7 +72,8 @@ class Mongolog(object):
         if limit:
             aggregate_commands.append({"$limit": limit})
 
-        return db.mongolog.aggregate(aggregate_commands)
+        results = db.mongolog.aggregate(aggregate_commands)
+        return results['result'] if isinstance(results, dict) else results
 
 
 class LogRecord(dict):
