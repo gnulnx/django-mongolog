@@ -38,7 +38,7 @@ from mongolog.handlers import (
     get_mongolog_handler, SimpleMongoLogHandler
 )
 from mongolog.exceptions import MissingConnectionError
-
+from mongolog.models import Mongolog
 
 from django.core.management import call_command
 from django.test import TestCase
@@ -553,6 +553,8 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
         self.timestamp = self.handler.get_timestamp_collection()
 
         self.remove_test_entries()
+
+        # TODO Do you need this?
         self.remove_test_entries(test_key='msg.Test')
         self.iterations = 100
 
@@ -573,9 +575,7 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
 
     def test_embedded(self):
         console.debug(self)
-
         self.logger = logging.getLogger('test.embedded')
-        
         console.info("Starting embedded test:  max_keep(%s) iteration(%s)", self.handler.max_keep, self.iterations)
 
         start = time.time()
@@ -636,3 +636,90 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
             results = list(self.collection.find({'msg.Test': True, 'msg.Test1': 1}))
 
             self._check_reference_results(results, i)
+
+
+class MongoLogUtilsTests(unittest.TestCase, TestRemoveEntriesMixin):
+    def setUp(self):
+        self.handler = get_mongolog_handler('test.embedded')
+
+        # Get some pointers to the collections for easy querying
+        self.collection = self.handler.get_collection()
+        self.timestamp = self.handler.get_timestamp_collection()
+        self.logger = logging.getLogger('test.embedded')
+
+        self.remove_test_entries()
+
+    def test_find_for_embedded(self):
+        console.debug(self)
+        Mongolog.LOGGER = 'test.embedded'
+        info_items = [
+            {'location': {'country': 'USA', 'state': 'WA', 'city': 'Puyallup'}},
+            {'location': {'country': 'USA', 'state': 'WA', 'city': 'Seattle'}},
+            {'location': {'country': 'USA', 'state': 'MA', 'city': 'Boston'}},
+            {'location': {'country': 'USA', 'state': 'MS', 'city': 'Greenville'}},
+            {'location': {'country': 'France', 'region': 'Normandy', 'city': 'Rouen'}},
+            {'location': {'country': 'France', 'region': 'Île-de-France', 'city': 'Paris'}},
+        ]
+        for item in info_items:
+            self.logger.info(item)
+
+        warn_items = [
+            {'location': {'country': 'France', 'region': 'Normandy', 'city': 'Caen'}},
+            {'location': {'country': 'France', 'region': 'Normandy', 'city': 'Bayeux'}},
+            {'location': {'country': 'USA', 'state': 'MA', 'city': 'Framingham'}},
+        ]
+        for item in warn_items:
+            self.logger.warn(item)
+
+        critical_items = [
+            {'location': {'country': 'Canada', 'Province': 'Quebec Ontario', 'city': 'Quebec City'}},
+            {'location': {'country': 'Canada', 'Province': 'Quebec Ontario', 'city': 'Toronto'}},
+        ]
+
+        for item in critical_items:
+            self.logger.critical(item)
+
+        results = Mongolog.find(query={'msg.location': {'$exists': True}})
+        self.assertEqual(11, len(list(results)))
+
+        results = Mongolog.find(level='INFO')
+        self.assertEqual(6, len(list(results)))
+
+        # Test limit
+        results = Mongolog.find(level='INFO', limit=3)
+        self.assertEqual(3, len(list(results)))
+
+        # Test search by name
+        results = Mongolog.find(logger="test.embedded")
+        self.assertEqual(11, len(list(results)))
+
+        results = Mongolog.find(query={'msg.location.region': {'$exists': True}}) 
+        self.assertEqual(4, len(list(results)))
+
+        results = Mongolog.find(query={'msg.location.region': {'$exists': True}}, level='ERROR')
+        self.assertEqual(0, len(list(results)))
+
+        results = Mongolog.find(query={'msg.location.region': {'$exists': True}}, level='WARNING')
+        self.assertEqual(2, len(list(results)))
+
+        results = Mongolog.find(level='CRITICAL')
+        self.assertEqual(2, len(list(results)))
+
+        results = Mongolog.find(level='CRITICAL', query={'msg.location.city': 'Quebec City'})
+        self.assertEqual(1, len(list(results)))
+
+        # Now test projection
+        query={'msg.location.city': 'Quebec City'}
+        level='CRITICAL'
+        results = Mongolog.find(level=level, query=query, project={'msg': 1})
+        results = list(results)
+        self.assertEqual(set(['_id', 'msg']), set(results[0].keys()))
+
+        results = Mongolog.find(level=level, query=query, project={'msg': 1, '_id': 0})
+        results = list(results)
+        self.assertEqual(set(['msg']), set(results[0].keys()))
+
+        results = Mongolog.find(level=level, query=query, project={'msg': 1, '_id': 0, 'level': 1})
+        results = list(results)
+        self.assertEqual(set(['msg', 'level']), set(results[0].keys()))
+        

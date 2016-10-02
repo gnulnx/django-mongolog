@@ -17,6 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import pymongo
+from pymongo import MongoClient
 import json
 pymongo_version = int(pymongo.version.split(".")[0])
 if pymongo_version >= 3:
@@ -27,11 +28,23 @@ class Mongolog(object):
     """
     This class provides a set of queriable functions.
     """
+    # If LOGGER is None we wil try and find the first available logger
+    LOGGER = None
 
-    @staticmethod
-    def find(logger=None, query=None, project=None, uuid=None, level=None, limit=None, **kwargs):
+    @classmethod
+    def find(cls, logger=None, query=None, project=None, uuid=None, level=None, limit=None, **kwargs):
+        """
+         return self.collection.aggregate([
+            {"$match": query},
+            {"$project": proj},
+            {"$sort": {'created': pymongo.DESCENDING}},
+            {"$limit": limit},
+        ])
+        """
         from mongolog.handlers import get_mongolog_handler
-        from pymongo import MongoClient
+
+        logger = cls.LOGGER if cls.LOGGER else logger
+
         handler = get_mongolog_handler(logger_name=logger)
         client = MongoClient(handler.connection)
         db = client.mongolog
@@ -41,22 +54,15 @@ class Mongolog(object):
         if not query:
             query = {}
 
-
         if uuid:
             query.update({'uuid': uuid})
 
         if level:
             query.update({'level': level})
 
-        """
-         return self.collection.aggregate([
-            {"$match": query},
-            {"$project": proj},
-            {"$sort": {'created': pymongo.DESCENDING}},
-            {"$limit": limit},
-        ])
-        """
-        
+        if logger:
+            query.update({'name': logger})
+
         aggregate_commands.append({"$match": query})
 
         if project:
@@ -67,8 +73,6 @@ class Mongolog(object):
         if limit:
             aggregate_commands.append({"$limit": limit})
         
-        print("aggregate_commands(%s)" % aggregate_commands)
-
         return db.mongolog.aggregate(aggregate_commands)
 
 

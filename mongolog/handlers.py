@@ -38,6 +38,7 @@ console = logging.getLogger('console')
 
 uuid_namespace = uuid.UUID('8296424f-28b7-5982-a434-e6ec8ef529b3')
 
+# TODO Move to mongolog.models.Mongolog
 def get_mongolog_handler(logger_name=None):
     """
     Return the first MongoLogHander found in the list of defined loggers.  
