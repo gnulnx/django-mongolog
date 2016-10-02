@@ -705,6 +705,10 @@ class MongoLogUtilsTests(unittest.TestCase, TestRemoveEntriesMixin):
         results = Mongolog.find(level='CRITICAL', query={'msg.location.city': 'Quebec City'})
         self.assertEqual(1, len(list(results)))
 
+        # Test uuid path.
+        results = Mongolog.find(uuid='no-results')
+        self.assertEqual(0, len(list(results)))
+
         # Now test projection
         query = {'msg.location.city': 'Quebec City'}
         level = 'CRITICAL'
