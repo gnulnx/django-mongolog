@@ -729,7 +729,7 @@ class FlakeTests(unittest.TestCase):
         logger.debug(self)
         try:
             subprocess.check_output([cmd], shell=True, stderr=subprocess.STDOUT)
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             logger.critical("----------------- Please Fix flake8 errors -------------------")
             os.system(cmd)
             logger.critical("--------------------------------------------------------------")

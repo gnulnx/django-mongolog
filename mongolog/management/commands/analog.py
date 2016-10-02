@@ -60,7 +60,7 @@ class Command(BaseCommand):
         try:
             results = list(results['result'])
             results.reverse()
-        except TypeError as e:
+        except TypeError:
             pass
 
         for r in results:
