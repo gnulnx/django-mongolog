@@ -19,7 +19,9 @@
 import unittest
 import logging
 from logging import config  # noqa
+import os
 import sys
+import subprocess
 import time
 import json
 from unittest import skipIf
@@ -717,3 +719,18 @@ class MongoLogUtilsTests(unittest.TestCase, TestRemoveEntriesMixin):
         results = Mongolog.find(level=level, query=query, project={'msg': 1, '_id': 0, 'level': 1})
         results = list(results)
         self.assertEqual(set(['msg', 'level']), set(results[0].keys()))
+
+
+class FlakeTests(unittest.TestCase):
+    # flake8 --ignore=E402,F82
+    def test_flak8(self):
+        cmd = 'flake8 --ignore=E402,F82'
+        logger = logging.getLogger("console")
+        logger.debug(self)
+        try:
+            subprocess.check_output([cmd], shell=True, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            logger.critical("----------------- Please Fix flake8 errors -------------------")
+            os.system(cmd)
+            logger.critical("--------------------------------------------------------------")
+            raise
