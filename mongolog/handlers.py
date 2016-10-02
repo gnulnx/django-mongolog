@@ -39,7 +39,7 @@ console = logging.getLogger('console')
 uuid_namespace = uuid.UUID('8296424f-28b7-5982-a434-e6ec8ef529b3')
 
 # TODO Move to mongolog.models.Mongolog
-def get_mongolog_handler(logger_name=None):
+def get_mongolog_handler(logger_name=None, show_logger_names=False):
     """
     Return the first MongoLogHander found in the list of defined loggers.  
     NOTE: If more than one is defined, only the first one is used.
@@ -48,7 +48,9 @@ def get_mongolog_handler(logger_name=None):
         logger_names = [logger_name]
     else:
         logger_names = [''] + list(logging.Logger.manager.loggerDict)
-    console.info("get_mongolog_handler(): Logger_names: %s", json.dumps(logger_names, indent=4, sort_keys=True, default=str))
+
+    if show_logger_names:
+        console.info("get_mongolog_handler(): Logger_names: %s", json.dumps(logger_names, indent=4, sort_keys=True, default=str))
 
     for name in logger_names:
         logger = logging.getLogger(name)
