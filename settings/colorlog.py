@@ -3,6 +3,7 @@ import logging.config
 
 from logutils.colorize import ColorizingStreamHandler
 
+
 class ColorLogHandler(ColorizingStreamHandler):
     def __init__(self, *args, **kwargs):
         super(ColorLogHandler, self).__init__(*args, **kwargs)

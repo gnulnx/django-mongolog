@@ -17,7 +17,7 @@
 """
 from .handlers import (  # noqa
     BaseMongoLogHandler,
-    SimpleMongoLogHandler, 
-    VerboseMongoLogHandler, 
+    SimpleMongoLogHandler,
+    VerboseMongoLogHandler,
     HttpLogHandler,
 )

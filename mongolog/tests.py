@@ -22,14 +22,14 @@ from logging import config  # noqa
 import sys
 import time
 import json
-from unittest import skip, skipIf
+from unittest import skipIf
 from requests.exceptions import ConnectionError
 
 # Different imports for python2/3
 try:
     from StringIO import StringIO
 except ImportError:
-    from io import StringIO
+    from io import StringIO  # noqa: F401
 
 import pymongo
 pymongo_major_version = int(pymongo.version.split(".")[0])
@@ -37,7 +37,6 @@ pymongo_major_version = int(pymongo.version.split(".")[0])
 from mongolog.handlers import (
     get_mongolog_handler, SimpleMongoLogHandler
 )
-from mongolog.exceptions import MissingConnectionError
 from mongolog.models import Mongolog
 
 from django.core.management import call_command
@@ -56,11 +55,11 @@ console.info(
 """
     All log tests should log a dictionary with a 'test' key
     logger.info({
-        'test': True, 
+        'test': True,
         'msg': 'special message'
     })
 
-    This key will allow us to easily clean test entries out of the 
+    This key will allow us to easily clean test entries out of the
     database.
 
     NOTE: You can add any other key you want for testing purposes
@@ -80,10 +79,10 @@ TEST_MSG = {
             'Archaea': [],
             'Eukaryota': [
                 {
-                    'name': 'Excavata', 
+                    'name': 'Excavata',
                     'description': 'Various flagellate protozoa',
                 },
-                {   
+                {
                     'name': 'Amoebozoa',
                     'descritpion': 'most lobose amoeboids and slime moulds',
                 },
@@ -104,12 +103,12 @@ TEST_MSG = {
                     'description': 'Land plants, green algae, red algae, and glaucophytes'
                 },
             ]
-        } 
+        }
     }
 }
 
 
-def raiseException(logger = None):
+def raiseException(logger=None):
     """
     Used to test logger.exceptions.
     Use like:
@@ -130,7 +129,6 @@ class TestRemoveEntriesMixin(object):
         Called in setUp and tearDown.
         TODO: Remove entries from timestamp collection
         """
-        #self.collection.remove({test_key: True}) if pymongo_major_version < 3 else self.collection.delete_many({test_key: True})
         # Drop the timetamp collection completely
         self.handler.get_db().command("dropDatabase")
 
@@ -158,9 +156,9 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
         console.debug(self)
         self.logger.info({
             'META': {
-                'user.name': 'jfurr', 
+                'user.name': 'jfurr',
                 'user$name': 'jfurr'
-             },
+            },
             'user.name': 'jfurr',
             'user$name': 'jfurr'
         })
@@ -193,32 +191,32 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
             raiseException(self.logger)
 
         records = self.collection.find({
-            'msg.test': True, 
+            'msg.test': True,
             'msg.Life.Domain.Eukaryota.name': "Archaeplastida",
             'levelname': 'ERROR'
         })
         self.assertEqual(1, records.count())
 
         expected_keys = [
-            u'threadName', 
-            u'name', 
-            u'thread', 
-            u'relativeCreated', 
+            u'threadName',
+            u'name',
+            u'thread',
+            u'relativeCreated',
             u'process',
-            u'args', 
-            u'filename', 
-            u'module', 
-            u'funcName', 
-            u'levelno', 
-            u'processName', 
-            u'created', 
-            u'msecs', 
-            u'msg', 
-            u'exc_info', 
-            u'exc_text', 
-            u'pathname', 
-            u'_id', 
-            u'levelname', 
+            u'args',
+            u'filename',
+            u'module',
+            u'funcName',
+            u'levelno',
+            u'processName',
+            u'created',
+            u'msecs',
+            u'msg',
+            u'exc_info',
+            u'exc_text',
+            u'pathname',
+            u'_id',
+            u'levelname',
             u'lineno',
             u'time',
             u'uuid',
@@ -226,7 +224,7 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
         # To make test pass on python 3 version
         if sys.version_info[0] >= 3:
             expected_keys.append(u'stack_info')
-       
+
         record = records[0]
         self.assertEqual(
             set(record.keys()),
@@ -238,14 +236,14 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
         # Now test that the nested ValueError was successfully converted to a unicode str.
         try:
             # unicode will throw a NameError in Python 3
-            self.assertEqual(unicode, type(record['msg']['Life']['Domain']['Bacteria'][0]['name'])) 
+            self.assertEqual(unicode, type(record['msg']['Life']['Domain']['Bacteria'][0]['name']))
         except NameError:
-            self.assertEqual(str, type(record['msg']['Life']['Domain']['Bacteria'][0]['name'])) 
-        
+            self.assertEqual(str, type(record['msg']['Life']['Domain']['Bacteria'][0]['name']))
+
         self.logger.info("Just some friendly info")
         self.logger.error("Just some friendly info")
         self.logger.debug("Just some friendly info")
-        
+
     def test_str_unicode_mongologhandler(self):
         console.debug(self)
         self.assertEqual(self.handler.connection, u"%s" % self.handler)
@@ -262,23 +260,23 @@ class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMix
         self.remove_test_entries()
 
         self.expected_keys = set([
-            'dates', 
-            'uuid', 
-            'thread', 
-            'level', 
-            'process', 
-            'exception', 
-            'module', 
-            'filename', 
-            'func', 
-            'created', 
-            'msg', 
-            'path', 
-            'line', 
-            '_id', 
+            'dates',
+            'uuid',
+            'thread',
+            'level',
+            'process',
+            'exception',
+            'module',
+            'filename',
+            'func',
+            'created',
+            'msg',
+            'path',
+            'line',
+            '_id',
             'name',
             'counter',
-        ]) 
+        ])
 
     def test_missing_connection_key(self):
         LOGGING['handlers']['simple_no_connection'] = {
@@ -297,14 +295,13 @@ class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMix
         del LOGGING['handlers']['simple_no_connection']
         del LOGGING['loggers']['simple.no.connection']
 
-
     def test_exception(self):
         console.debug(self)
         with self.assertRaises(ValueError):
             raiseException(self.logger)
 
         records = self.collection.find({
-            'msg.test': True, 
+            'msg.test': True,
             'msg.Life.Domain.Eukaryota.name': "Archaeplastida",
             'level': 'ERROR'
         })
@@ -312,11 +309,11 @@ class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMix
 
         record = records[0]
         self.assertEqual(
-            set(record.keys()), 
+            set(record.keys()),
             self.expected_keys
         )
 
-        # Verify that the dates field has 1 item        
+        # Verify that the dates field has 1 item
         self.assertEqual(1, len(record['dates']))
 
         # now create anthe rduplicate entry and show that only one record is still present
@@ -325,7 +322,7 @@ class TestSimpleMongoLogHandler_Embedded(unittest.TestCase, TestRemoveEntriesMix
             raiseException(self.logger)
 
         records = self.collection.find({
-            'msg.test': True, 
+            'msg.test': True,
             'msg.Life.Domain.Eukaryota.name': "Archaeplastida",
             'level': 'ERROR'
         })
@@ -348,7 +345,7 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
     1) mongolog that holds that latest record and a single 'date'
     2) timestamp collection that holds that individual timestamps
 
-    These two collections are related to each other via the uuid key.   
+    These two collections are related to each other via the uuid key.
     """
     def setUp(self):
         self.logger = logging.getLogger('test.reference')
@@ -368,8 +365,8 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
         # now test a serializable dict with an exception call
         log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SMH_Obj)}
         expected_keys = set([
-            '_id', 'exception', 'name', 'thread', 'time', 
-            'process', 'level', 'msg', 'path', 'module', 
+            '_id', 'exception', 'name', 'thread', 'time',
+            'process', 'level', 'msg', 'path', 'module',
             'line', 'func', 'filename', 'uuid'
         ])
 
@@ -377,10 +374,10 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
             raise ValueError
         except ValueError:
             self.logger.exception(log_msg)
-        
+
         rec = self.collection.find_one({'msg.fruits': ['apple', 'orange']})
         self.assertEqual(set(rec.keys()), expected_keys)
-        
+
         # Python 2 duplicate entry test
         log_msg = {'test': True, 'fruits': ['apple', 'orange'], 'error': str(ValueError), 'handler': str(SMH_Obj)}
         try:
@@ -411,8 +408,8 @@ class TestSimpleMongoLogHandler_Reference(unittest.TestCase, TestRemoveEntriesMi
 
         rec = self.collection.find_one({'msg.fruits': {'$in': ['apple', 'orange']}})
         self.assertEqual(set(rec.keys()), expected_keys)
-        
-        
+
+
 class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
         console.debug(self)
@@ -431,7 +428,7 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
             raiseException(self.logger)
 
         records = self.collection.find({
-            'info.msg.test': True, 
+            'info.msg.test': True,
             'info.msg.Life.Domain.Eukaryota.name': "Archaeplastida",
             'level.name': 'ERROR'
         })
@@ -464,7 +461,7 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
         self.handler.setLevel("WARNING")
         log_msg = {'test': True, 'msg': 'WARNING', 'msg2': 'DANGER'}
         query = {
-            'info.msg.test': log_msg['test'], 
+            'info.msg.test': log_msg['test'],
             'info.msg.msg': log_msg['msg'],
             'info.msg.msg2': log_msg['msg2'],
             'level.name': 'WARNING'
@@ -474,7 +471,7 @@ class TestVerboseMongoLogHandler(unittest.TestCase, TestRemoveEntriesMixin):
 
         rec = self.collection.find_one(query)
         self.assertEqual(
-            set(rec.keys()), 
+            set(rec.keys()),
             set(['info', 'name', 'thread', 'level', 'process', 'time', '_id', 'uuid'])
         )
 
@@ -496,7 +493,7 @@ class TestHttpLogHandler(unittest.TestCase):
         self.handler = get_mongolog_handler("test.http")
         self.collection = self.handler.get_collection()
         console.error("self.collection(%s)" % self.collection)
-    
+
     @skipIf(sys.version_info.major == 3, "SKipping TestHttpLogHandler.test_timeout because of python version")
     def test_timeout(self):
         console.debug(self)
@@ -538,11 +535,11 @@ class TestManagementCommands(unittest.TestCase, TestRemoveEntriesMixin):
         self.logger.error({'test': True, 'logger': 'Error'})
         self.logger.critical({'test': True, 'logger': 'Critical'})
 
-        query = '{"name": "root"}'
         call_command('analog', limit=10, query='{"name": "root"}')
 
-        with self.assertRaises(NotImplementedError) as cm:
+        with self.assertRaises(NotImplementedError):
             call_command('analog', limit=20, tail=True)
+
 
 class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
     def setUp(self):
@@ -558,13 +555,12 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
         self.remove_test_entries(test_key='msg.Test')
         self.iterations = 100
 
-
     def _check_embedded_results(self, results, iterations):
         self.assertEqual(1, results.count())
         rec = results[0]
         self.assertEqual(iterations, rec['counter'])
 
-        expected_date_len = iterations 
+        expected_date_len = iterations
         if iterations > self.handler.max_keep:
             expected_date_len = self.handler.max_keep
 
@@ -582,13 +578,12 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
         for i in range(self.iterations):
             self.logger.info({'Test': True, 'Test1': 1})
             results = self.collection.find({'msg.Test': True, 'msg.Test1': 1})
-            self._check_embedded_results(results, i+1)
+            self._check_embedded_results(results, i + 1)
 
         end = time.time()
         results = self.collection.find({'msg.Test': True})
         self._check_embedded_results(results, self.iterations)
-        console.warn("Test time: %s", end-start)
-
+        console.warn("Test time: %s", end - start)
 
         # rerun with larger max_keep
         max_keep = LOGGING['handlers']['test_embedded']['max_keep']
@@ -596,7 +591,6 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
         logging.config.dictConfig(LOGGING)
         self.setUp()
         self.logger = logging.getLogger('test.embedded')
-        
 
         console.info("Starting embedded test:  max_keep(%s) iteration(%s)", self.handler.max_keep, self.iterations)
 
@@ -604,12 +598,11 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
         for i in range(self.iterations):
             self.logger.info({'Test': True})
             results = self.collection.find({'msg.Test': True})
-            self._check_embedded_results(results, i+1)
+            self._check_embedded_results(results, i + 1)
         end = time.time()
         results = self.collection.find({'msg.Test': True})
         self._check_embedded_results(results, self.iterations)
-        console.warn("Test time: %s", end-start)
-
+        console.warn("Test time: %s", end - start)
 
         LOGGING['handlers']['test_embedded']['max_keep'] = max_keep
         logging.config.dictConfig(LOGGING)
@@ -622,8 +615,7 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
         uuid = results[0]['uuid']
         ts_results = self.timestamp.find({'uuid': uuid})
         td_results = list(ts_results)
-        self.assertEqual(i+1, len(td_results))
-        
+        self.assertEqual(i + 1, len(td_results))
 
     def test_reference(self):
         console.debug(self)
@@ -636,6 +628,9 @@ class TestPerformanceTests(unittest.TestCase, TestRemoveEntriesMixin):
             results = list(self.collection.find({'msg.Test': True, 'msg.Test1': 1}))
 
             self._check_reference_results(results, i)
+
+        end = time.time()
+        self.logger.info("Total time %s" % (end - start))
 
 
 class MongoLogUtilsTests(unittest.TestCase, TestRemoveEntriesMixin):
@@ -693,7 +688,7 @@ class MongoLogUtilsTests(unittest.TestCase, TestRemoveEntriesMixin):
         results = Mongolog.find(logger="test.embedded")
         self.assertEqual(11, len(list(results)))
 
-        results = Mongolog.find(query={'msg.location.region': {'$exists': True}}) 
+        results = Mongolog.find(query={'msg.location.region': {'$exists': True}})
         self.assertEqual(4, len(list(results)))
 
         results = Mongolog.find(query={'msg.location.region': {'$exists': True}}, level='ERROR')
@@ -709,8 +704,8 @@ class MongoLogUtilsTests(unittest.TestCase, TestRemoveEntriesMixin):
         self.assertEqual(1, len(list(results)))
 
         # Now test projection
-        query={'msg.location.city': 'Quebec City'}
-        level='CRITICAL'
+        query = {'msg.location.city': 'Quebec City'}
+        level = 'CRITICAL'
         results = Mongolog.find(level=level, query=query, project={'msg': 1})
         results = list(results)
         self.assertEqual(set(['_id', 'msg']), set(results[0].keys()))
@@ -722,4 +717,3 @@ class MongoLogUtilsTests(unittest.TestCase, TestRemoveEntriesMixin):
         results = Mongolog.find(level=level, query=query, project={'msg': 1, '_id': 0, 'level': 1})
         results = list(results)
         self.assertEqual(set(['msg', 'level']), set(results[0].keys()))
-        

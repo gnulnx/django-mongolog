@@ -18,6 +18,6 @@ Including another URLconf
 from django.conf.urls import url
 from mongolog.views import HomeView
 urlpatterns = [
-    #url(r'^admin/', include(admin.site.urls)),
+    # url(r'^admin/', include(admin.site.urls)),
     url(r'^home/', HomeView.as_view(), name="home"),
 ]

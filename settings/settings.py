@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -44,9 +43,9 @@ LOGGING = {
             # Interesting Note:  requests 2.8.1 will turn this into a GET if it's missing a trailing slash
             # We automagically add the trailing slash
             'client_auth': 'http://192.168.33.51/4e487f07a84011e5a3403c15c2bcc424',
-            'verbose': True,            
+            'verbose': True,
         },
-        ################## Test Handlers
+        # Test Handlers
         'test_reference': {
             'level': 'DEBUG',
             'class': 'mongolog.SimpleMongoLogHandler',
@@ -156,9 +155,9 @@ LOGGING = {
         'http': {
             'level': 'DEBUG',
             'handlers': ['http'],
-           'propagate': True,
+            'propagate': True,
         },
-        ##################### Test Loggers
+        # Test Loggers
         'test': {
             'level': 'DEBUG',
             'propagate': False,
@@ -170,16 +169,16 @@ LOGGING = {
             'handlers': ['test_embedded'],
         },
         'test.base.reference': {
-            'handlers': ['test_base_reference'],  
+            'handlers': ['test_base_reference'],
         },
         'test.base.reference.w0': {
-            'handlers': ['test_base_reference_w0'],  
+            'handlers': ['test_base_reference_w0'],
         },
         'test.base.invalid': {
-            'handlers': ['test_base_invalid'],  
+            'handlers': ['test_base_invalid'],
         },
         'test.verbose': {
-            'handlers': ['test_verbose'],  
+            'handlers': ['test_verbose'],
         },
         'test.http': {
             'level': 'DEBUG',

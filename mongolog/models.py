@@ -20,7 +20,7 @@ import pymongo
 from pymongo import MongoClient
 pymongo_version = int(pymongo.version.split(".")[0])
 if pymongo_version >= 3:
-    from pymongo.collection import ReturnDocument
+    from pymongo.collection import ReturnDocument  # noqa: F401
 
 
 class Mongolog(object):
@@ -71,7 +71,7 @@ class Mongolog(object):
 
         if limit:
             aggregate_commands.append({"$limit": limit})
-        
+
         return db.mongolog.aggregate(aggregate_commands)
 
 
@@ -92,7 +92,7 @@ class LogRecord(dict):
             "num" : NumberLong(140061052233472),
             "name" : "MainThread"
         },
-        "level" : { 
+        "level" : {
             "num" : 10,
             "name" : "DEBUG"
         },

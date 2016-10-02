@@ -1,23 +1,21 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python
+# !/usr/bin/env python
 from __future__ import print_function
 import logging
 import logging.config
 import django
 import json
-import sys
 
 import pymongo
 pymongo_version = int(pymongo.version.split(".")[0])
 if pymongo_version >= 3:
-    from pymongo.collection import ReturnDocument
+    from pymongo.collection import ReturnDocument  # noqa: F40
 
 
 from mongolog.handlers import get_mongolog_handler
 
 from django.core.management.base import BaseCommand
 
-#logger = logging.getLogger(__name__)
 logger = logging.getLogger('console')
 
 
@@ -34,12 +32,11 @@ class Command(BaseCommand):
             make_option(
                 '-q', '--query', default=None, action='store', dest='query',
                 help='Pass in a search query to mongo.'),
-       )
+        )
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
         self.prev_object_id = None
-
 
     def add_arguments(self, parser):
         if django.VERSION[1] >= 7:
@@ -58,7 +55,7 @@ class Command(BaseCommand):
 
     def print_results(self, results):
         # older versions of pymongo didn't use a CommandCursor object to iterate over the results.
-        # We check by trying to convert to a list and if there is a TypeError we continue on 
+        # We check by trying to convert to a list and if there is a TypeError we continue on
         # and try to iterate over 'results' as thought it were a Cursor object.
         try:
             results = list(results['result'])
@@ -78,7 +75,7 @@ class Command(BaseCommand):
                 logger.debug(r)
             elif level == 'CRITICAL':
                 logger.critical(r)
-            elif level == 'MONGOLOG-INTERNAL' or level == None:
+            elif level == 'MONGOLOG-INTERNAL' or level is None:
                 # Print nothing if it's a mongolog internal log
                 pass
             else:
@@ -86,7 +83,7 @@ class Command(BaseCommand):
 
     def fetch_results(self, options):
         query = options['query'] if options['query'] else {}
-        proj = {'_id': 1, 'level': 1, 'msg': 1,}
+        proj = {'_id': 1, 'level': 1, 'msg': 1}
         limit = options['limit']
         return self.collection.aggregate([
             {"$match": query},
