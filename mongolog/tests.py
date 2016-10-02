@@ -142,7 +142,7 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
     def setUp(self):
         self.logger = logging.getLogger("test.base.reference")
 
-        self.handler = get_mongolog_handler("test.base.reference")
+        self.handler = get_mongolog_handler("test.base.reference", show_logger_names=True)
         console.error("self.handler(%s)" % self.handler)
         self.collection = self.handler.get_collection()
 
