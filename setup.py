@@ -1,7 +1,7 @@
 import os
 from setuptools import setup
 
-VERSION = "0.7.4"
+VERSION = "0.8.0"
 
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
     README = readme.read()
