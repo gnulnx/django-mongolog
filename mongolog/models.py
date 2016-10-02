@@ -18,7 +18,6 @@
 """
 import pymongo
 from pymongo import MongoClient
-import json
 pymongo_version = int(pymongo.version.split(".")[0])
 if pymongo_version >= 3:
     from pymongo.collection import ReturnDocument
