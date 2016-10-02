@@ -192,6 +192,7 @@ LOGGING = {
 SHELL_PLUS_PRE_IMPORTS = (
     'logging',
     ('logging', 'getLogger'),
+    ('mongolog.models', 'Mongolog'),
 )
 
 # Quick-start development settings - unsuitable for production
