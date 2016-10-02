@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+v0.8.0
+------
+    * Mongolog.find utility for searching the logs
+    * flake8 compliance (mostly)
+
 v0.7.4
 ------
     * Added base paramter 'max_keep' that is used for embedded documents to determine how many records to keep

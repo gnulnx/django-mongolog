@@ -16,6 +16,64 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+import pymongo
+from pymongo import MongoClient
+pymongo_version = int(pymongo.version.split(".")[0])
+if pymongo_version >= 3:
+    from pymongo.collection import ReturnDocument  # noqa: F401
+
+
+class Mongolog(object):
+    """
+    This class provides a set of queriable functions.
+    """
+    # If LOGGER is None we wil try and find the first available logger
+    LOGGER = None
+
+    @classmethod
+    def find(cls, logger=None, query=None, project=None, uuid=None, level=None, limit=None, **kwargs):
+        """
+         return self.collection.aggregate([
+            {"$match": query},
+            {"$project": proj},
+            {"$sort": {'created': pymongo.DESCENDING}},
+            {"$limit": limit},
+        ])
+        """
+        from mongolog.handlers import get_mongolog_handler
+
+        logger = cls.LOGGER if cls.LOGGER else logger
+
+        handler = get_mongolog_handler(logger_name=logger)
+        client = MongoClient(handler.connection)
+        db = client.mongolog
+
+        aggregate_commands = []
+
+        if not query:
+            query = {}
+
+        if uuid:
+            query.update({'uuid': uuid})
+
+        if level:
+            query.update({'level': level})
+
+        if logger:
+            query.update({'name': logger})
+
+        aggregate_commands.append({"$match": query})
+
+        if project:
+            aggregate_commands.append({"$project": project})
+
+        aggregate_commands.append({"$sort": {'created': pymongo.DESCENDING}})
+
+        if limit:
+            aggregate_commands.append({"$limit": limit})
+
+        results = db.mongolog.aggregate(aggregate_commands)
+        return results['result'] if isinstance(results, dict) else results
 
 
 class LogRecord(dict):
@@ -35,7 +93,7 @@ class LogRecord(dict):
             "num" : NumberLong(140061052233472),
             "name" : "MainThread"
         },
-        "level" : { 
+        "level" : {
             "num" : 10,
             "name" : "DEBUG"
         },

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python
+# !/usr/bin/env python
 """
     django-mongolog.  Simple Mongo based logger for Django
     Copyright (C) 2015 - John Furr
@@ -39,16 +39,19 @@ console = logging.getLogger('console')
 uuid_namespace = uuid.UUID('8296424f-28b7-5982-a434-e6ec8ef529b3')
 
 
-def get_mongolog_handler(logger_name=None):
+# TODO Move to mongolog.models.Mongolog
+def get_mongolog_handler(logger_name=None, show_logger_names=False):
     """
-    Return the first MongoLogHander found in the list of defined loggers.  
+    Return the first MongoLogHander found in the list of defined loggers.
     NOTE: If more than one is defined, only the first one is used.
     """
     if logger_name:
         logger_names = [logger_name]
     else:
         logger_names = [''] + list(logging.Logger.manager.loggerDict)
-    console.info("get_mongolog_handler(): Logger_names: %s", json.dumps(logger_names, indent=4, sort_keys=True))
+
+    if show_logger_names:
+        console.info("get_mongolog_handler(): Logger_names: %s", json.dumps(logger_names, indent=4, sort_keys=True, default=str))
 
     for name in logger_names:
         logger = logging.getLogger(name)
@@ -78,13 +81,13 @@ class BaseMongoLogHandler(Handler):
         valid_record_types = [self.REFERENCE, self.EMBEDDED]
         if record_type not in valid_record_types:
             raise ValueError("record_type myst be one of %s" % valid_record_types)
-       
+
         # The type of document we store
         self.record_type = record_type
 
         # number of dates to keep in embedded document
         self.max_keep = max_keep
-         
+
         # The write concern
         self.w = w
 
@@ -97,7 +100,6 @@ class BaseMongoLogHandler(Handler):
         # If True will print each log_record to console before writing to mongo
         self.verbose = verbose
 
-        handler_type = str(type(self))
         if self.connection:
             self.connect()
 
@@ -139,11 +141,11 @@ class BaseMongoLogHandler(Handler):
         """
         Return a handler to the database handler
         """
-        return getattr(self, "db", None) 
+        return getattr(self, "db", None)
 
     def get_timestamp_collection(self):
         return getattr(self, "timestamp", None)
-    
+
     def get_collection(self):
         """
         Return the collection being used by MongoLogHandler
@@ -161,15 +163,15 @@ class BaseMongoLogHandler(Handler):
                 self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5, w=self.w)
             else:
                 self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5, w=self.w, j=self.j)
-                
+
         except pymongo.errors.ServerSelectionTimeoutError:
             msg = "Unable to connect to mongo with (%s)" % self.connection
             # NOTE: Trying to log here ends up with Duplicate Key errors on upsert in emit()
             print(msg)
             raise pymongo.errors.ServerSelectionTimeoutError(msg)
-        
+
         return self.client
-        
+
     def connect_pymongo2(self):
         # TODO Determine proper try/except logic for pymongo 2.7 driver
         self.client = pymongo.MongoClient(self.connection)
@@ -201,10 +203,10 @@ class BaseMongoLogHandler(Handler):
 
             if isinstance(v, dict):
                 for old_key in record['msg'][k].keys():
-                    record['msg'][k][self.new_key(old_key)] = record['msg'][k].pop(old_key) 
+                    record['msg'][k][self.new_key(old_key)] = record['msg'][k].pop(old_key)
 
         return record
- 
+
     def create_log_record(self, record):
         """
         Convert the python LogRecord to a MongoLog Record.
@@ -223,7 +225,7 @@ class BaseMongoLogHandler(Handler):
             uuid_key = str(record['msg']) + str(record['levelname'])
         else:
             uuid_key = (unicode(record['msg']) + unicode(record['levelname'])).encode('utf-8', 'replace')
-        
+
         record.update({
             'uuid': uuid.uuid5(uuid_namespace, uuid_key).hex,
             # NOTE: if the user is using django and they have USE_TZ=True in their settings
@@ -262,9 +264,9 @@ class BaseMongoLogHandler(Handler):
 
         # TODO move this to a validate log_record method and add more validation
         log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
-        
+
         if self.verbose:
-            print(json.dumps(log_record, sort_keys=True, indent=4, default=str))       
+            print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
         if self.record_type == self.EMBEDDED:
             self.insert_embedded(log_record)
@@ -317,7 +319,7 @@ class BaseMongoLogHandler(Handler):
 
         # remove the old document
         self.mongolog.find_and_modify(query, remove=True)
-        
+
         # insert the new one
         self.mongolog.insert(log_record)
 
@@ -337,7 +339,7 @@ class BaseMongoLogHandler(Handler):
         )
 
         # Now update the timestamp collection
-        # We can do this with a lower write concern than the previous operation since 
+        # We can do this with a lower write concern than the previous operation since
         # we can alway's retreive the last datetime from the mongolog collection
         self.timestamp.insert({
             'uuid': log_record['uuid'],
@@ -379,7 +381,7 @@ class SimpleMongoLogHandler(BaseMongoLogHandler):
 
 class VerboseMongoLogHandler(BaseMongoLogHandler):
     def create_log_record(self, record):
-        record = super(VerboseMongoLogHandler, self).create_log_record(record) 
+        record = super(VerboseMongoLogHandler, self).create_log_record(record)
         mongolog_record = LogRecord({
             'name': record['name'],
             'thread': {
@@ -404,7 +406,7 @@ class VerboseMongoLogHandler(BaseMongoLogHandler):
             },
             'uuid': record['uuid'],
             'time': record['time'],
-        })    
+        })
 
         if record['exc_info']:
             mongolog_record['exception'] = {
@@ -416,7 +418,7 @@ class VerboseMongoLogHandler(BaseMongoLogHandler):
 
 
 class HttpLogHandler(SimpleMongoLogHandler):
-    def __init__(self, level=NOTSET, client_auth='', timeout=3, verbose=False, time_zone="local",  *args, **kwargs):
+    def __init__(self, level=NOTSET, client_auth='', timeout=3, verbose=False, time_zone="local", *args, **kwargs):
         # Make sure there is a trailing slash or reqests 2.8.1 will try a GET instead of POST
         self.client_auth = client_auth if client_auth.endswith('/') else "%s/" % client_auth
 
@@ -426,7 +428,7 @@ class HttpLogHandler(SimpleMongoLogHandler):
         self.time_zone = time_zone
 
         # Intentionally hard coded in HttpLogHandler
-        self.record_type='reference'
+        self.record_type = 'reference'
 
         # If True will print each log_record to console before writing to mongo
         self.verbose = verbose
@@ -439,7 +441,7 @@ class HttpLogHandler(SimpleMongoLogHandler):
         return u'%s' % self.client_auth
 
     def emit(self, record):
-        """ 
+        """
         From python:  type(record) == LogRecord
         https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
         """
@@ -452,5 +454,4 @@ class HttpLogHandler(SimpleMongoLogHandler):
 
         r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout, proxies={'http':''})  # noqa
         # uncomment to debug
-        print ("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
-
+        print("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
