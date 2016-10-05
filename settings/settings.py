@@ -142,6 +142,11 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': True
         },
+        'mongolog-int': {
+            'level': 'INFO',
+            'handlers': ['console'],
+            'propagate': False
+        },
         'console': {
             'level': 'DEBUG',
             'handlers': ['console'],

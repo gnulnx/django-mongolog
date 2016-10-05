@@ -34,7 +34,7 @@ from mongolog.models import LogRecord
 from mongolog.exceptions import MissingConnectionError
 
 logger = logging.getLogger('')
-console = logging.getLogger('console')
+console = logging.getLogger('mongolog-int')
 
 uuid_namespace = uuid.UUID('8296424f-28b7-5982-a434-e6ec8ef529b3')
 
@@ -61,7 +61,7 @@ def get_mongolog_handler(logger_name=None, show_logger_names=False):
                 handler = _handler
                 break
         if handler:
-            console.info("found handler: %s", handler)
+            console.debug("found handler: %s", handler)
             break
 
     if not handler:
