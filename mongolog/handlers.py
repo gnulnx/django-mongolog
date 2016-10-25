@@ -83,9 +83,9 @@ def formatException(ei):
     This default implementation just uses
     traceback.print_exception()
     """
-    #try:
+    # try:
     sio = cStringIO.StringIO()
-    #except Exception:
+    # except Exception:
     #    sio = StringIO()
 
     traceback.print_exception(ei[0], ei[1], ei[2], None, sio)
