@@ -462,4 +462,4 @@ class HttpLogHandler(SimpleMongoLogHandler):
             print("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
         except ValueError as e:
             if "No JSON object could be decoded" in str(e):
-                print("Response: ", r) 
+                print("log write failed: ", r) 
