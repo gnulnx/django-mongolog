@@ -19,12 +19,12 @@
 """
 from __future__ import print_function
 import logging
-from logging import Handler, NOTSET, Formatter
+from logging import Handler, NOTSET
 from datetime import datetime as dt
-import sys, os, time, cStringIO, traceback, warnings, weakref, collections
-import json
-import re
 import sys
+import cStringIO
+import traceback
+import json
 import uuid
 import pymongo
 import requests
@@ -70,6 +70,7 @@ def get_mongolog_handler(logger_name=None, show_logger_names=False):
         raise ValueError("No BaseMongoLogHandler could be found.  Did you add on to youy logging config?")
     return handler
 
+
 # Copied directly from python Formatter class
 def formatException(ei):
     """
@@ -85,6 +86,7 @@ def formatException(ei):
     if s[-1:] == "\n":
         s = s[:-1]
     return s
+
 
 class BaseMongoLogHandler(Handler):
 
@@ -475,11 +477,11 @@ class HttpLogHandler(SimpleMongoLogHandler):
 
         customer_id = self.client_auth.split("/")[-2]
         log_record['customer_id'] = customer_id
-        
+
         r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout, proxies={'http':''})  # noqa
         # uncomment to debug
         try:
             print("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
         except ValueError as e:
             if "No JSON object could be decoded" in str(e):
-                print("log write failed: ", r) 
+                print("log write failed: ", r)
