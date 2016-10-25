@@ -22,6 +22,7 @@ import logging
 from logging import Handler, NOTSET
 from datetime import datetime as dt
 import json
+import re
 import sys
 import uuid
 import pymongo
@@ -452,8 +453,9 @@ class HttpLogHandler(SimpleMongoLogHandler):
         if self.verbose:
             print("Inserting", json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
-        log_record['customer_id'] = self.client_auth
-        print("client_auth: ", self.client_auth)
+        customer_id = self.client_auth.split("/")[-2]
+        log_record['customer_id'] = customer_id
+        
         r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout, proxies={'http':''})  # noqa
         # uncomment to debug
         try:
