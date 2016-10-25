@@ -21,9 +21,14 @@ from __future__ import print_function
 import logging
 from logging import Handler, NOTSET
 from datetime import datetime as dt
-import json
-import re
 import sys
+try:
+    from cStringIO import StringIO  # noqa
+except ImportError:
+    from io import StringIO  # noqa
+
+import traceback
+import json
 import uuid
 import pymongo
 import requests
@@ -68,6 +73,24 @@ def get_mongolog_handler(logger_name=None, show_logger_names=False):
     if not handler:
         raise ValueError("No BaseMongoLogHandler could be found.  Did you add on to youy logging config?")
     return handler
+
+
+# Copied directly from python Formatter class
+def formatException(ei):
+    """
+    Format and return the specified exception information as a string.
+
+    This default implementation just uses
+    traceback.print_exception()
+    """
+    sio = StringIO()
+
+    traceback.print_exception(ei[0], ei[1], ei[2], None, sio)
+    s = sio.getvalue()
+    sio.close()
+    if s[-1:] == "\n":
+        s = s[:-1]
+    return s
 
 
 class BaseMongoLogHandler(Handler):
@@ -216,6 +239,10 @@ class BaseMongoLogHandler(Handler):
         Override in subclasses to change log record formatting.
         See SimpleMongoLogHandler and VerboseMongoLogHandler
         """
+        # This is still a python LogRecord Object that we are manipulating
+        if record.exc_info:
+            record.exc_text = formatException(record.exc_info)
+
         record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
         if "mongolog.management.commands" in record['name']:
             return {'uuid': 'none', 'time': 'none', 'level': 'MONGOLOG-INTERNAL'}
@@ -455,11 +482,11 @@ class HttpLogHandler(SimpleMongoLogHandler):
 
         customer_id = self.client_auth.split("/")[-2]
         log_record['customer_id'] = customer_id
-        
+
         r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout, proxies={'http':''})  # noqa
         # uncomment to debug
         try:
             print("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
         except ValueError as e:
             if "No JSON object could be decoded" in str(e):
-                print("log write failed: ", r) 
+                print("log write failed: ", r)
