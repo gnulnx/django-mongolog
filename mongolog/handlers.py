@@ -469,7 +469,7 @@ class HttpLogHandler(SimpleMongoLogHandler):
         log_record = self.create_log_record(record)
 
         # TODO move this to a validate log_record method and add more validation
-        #log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
+        log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
         if self.verbose:
             print("Inserting", json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
