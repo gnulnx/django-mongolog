@@ -452,6 +452,12 @@ class HttpLogHandler(SimpleMongoLogHandler):
         if self.verbose:
             print("Inserting", json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
+        log_record['customer_id'] = self.client_auth
+        print("client_auth: ", self.client_auth)
         r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout, proxies={'http':''})  # noqa
         # uncomment to debug
-        print("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
+        try:
+            print("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
+        except ValueError as e:
+            if "No JSON object could be decoded" in str(e):
+                print("Response: ", r) 
