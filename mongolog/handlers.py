@@ -23,9 +23,9 @@ from logging import Handler, NOTSET
 from datetime import datetime as dt
 import sys
 try:
-    import cStringIO  # noqa
+    from cStringIO import StringIO  # noqa
 except ImportError:
-    from io import StringIO as cStringIO # noqa
+    from io import StringIO  # noqa
 
 import traceback
 import json
@@ -84,7 +84,7 @@ def formatException(ei):
     traceback.print_exception()
     """
     # try:
-    sio = cStringIO.StringIO()
+    sio = StringIO()
     # except Exception:
     #    sio = StringIO()
 
