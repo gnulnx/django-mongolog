@@ -24,7 +24,7 @@ from datetime import datetime as dt
 import sys
 try:
     import cStringIO
-except: ImportError:
+except ImportError:
     from io import io.BytesIO as cStringIO
 
 import traceback
