@@ -19,8 +19,9 @@
 """
 from __future__ import print_function
 import logging
-from logging import Handler, NOTSET
+from logging import Handler, NOTSET, Formatter
 from datetime import datetime as dt
+import sys, os, time, cStringIO, traceback, warnings, weakref, collections
 import json
 import re
 import sys
@@ -69,6 +70,21 @@ def get_mongolog_handler(logger_name=None, show_logger_names=False):
         raise ValueError("No BaseMongoLogHandler could be found.  Did you add on to youy logging config?")
     return handler
 
+# Copied directly from python Formatter class
+def formatException(ei):
+    """
+    Format and return the specified exception information as a string.
+
+    This default implementation just uses
+    traceback.print_exception()
+    """
+    sio = cStringIO.StringIO()
+    traceback.print_exception(ei[0], ei[1], ei[2], None, sio)
+    s = sio.getvalue()
+    sio.close()
+    if s[-1:] == "\n":
+        s = s[:-1]
+    return s
 
 class BaseMongoLogHandler(Handler):
 
@@ -216,6 +232,10 @@ class BaseMongoLogHandler(Handler):
         Override in subclasses to change log record formatting.
         See SimpleMongoLogHandler and VerboseMongoLogHandler
         """
+        # This is still a python LogRecord Object that we are manipulating
+        if record.exc_info:
+            record.exc_text = formatException(record.exc_info)
+
         record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
         if "mongolog.management.commands" in record['name']:
             return {'uuid': 'none', 'time': 'none', 'level': 'MONGOLOG-INTERNAL'}
@@ -449,7 +469,7 @@ class HttpLogHandler(SimpleMongoLogHandler):
         log_record = self.create_log_record(record)
 
         # TODO move this to a validate log_record method and add more validation
-        log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
+        #log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
         if self.verbose:
             print("Inserting", json.dumps(log_record, sort_keys=True, indent=4, default=str))
 
