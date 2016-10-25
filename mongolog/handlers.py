@@ -25,7 +25,7 @@ import sys
 try:
     import cStringIO
 except ImportError:
-    import io.BytesIO as cStringIO
+    from io import BytesIO as cStringIO
 
 import traceback
 import json
