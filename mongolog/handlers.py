@@ -25,7 +25,7 @@ import sys
 try:
     import cStringIO
 except ImportError:
-    from io import BytesIO as cStringIO
+    from io import BytesIO
 
 import traceback
 import json
@@ -83,7 +83,11 @@ def formatException(ei):
     This default implementation just uses
     traceback.print_exception()
     """
-    sio = cStringIO.StringIO()
+    try:
+        sio = cStringIO.StringIO()
+    except Exception:
+        sio = io.BytesIO()
+
     traceback.print_exception(ei[0], ei[1], ei[2], None, sio)
     s = sio.getvalue()
     sio.close()
