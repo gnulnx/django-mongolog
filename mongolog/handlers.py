@@ -23,9 +23,9 @@ from logging import Handler, NOTSET
 from datetime import datetime as dt
 import sys
 try:
-    import cStringIO
+    import cStringIO  # noqa
 except ImportError:
-    from io import BytesIO
+    from io import BytesIO  # noqa
 
 import traceback
 import json
