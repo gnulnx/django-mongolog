@@ -86,7 +86,7 @@ def formatException(ei):
     try:
         sio = cStringIO.StringIO()
     except Exception:
-        sio = io.BytesIO()
+        sio = BytesIO()
 
     traceback.print_exception(ei[0], ei[1], ei[2], None, sio)
     s = sio.getvalue()
