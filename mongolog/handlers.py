@@ -215,7 +215,7 @@ class BaseMongoLogHandler(Handler):
         Override in subclasses to change log record formatting.
         See SimpleMongoLogHandler and VerboseMongoLogHandler
         """
-        record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
+        record = LogRecord(json.loads(json.dumps(record.__dict__, default=unicode)))
         if "mongolog.management.commands" in record['name']:
             return {'uuid': 'none', 'time': 'none', 'level': 'MONGOLOG-INTERNAL'}
         record = self.check_keys(record)
