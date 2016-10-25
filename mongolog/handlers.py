@@ -25,7 +25,7 @@ import sys
 try:
     import cStringIO  # noqa
 except ImportError:
-    from io import BytesIO, StringIO  # noqa
+    from io import StringIO as cStringIO # noqa
 
 import traceback
 import json
