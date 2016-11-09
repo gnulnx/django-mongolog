@@ -42,6 +42,9 @@ from mongolog.exceptions import MissingConnectionError
 logger = logging.getLogger('')
 console = logging.getLogger('mongolog-int')
 
+# The requset logger is turned of during http requests to avoid circular logic
+request_logger = logging.getLogger("requests")
+
 uuid_namespace = uuid.UUID('8296424f-28b7-5982-a434-e6ec8ef529b3')
 
 
@@ -473,6 +476,8 @@ class HttpLogHandler(SimpleMongoLogHandler):
         From python:  type(record) == LogRecord
         https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
         """
+        # Disable the request logger
+        request_logger.disabled = False
         log_record = self.create_log_record(record)
 
         # TODO move this to a validate log_record method and add more validation
@@ -490,3 +495,6 @@ class HttpLogHandler(SimpleMongoLogHandler):
         except ValueError as e:
             if "No JSON object could be decoded" in str(e):
                 print("log write failed: ", r)
+        
+        # Renable the requests logger
+        request_logger.disabled = True
