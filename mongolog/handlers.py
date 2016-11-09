@@ -488,13 +488,13 @@ class HttpLogHandler(SimpleMongoLogHandler):
         customer_id = self.client_auth.split("/")[-2]
         log_record['customer_id'] = customer_id
 
-        r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout, proxies={'http':''})  # noqa
+        r = requests.post(self.client_auth, json=json.dumps(log_record, default=str), timeout=self.timeout, proxies={'http': ''})  # noqa
         # uncomment to debug
         try:
             print("Response:", json.dumps(r.json(), indent=4, sort_keys=True, default=str))
         except ValueError as e:
             if "No JSON object could be decoded" in str(e):
                 print("log write failed: ", r)
-        
+
         # Renable the requests logger
         request_logger.disabled = True
