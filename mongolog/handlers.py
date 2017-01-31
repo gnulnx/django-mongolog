@@ -99,7 +99,7 @@ class BaseMongoLogHandler(Handler):
     EMBEDDED = 'embedded'
 
     def __init__(
-            self, level=NOTSET, connection=None, database='mongolog', collection='mongolog',w=1, j=False, verbose=None,
+            self, level=NOTSET, connection=None, database='mongolog', collection='mongolog', w=1, j=False, verbose=None,
             time_zone="local", record_type="embedded", max_keep=25, *args, **kwargs
         ):  # noqa
         super(BaseMongoLogHandler, self).__init__(level)
