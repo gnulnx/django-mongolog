@@ -98,9 +98,14 @@ class BaseMongoLogHandler(Handler):
     REFERENCE = 'reference'
     EMBEDDED = 'embedded'
 
-    def __init__(self, level=NOTSET, connection=None, w=1, j=False, verbose=None, time_zone="local", record_type="embedded", max_keep=25, *args, **kwargs):  # noqa
+    def __init__(
+            self, level=NOTSET, connection=None, database='mongolog', collection='mongolog',w=1, j=False, verbose=None,
+            time_zone="local", record_type="embedded", max_keep=25, *args, **kwargs
+        ):  # noqa
         super(BaseMongoLogHandler, self).__init__(level)
         self.connection = connection
+        self.database = database
+        self.collection = collection
 
         valid_record_types = [self.REFERENCE, self.EMBEDDED]
         if record_type not in valid_record_types:
@@ -153,10 +158,10 @@ class BaseMongoLogHandler(Handler):
             self.client = self.connect_pymongo2()
 
         # The mongolog database
-        self.db = self.client.mongolog
+        self.db = self.client[self.database]
 
         # This is the primary log document collection
-        self.mongolog = self.db.mongolog
+        self.mongolog = self.db[self.collection]
 
         # This is the timestamp collection
         self.timestamp = self.db.timestamp
