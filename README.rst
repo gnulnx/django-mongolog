@@ -1,5 +1,7 @@
 MongoLog 
 ========
+.. image:: http://pepy.tech/badge/django-mongolog
+    :target: http://pepy.tech/count/django-mongolog
 
 MongoLog is a simple Mongo based log handler that can be easly used
 with standard python/django logging.
