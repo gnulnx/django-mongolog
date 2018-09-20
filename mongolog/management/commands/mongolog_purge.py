@@ -45,4 +45,4 @@ class Command(BaseCommand):
         if options['purge']:
             self.purge()
         elif options['delete']:
-            self.delete(options)
+            self.delete(**options)
