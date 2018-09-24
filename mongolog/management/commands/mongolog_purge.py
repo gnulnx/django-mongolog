@@ -39,7 +39,7 @@ class Command(BaseCommand):
 
     def delete(self, **options):
         days = options['delete']
-        print("Removing documents older than %s day's")
+        print("Removing documents older than %s day's" % days)
 
     def handle(self, *args, **options):
         if options['purge']:
