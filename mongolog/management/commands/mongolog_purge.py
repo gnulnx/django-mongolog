@@ -12,6 +12,7 @@ if pymongo_version >= 3:
     from pymongo.collection import ReturnDocument  # noqa: F40
 
 from mongolog.handlers import get_mongolog_handler
+from mongolog.models import Mongolog
 
 from django.core.management.base import BaseCommand
 
@@ -39,6 +40,7 @@ class Command(BaseCommand):
 
     def delete(self, **options):
         days = options['delete']
+        
         print("Removing documents older than %s day's" % days)
 
     def handle(self, *args, **options):
