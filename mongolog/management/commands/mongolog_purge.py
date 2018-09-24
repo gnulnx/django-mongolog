@@ -42,7 +42,7 @@ class Command(BaseCommand):
     def delete(self, **options):
         days = options['delete']
         for i in list(Mongolog.find(query={'created': {'$lte': timezone.now()}})):
-            print(i)
+            print(json.dumps(i, indent=4, sort_keys=True, default=str))
 
         print(Mongolog.find() )
         print("Removing documents older than %s day's" % days)
