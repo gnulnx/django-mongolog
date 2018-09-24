@@ -5,6 +5,7 @@ import logging
 import logging.config
 import django
 import json
+from datetime import datetime, timedelta
 
 import pymongo
 pymongo_version = int(pymongo.version.split(".")[0])
@@ -41,7 +42,11 @@ class Command(BaseCommand):
 
     def delete(self, **options):
         days = options['delete']
-        for i in list(Mongolog.find(query={'created': {'$lte': timezone.now()}})):
+        now = timezone.now()
+        query_date = now() - timedelta(days=days)
+        print("now(%s) - query_date(%s)" % (now, query_date))
+
+        for i in list(Mongolog.find(query={'created': {'$lte': query_date}})):
             print(json.dumps(i, indent=4, sort_keys=True, default=str))
 
         print(Mongolog.find() )
