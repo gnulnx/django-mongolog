@@ -14,6 +14,7 @@ if pymongo_version >= 3:
 from mongolog.handlers import get_mongolog_handler
 from mongolog.models import Mongolog
 
+from django.utils import timezone
 from django.core.management.base import BaseCommand
 
 logger = logging.getLogger('console')
@@ -40,6 +41,9 @@ class Command(BaseCommand):
 
     def delete(self, **options):
         days = options['delete']
+        for i in list(Mongolog.find({'created': {'$lte': timezone.now}})):
+            print(i)
+
         print(Mongolog.find() )
         print("Removing documents older than %s day's" % days)
 
