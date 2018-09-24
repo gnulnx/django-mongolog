@@ -46,10 +46,12 @@ class Command(BaseCommand):
         query_date = now - timedelta(days=days)
         print("now(%s) - query_date(%s)" % (now, query_date))
 
-        for i in list(Mongolog.find(query={'created': {'$lte': query_date}})):
+        docs = list(Mongolog.find(query={'created': {'$lte': query_date}}))
+        for i in docs:
             print(json.dumps(i, indent=4, sort_keys=True, default=str))
 
         print(Mongolog.find() )
+        print("Total docs to remove: %s" % len(docs))
         print("Removing documents older than %s day's" % days)
 
     def handle(self, *args, **options):
