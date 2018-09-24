@@ -41,7 +41,7 @@ class Command(BaseCommand):
 
     def delete(self, **options):
         days = options['delete']
-        for i in list(Mongolog.find(query={'created': {'$lte': timezone.now}})):
+        for i in list(Mongolog.find(query={'created': {'$lte': timezone.now()}})):
             print(i)
 
         print(Mongolog.find() )
