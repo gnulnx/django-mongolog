@@ -17,6 +17,7 @@ from django.core.management.base import BaseCommand
 
 logger = logging.getLogger('console')
 
+logger.warn(django.VERSION)
 
 class Command(BaseCommand):
     """
@@ -39,7 +40,7 @@ class Command(BaseCommand):
         self.prev_object_id = None
 
     def add_arguments(self, parser):
-        if django.VERSION[1] >= 7:
+        if django.VERSION[0] >= 2:
             parser.add_argument(
                 '-l', '--limit', default=10, type=int, action='store', dest='limit',
                 help='Limit Results',
