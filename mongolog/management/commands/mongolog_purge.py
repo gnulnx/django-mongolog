@@ -47,7 +47,7 @@ class Command(BaseCommand):
         print("now(%s) - query_date(%s)" % (now, query_date))
 
         docs = list(Mongolog.find(query={'created': {'$lte': query_date}}))
-        for i in docs:
+        for i in Mongolog.find(query={'created': {'$lte': query_date}}):
             print(json.dumps(i, indent=4, sort_keys=True, default=str))
             i.delete()
             print("Delete called")
