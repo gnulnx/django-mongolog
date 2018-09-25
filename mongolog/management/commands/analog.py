@@ -17,6 +17,7 @@ from django.core.management.base import BaseCommand
 
 logger = logging.getLogger('console')
 
+logger.warn(django.VERSION)
 
 class Command(BaseCommand):
     if django.VERSION[0] <= 1:
