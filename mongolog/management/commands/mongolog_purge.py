@@ -96,7 +96,8 @@ class Command(BaseCommand):
         subprocess.check_call([cmd], shell=True)
 
     def handle(self, *args, **options):
-        self.collection = exec('db.%s' % options['collection'])
+        self.collection = db.getattr(options['collection'])
+        #self.collection = exec('db.%s' % options['collection'])
         if options['backup']:
             self.backup(**options)
 
