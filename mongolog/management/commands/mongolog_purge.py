@@ -81,8 +81,11 @@ class Command(BaseCommand):
     def purge(self, **options):
         """ Purge all records from the collection """
         console.warn("You are about to delete all mongolog documents!!!")
+
         if self.confirm(**options):
+            total = self.collection.find(query).count()
             self.collection.delete_many({})
+            console.warn("Total docs to remove: %s", total)
 
     def delete(self, **options):
         """ Delete all records older than --days={n} """
