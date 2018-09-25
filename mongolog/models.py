@@ -47,6 +47,7 @@ class Mongolog(object):
         handler = get_mongolog_handler(logger_name=logger)
         client = MongoClient(handler.connection)
         db = client.mongolog
+        collection = getattr(db, logger)
 
         aggregate_commands = []
 
@@ -72,7 +73,7 @@ class Mongolog(object):
         if limit:
             aggregate_commands.append({"$limit": limit})
 
-        results = db.mongolog.aggregate(aggregate_commands)
+        results = collection.aggregate(aggregate_commands)
         return results['result'] if isinstance(results, dict) else results
 
 
