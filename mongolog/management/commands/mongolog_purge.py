@@ -50,7 +50,6 @@ class Command(BaseCommand):
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
-        self.prev_object_id = None
 
     def confirm(self, **options):
         if not options['force']:
@@ -97,7 +96,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.collection = getattr(db, options['collection'])
-        #self.collection = exec('db.%s' % options['collection'])
         if options['backup']:
             self.backup(**options)
 
