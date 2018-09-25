@@ -49,6 +49,7 @@ class Command(BaseCommand):
         docs = list(Mongolog.find(query={'created': {'$lte': query_date}}))
         for i in docs:
             print(json.dumps(i, indent=4, sort_keys=True, default=str))
+            i.delete()
 
         print(Mongolog.find() )
         print("Total docs to remove: %s" % len(docs))
