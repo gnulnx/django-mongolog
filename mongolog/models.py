@@ -48,6 +48,7 @@ class Mongolog(object):
         client = MongoClient(handler.connection)
         db = client.mongolog
 
+        console.error("logger: %s" % logger)
         if logger:
             collection = getattr(db, logger)
         else:
