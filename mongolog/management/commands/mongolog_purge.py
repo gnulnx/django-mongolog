@@ -64,7 +64,7 @@ class Command(BaseCommand):
             ans = 'n'
             while 1:
                 console.warn("Would you like to proceed?  Y/N")
-                ans = input().strip()
+                ans = input().strip().lower()
                 console.error("You ans: %s", ans)
                 if ans.lower() not in ['y', 'yes', 'n', 'no']:
                     continue
