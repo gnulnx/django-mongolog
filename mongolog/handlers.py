@@ -51,18 +51,22 @@ def get_mongolog_handler(logger_name=None, show_logger_names=False):
     Return the first MongoLogHander found in the list of defined loggers.
     NOTE: If more than one is defined, only the first one is used.
     """
+    console.warn(logger_name)
     if logger_name:
         logger_names = [logger_name]
     else:
         logger_names = [''] + list(logging.Logger.manager.loggerDict)
 
+    console.warn(logger_names)
     if show_logger_names:
         console.info("get_mongolog_handler(): Logger_names: %s", json.dumps(logger_names, indent=4, sort_keys=True, default=str))
 
     for name in logger_names:
         logger = logging.getLogger(name)
+        console.warn(logger)
         handler = None
         for _handler in logger.handlers:
+            console.error("%s, %s, %s, %s", isinstance(_handler, BaseMongoLogHandler), _handler, type(_handler), _handler.name)
             if isinstance(_handler, BaseMongoLogHandler):
                 handler = _handler
                 break

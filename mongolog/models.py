@@ -49,10 +49,13 @@ class Mongolog(object):
         db = client.mongolog
 
         if logger:
-            collection = getattr(db, logger)
+            collection = getattr(db, handler.collection)
         else:
             collection = db.mongolog
 
+        print("collection:  %s" % collection)
+        print("type(handler): %s" % type(handler))
+        print("handler.collection: %s" % handler.collection)
         aggregate_commands = []
 
         if not query:
