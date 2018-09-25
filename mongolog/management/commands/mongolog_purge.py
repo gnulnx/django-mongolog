@@ -40,7 +40,7 @@ class Command(BaseCommand):
             help='Delete documents more than -d={n} days old',
         )
         parser.add_argument(
-            '-f', '--force', default=False, type=bool, action='store_true', dest='force',
+            '-f', '--force', default=False, action='store_true', dest='force',
             help='Do not prompt before removing documents',
         )
 
