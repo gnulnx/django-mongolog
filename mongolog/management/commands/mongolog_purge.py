@@ -19,7 +19,10 @@ from mongolog.models import Mongolog
 from django.utils import timezone
 from django.core.management.base import BaseCommand
 
+# Is this actually used?
 logger = logging.getLogger('console')
+
+console = logging.getLogger('mongolog-int')
 handler = get_mongolog_handler()
 client = MongoClient(handler.connection)
 db = client.mongolog
@@ -46,21 +49,18 @@ class Command(BaseCommand):
 
     def delete(self, **options):
         days = options['delete']
-        now = timezone.now()
-        query_date = now - timedelta(days=days)
-        print("now(%s) - query_date(%s)" % (now, query_date))
-        print(db.mongolog)
-        docs = list(Mongolog.find(query={'created': {'$lte': query_date}}))
-        for i in Mongolog.find(query={'created': {'$lte': query_date}}):
-            print(json.dumps(i, indent=4, sort_keys=True, default=str))
-            db.mongolog
-            #self.db..delete()
-            #print("Delete called")
+        query={
+            'created': {
+                '$lte': timezone.now() - timedelta(days=days)
+            }
+        })
 
-        print(Mongolog.find() )
-        print("Total docs to remove: %s" % len(docs))
-        print("Removing documents older than %s day's" % days)
-        db.mongolog.delete_one(query_date)        
+        console.warn("Removing documents older than %s day's", days)
+        #print("Removing documents older than %s day's" % days)
+        total = db.mongolog.find(query).count()
+        console.info("Total docs to remove: %s", total)
+        #print("Total docs to remove: %s" % total)
+        db.mongolog.delete_many(query)
 
     def handle(self, *args, **options):
         if options['purge']:
