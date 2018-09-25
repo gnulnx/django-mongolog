@@ -39,6 +39,10 @@ class Command(BaseCommand):
             '-f', '--force', default=False, action='store_true', dest='force',
             help='Do not prompt before removing documents',
         )
+        parser.add_argument(
+            '-b', '--backup', default=False, action='store_true', dest='backup',
+            help='Backup collection before deleting',
+        )
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
@@ -82,7 +86,14 @@ class Command(BaseCommand):
             db.mongolog.delete_many(query)
             console.info("Total docs removed: %s", total)
 
+    def backup(self, **options):
+        console.info("Backing up your documents...")
+        sys.exit(1)
+
     def handle(self, *args, **options):
+        if options['backup']:
+            self.backup(**options)
+
         if options['purge']:
             self.purge(**options)
         elif isinstance(options['delete'], int):
