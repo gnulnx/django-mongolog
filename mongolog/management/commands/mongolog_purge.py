@@ -44,8 +44,8 @@ class Command(BaseCommand):
         super(Command, self).__init__(*args, **kwargs)
         self.prev_object_id = None
 
-    def confirm(self):
-        if not self.options['force']:
+    def confirm(self, **options):
+        if not options['force']:
             ans = 'n'
             while 1:
                 console.warn("Would you like to proceed?  Y/N")
@@ -79,12 +79,12 @@ class Command(BaseCommand):
         total = db.mongolog.find(query).count()
         console.warn("Total docs to remove: %s", total)
 
-        if self.confirm():
+        if self.confirm(**options):
             db.mongolog.delete_many(query)
             console.info("Total docs removed: %s", total)
 
     def handle(self, *args, **options):
         if options['purge']:
-            self.purge()
+            self.purge(**options)
         elif isinstance(options['delete'], int):
             self.delete(**options)
