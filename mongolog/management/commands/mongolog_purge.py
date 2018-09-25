@@ -53,7 +53,7 @@ class Command(BaseCommand):
             'created': {
                 '$lte': timezone.now() - timedelta(days=days)
             }
-        })
+        }
 
         console.warn("Removing documents older than %s day's", days)
         #print("Removing documents older than %s day's" % days)
