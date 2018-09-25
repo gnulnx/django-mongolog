@@ -61,6 +61,7 @@ class Command(BaseCommand):
         return True
 
     def purge(self, **options):
+        console.error(options)
         console.warn("You are about to delete all mongolog documents!!!")
         if self.confirm():
             db.mongolog.delete_many({})
