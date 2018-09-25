@@ -11,6 +11,7 @@ import pymongo
 pymongo_version = int(pymongo.version.split(".")[0])
 if pymongo_version >= 3:
     from pymongo.collection import ReturnDocument  # noqa: F40
+from pymongo import MongoClient
 
 from mongolog.handlers import get_mongolog_handler
 from mongolog.models import Mongolog
@@ -22,6 +23,8 @@ logger = logging.getLogger('console')
 
 
 class Command(BaseCommand):
+    client = MongoClient(handler.connection)
+    db = client.mongolog
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -45,12 +48,12 @@ class Command(BaseCommand):
         now = timezone.now()
         query_date = now - timedelta(days=days)
         print("now(%s) - query_date(%s)" % (now, query_date))
-
+        print(self.db)
         docs = list(Mongolog.find(query={'created': {'$lte': query_date}}))
         for i in Mongolog.find(query={'created': {'$lte': query_date}}):
             print(json.dumps(i, indent=4, sort_keys=True, default=str))
-            i.delete()
-            print("Delete called")
+            #self.db..delete()
+            #print("Delete called")
 
         print(Mongolog.find() )
         print("Total docs to remove: %s" % len(docs))
