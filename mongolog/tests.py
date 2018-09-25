@@ -41,10 +41,18 @@ from mongolog.handlers import (
 )
 from mongolog.models import Mongolog
 
+import django
+django_version = django.VERSION[0]
+
 from django.core.management import call_command
 from django.test import TestCase
 from django.test import Client
-from django.core.urlresolvers import reverse
+
+if django_version < 2:
+    from django.core.urlresolvers import reverse
+else:
+    from django.urls import reverse
+
 from django.conf import settings
 LOGGING = settings.LOGGING
 console = logging.getLogger("console")
