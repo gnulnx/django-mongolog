@@ -20,11 +20,12 @@ from django.utils import timezone
 from django.core.management.base import BaseCommand
 
 logger = logging.getLogger('console')
+handler = get_mongolog_handler()
+client = MongoClient(handler.connection)
+db = client.mongolog
 
 
 class Command(BaseCommand):
-    client = MongoClient(handler.connection)
-    db = client.mongolog
 
     def add_arguments(self, parser):
         parser.add_argument(
