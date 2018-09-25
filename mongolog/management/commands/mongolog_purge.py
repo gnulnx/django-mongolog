@@ -44,8 +44,27 @@ class Command(BaseCommand):
         super(Command, self).__init__(*args, **kwargs)
         self.prev_object_id = None
 
+    def confirm(self):
+        if not self.options['force']:
+            ans = 'n'
+            while 1:
+                console.warn("Would you like to proceed?  Y/N")
+                ans = input().strip().lower()
+                console.error("You ans: %s", ans)
+                if ans not in ['y', 'yes', 'n', 'no']:
+                    continue
+                elif ans[0] == 'n':
+                    console.info("You chose not to continue.  Bye!")
+                    sys.exit(1)
+                elif ans[1] == 'y':
+                    return True
+
     def purge(self):
         print("Purging all mongolog documents")
+        print(self.options)
+        console.warn("You are about to delete all mongolog documents!!!")
+        if self.confirm():
+            db.mongolog.delete_many({})
 
     def delete(self, **options):
         days = options['delete']
@@ -60,22 +79,9 @@ class Command(BaseCommand):
         total = db.mongolog.find(query).count()
         console.warn("Total docs to remove: %s", total)
 
-        if not options['force']:
-            ans = 'n'
-            while 1:
-                console.warn("Would you like to proceed?  Y/N")
-                ans = input().strip().lower()
-                console.error("You ans: %s", ans)
-                if ans not in ['y', 'yes', 'n', 'no']:
-                    continue
-                elif ans[0] == 'n':
-                    console.info("You chose not to continue.  Bye!")
-                    sys.exit(1)
-                elif ans[1] == 'y':
-                    break
-
-        db.mongolog.delete_many(query)
-        console.info("Total docs removed: %s", total)
+        if self.confirm():
+            db.mongolog.delete_many(query)
+            console.info("Total docs removed: %s", total)
 
     def handle(self, *args, **options):
         if options['purge']:
