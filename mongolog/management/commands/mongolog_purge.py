@@ -62,20 +62,23 @@ class Command(BaseCommand):
         }
 
         total = db.mongolog.find(query).count()
-        console.info("Total docs to remove: %s", total)
+        console.warn("Total docs to remove: %s", total)
 
         if options['force']:
             ans = 'n'
             while 1:
                 console.warn("Would you like to proceed?  Y/N")
                 ans = raw()
-                if ans.lower not in ['y', 'yes', 'n', 'no':
+                if ans.lower() not in ['y', 'yes', 'n', 'no']:
                     continue
-                if ans[0] == 'n':
-                    console.log("You chose to not continue.  Bye!")
+                elif ans[0] == 'n':
+                    console.log("You chose not to continue.  Bye!")
                     sys.exit(1)
+                elif ans[1] == 'y':
+                    break
 
         db.mongolog.delete_many(query)
+        console.info("Total docs removed: %s", total)
 
     def handle(self, *args, **options):
         if options['purge']:
