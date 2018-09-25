@@ -60,7 +60,7 @@ class Command(BaseCommand):
 
         return True
 
-    def purge(self):
+    def purge(self, **options):
         print("Purging all mongolog documents")
         print(self.options)
         console.warn("You are about to delete all mongolog documents!!!")
