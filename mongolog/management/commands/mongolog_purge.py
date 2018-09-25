@@ -1,11 +1,22 @@
 # -*- coding: utf-8 -*-
+"""
+Management command to handle deletion of previous mongolog records.
+
+Usage Examples:
+
+# Delete all records alder than 54 day's AFTER backing up the current collection 'bulkupload'
+ ./manage.py mongolog_purge -d 54 -b -c bulkupload
+
+ # Delete all entries
+./manage.py mongolog_purge -p -c bulkupload
+"""
 from __future__ import print_function
 import sys
 import logging
-import logging.config
+# import logging.config
 from datetime import timedelta
 import subprocess
-import pymongo
+# import pymongo
 from pymongo import MongoClient
 
 from mongolog.handlers import get_mongolog_handler
@@ -13,9 +24,9 @@ from mongolog.handlers import get_mongolog_handler
 from django.utils import timezone
 from django.core.management.base import BaseCommand
 
-pymongo_version = int(pymongo.version.split(".")[0])
-if pymongo_version >= 3:
-    from pymongo.collection import ReturnDocument  # noqa: F40
+# pymongo_version = int(pymongo.version.split(".")[0])
+# if pymongo_version >= 3:
+#    from pymongo.collection import ReturnDocument  # noqa: F40
 
 console = logging.getLogger('mongolog-int')
 
@@ -68,11 +79,13 @@ class Command(BaseCommand):
         return True
 
     def purge(self, **options):
+        """ Purge all records from the collection """
         console.warn("You are about to delete all mongolog documents!!!")
         if self.confirm(**options):
             self.collection.delete_many({})
 
     def delete(self, **options):
+        """ Delete all records older than --days={n} """
         days = options['delete']
         console.warn("Looking for documents older than %s day's", days)
 
@@ -89,15 +102,17 @@ class Command(BaseCommand):
             self.collection.delete_many(query)
             console.info("Total docs removed: %s", total)
 
-    def backup(self, **options):
+    def backup(self):
+        """ Backup the collection before deleting """
         console.info("Backing up your documents...")
         cmd = 'mongodump --db mongolog'
         subprocess.check_call([cmd], shell=True)
 
     def handle(self, *args, **options):
+        """ Main processing handle """
         self.collection = getattr(db, options['collection'])
         if options['backup']:
-            self.backup(**options)
+            self.backup()
 
         if options['purge']:
             self.purge(**options)
