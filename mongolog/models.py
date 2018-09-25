@@ -53,9 +53,6 @@ class Mongolog(object):
         else:
             collection = db.mongolog
 
-        print("collection:  %s" % collection)
-        print("type(handler): %s" % type(handler))
-        print("handler.collection: %s" % handler.collection)
         aggregate_commands = []
 
         if not query:
