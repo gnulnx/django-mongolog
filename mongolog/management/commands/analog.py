@@ -18,7 +18,7 @@ logger = logging.getLogger('console')
 
 
 class Command(BaseCommand):
-    
+
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
         self.prev_object_id = None
