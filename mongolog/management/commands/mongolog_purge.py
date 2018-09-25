@@ -49,10 +49,11 @@ class Command(BaseCommand):
         now = timezone.now()
         query_date = now - timedelta(days=days)
         print("now(%s) - query_date(%s)" % (now, query_date))
-        print(self.db)
+        print(db.mongolog)
         docs = list(Mongolog.find(query={'created': {'$lte': query_date}}))
         for i in Mongolog.find(query={'created': {'$lte': query_date}}):
             print(json.dumps(i, indent=4, sort_keys=True, default=str))
+            db.mongolog
             #self.db..delete()
             #print("Delete called")
 
