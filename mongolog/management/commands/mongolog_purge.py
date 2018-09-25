@@ -36,8 +36,12 @@ class Command(BaseCommand):
             help='Remove all old results',
         )
         parser.add_argument(
-            '-d', '--d', default=14, type=int, action='store', dest='delete',
-            help='Remove documents more than -d={n} days old',
+            '-d', '--delete', default=14, type=int, action='store', dest='delete',
+            help='Delete documents more than -d={n} days old',
+        )
+        parser.add_argument(
+            '-f', '--force', default=False, type=bool, action='store_true', dest='force',
+            help='Do not prompt before removing documents',
         )
 
     def __init__(self, *args, **kwargs):
@@ -49,17 +53,28 @@ class Command(BaseCommand):
 
     def delete(self, **options):
         days = options['delete']
+        console.warn("Looking for documents older than %s day's", days)
+                
         query={
             'created': {
                 '$lte': timezone.now() - timedelta(days=days)
             }
         }
 
-        console.warn("Removing documents older than %s day's", days)
-        #print("Removing documents older than %s day's" % days)
         total = db.mongolog.find(query).count()
         console.info("Total docs to remove: %s", total)
-        #print("Total docs to remove: %s" % total)
+
+        if options['force']:
+            ans = 'n'
+            while 1:
+                console.warn("Would you like to proceed?  Y/N")
+                ans = raw()
+                if ans.lower not in ['y', 'yes', 'n', 'no':
+                    continue
+                if ans[0] == 'n':
+                    console.log("You chose to not continue.  Bye!")
+                    sys.exit(1)
+
         db.mongolog.delete_many(query)
 
     def handle(self, *args, **options):
