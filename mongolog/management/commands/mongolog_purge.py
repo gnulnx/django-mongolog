@@ -46,18 +46,19 @@ class Command(BaseCommand):
 
     def confirm(self, **options):
         if not options['force']:
-            ans = 'n'
             while 1:
                 console.warn("Would you like to proceed?  Y/N")
                 ans = input().strip().lower()
-                console.error("You ans: %s", ans)
+
                 if ans not in ['y', 'yes', 'n', 'no']:
                     continue
                 elif ans[0] == 'n':
                     console.info("You chose not to continue.  Bye!")
                     sys.exit(1)
                 elif ans[1] == 'y':
-                    return True
+                    break
+
+        return True
 
     def purge(self):
         print("Purging all mongolog documents")
