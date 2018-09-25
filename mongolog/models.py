@@ -47,7 +47,11 @@ class Mongolog(object):
         handler = get_mongolog_handler(logger_name=logger)
         client = MongoClient(handler.connection)
         db = client.mongolog
-        collection = getattr(db, logger)
+
+        if logger:
+            collection = getattr(db, logger)
+        else:
+            collection = db.mongolog
 
         aggregate_commands = []
 
