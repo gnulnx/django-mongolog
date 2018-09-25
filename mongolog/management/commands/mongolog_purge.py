@@ -1,28 +1,24 @@
 # -*- coding: utf-8 -*-
-# !/usr/bin/env python
 from __future__ import print_function
+import sys
 import logging
 import logging.config
-import django
-import json
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import pymongo
-pymongo_version = int(pymongo.version.split(".")[0])
-if pymongo_version >= 3:
-    from pymongo.collection import ReturnDocument  # noqa: F40
 from pymongo import MongoClient
 
 from mongolog.handlers import get_mongolog_handler
-from mongolog.models import Mongolog
 
 from django.utils import timezone
 from django.core.management.base import BaseCommand
 
-# Is this actually used?
-logger = logging.getLogger('console')
+pymongo_version = int(pymongo.version.split(".")[0])
+if pymongo_version >= 3:
+    from pymongo.collection import ReturnDocument  # noqa: F40
 
 console = logging.getLogger('mongolog-int')
+
 handler = get_mongolog_handler()
 client = MongoClient(handler.connection)
 db = client.mongolog
@@ -54,8 +50,8 @@ class Command(BaseCommand):
     def delete(self, **options):
         days = options['delete']
         console.warn("Looking for documents older than %s day's", days)
-                
-        query={
+
+        query = {
             'created': {
                 '$lte': timezone.now() - timedelta(days=days)
             }
