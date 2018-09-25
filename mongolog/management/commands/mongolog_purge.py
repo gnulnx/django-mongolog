@@ -64,7 +64,7 @@ class Command(BaseCommand):
         total = db.mongolog.find(query).count()
         console.warn("Total docs to remove: %s", total)
 
-        if options['force']:
+        if not options['force']:
             ans = 'n'
             while 1:
                 console.warn("Would you like to proceed?  Y/N")
