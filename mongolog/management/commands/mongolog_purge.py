@@ -4,6 +4,7 @@ import sys
 import logging
 import logging.config
 from datetime import timedelta
+import subprocess
 
 import pymongo
 from pymongo import MongoClient
@@ -88,7 +89,7 @@ class Command(BaseCommand):
 
     def backup(self, **options):
         console.info("Backing up your documents...")
-        subprocess.check_call(['mongodump'])
+        subprocess.check_call(['mongodump'], shell=True)
         sys.exit(1)
 
     def handle(self, *args, **options):
