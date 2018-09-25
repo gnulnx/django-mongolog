@@ -60,6 +60,7 @@ class Command(BaseCommand):
         print(Mongolog.find() )
         print("Total docs to remove: %s" % len(docs))
         print("Removing documents older than %s day's" % days)
+        db.mongolog.delete_one(query_date)        
 
     def handle(self, *args, **options):
         if options['purge']:
