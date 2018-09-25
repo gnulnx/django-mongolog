@@ -88,6 +88,7 @@ class Command(BaseCommand):
 
     def backup(self, **options):
         console.info("Backing up your documents...")
+        subprocess.check_call(['mongodump'])
         sys.exit(1)
 
     def handle(self, *args, **options):
