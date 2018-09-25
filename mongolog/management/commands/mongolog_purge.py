@@ -49,13 +49,13 @@ class Command(BaseCommand):
             while 1:
                 console.warn("Would you like to proceed?  Y/N")
                 ans = input().strip().lower()
-
+                console.error("Your ans: %s", ans)
                 if ans not in ['y', 'yes', 'n', 'no']:
                     continue
                 elif ans[0] == 'n':
                     console.info("You chose not to continue.  Bye!")
                     sys.exit(1)
-                elif ans[1] == 'y':
+                elif ans[0] == 'y':
                     break
 
         return True
