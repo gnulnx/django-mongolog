@@ -5,7 +5,6 @@ import logging
 import logging.config
 from datetime import timedelta
 import subprocess
-
 import pymongo
 from pymongo import MongoClient
 
@@ -44,6 +43,10 @@ class Command(BaseCommand):
             '-b', '--backup', default=False, action='store_true', dest='backup',
             help='Backup collection before deleting',
         )
+        parser.add_argument(
+            '-c', '--collection', default='mongolog', type=str, action='store', dest='collection',
+            help='Which mongolog collection to use',
+        )
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
@@ -68,7 +71,7 @@ class Command(BaseCommand):
     def purge(self, **options):
         console.warn("You are about to delete all mongolog documents!!!")
         if self.confirm(**options):
-            db.mongolog.delete_many({})
+            self.collection.delete_many({})
 
     def delete(self, **options):
         days = options['delete']
@@ -80,11 +83,11 @@ class Command(BaseCommand):
             }
         }
 
-        total = db.mongolog.find(query).count()
+        total = self.collection.find(query).count()
         console.warn("Total docs to remove: %s", total)
 
         if self.confirm(**options):
-            db.mongolog.delete_many(query)
+            self.collection.delete_many(query)
             console.info("Total docs removed: %s", total)
 
     def backup(self, **options):
@@ -93,6 +96,7 @@ class Command(BaseCommand):
         subprocess.check_call([cmd], shell=True)
 
     def handle(self, *args, **options):
+        self.collection = exec('db.%s' % options['collection'])
         if options['backup']:
             self.backup(**options)
 
