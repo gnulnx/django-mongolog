@@ -66,7 +66,7 @@ class Command(BaseCommand):
                 console.warn("Would you like to proceed?  Y/N")
                 ans = input().strip().lower()
                 console.error("You ans: %s", ans)
-                if ans.lower() not in ['y', 'yes', 'n', 'no']:
+                if ans not in ['y', 'yes', 'n', 'no']:
                     continue
                 elif ans[0] == 'n':
                     console.info("You chose not to continue.  Bye!")
