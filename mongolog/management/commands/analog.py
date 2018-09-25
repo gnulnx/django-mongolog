@@ -19,6 +19,7 @@ logger = logging.getLogger('console')
 
 
 class Command(BaseCommand):
+    """
     if django.VERSION[1] <= 7:
         from optparse import make_option
         option_list = BaseCommand.option_list + (
@@ -32,7 +33,7 @@ class Command(BaseCommand):
                 '-q', '--query', default=None, action='store', dest='query',
                 help='Pass in a search query to mongo.'),
         )
-
+    """
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
         self.prev_object_id = None
