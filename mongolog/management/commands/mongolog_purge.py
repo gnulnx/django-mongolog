@@ -13,20 +13,14 @@ Usage Examples:
 from __future__ import print_function
 import sys
 import logging
-# import logging.config
 from datetime import timedelta
 import subprocess
-# import pymongo
 from pymongo import MongoClient
 
 from mongolog.handlers import get_mongolog_handler
 
 from django.utils import timezone
 from django.core.management.base import BaseCommand
-
-# pymongo_version = int(pymongo.version.split(".")[0])
-# if pymongo_version >= 3:
-#    from pymongo.collection import ReturnDocument  # noqa: F40
 
 console = logging.getLogger('mongolog-int')
 
