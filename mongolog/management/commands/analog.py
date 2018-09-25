@@ -32,7 +32,6 @@ class Command(BaseCommand):
                 '-q', '--query', default=None, action='store', dest='query',
                 help='Pass in a search query to mongo.'),
         )
-    else:
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
