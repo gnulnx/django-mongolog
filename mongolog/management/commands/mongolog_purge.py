@@ -57,5 +57,5 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options['purge']:
             self.purge()
-        elif options['delete']:
+        elif isinstance(options['delete'], int):
             self.delete(**options)
