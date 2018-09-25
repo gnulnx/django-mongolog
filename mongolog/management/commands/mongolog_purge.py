@@ -91,7 +91,7 @@ class Command(BaseCommand):
         console.info("Backing up your documents...")
         cmd = 'mongodump --db mongolog'
         print("cmd: %s" % cmd)
-        subprocess.check_call(*cmd, shell=True)
+        subprocess.check_call(cmd.split(), shell=True)
         sys.exit(1)
 
     def handle(self, *args, **options):
