@@ -18,21 +18,7 @@ logger = logging.getLogger('console')
 
 
 class Command(BaseCommand):
-    """
-    if django.VERSION[1] <= 7:
-        from optparse import make_option
-        option_list = BaseCommand.option_list + (
-            make_option(
-                '-l', '--limit', default=10, type=int, action='store', dest='limit',
-                help='Delete poll instead of closing it'),
-            make_option(
-                '-t', '--tail', default=False, action='store_true', dest='tail',
-                help='Tail the log file.  By default it will limit to 10 results.  Use --limit to change'),
-            make_option(
-                '-q', '--query', default=None, action='store', dest='query',
-                help='Pass in a search query to mongo.'),
-        )
-    """
+    
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
         self.prev_object_id = None
