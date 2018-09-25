@@ -72,7 +72,7 @@ class Command(BaseCommand):
                 if ans.lower() not in ['y', 'yes', 'n', 'no']:
                     continue
                 elif ans[0] == 'n':
-                    console.log("You chose not to continue.  Bye!")
+                    console.info("You chose not to continue.  Bye!")
                     sys.exit(1)
                 elif ans[1] == 'y':
                     break
