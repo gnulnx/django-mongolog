@@ -63,7 +63,6 @@ def get_mongolog_handler(logger_name=None, show_logger_names=False):
         logger = logging.getLogger(name)
         handler = None
         for _handler in logger.handlers:
-            console.error((isinstance(_handler, BaseMongoLogHandler), _handler) )
             if isinstance(_handler, BaseMongoLogHandler):
                 handler = _handler
                 break
