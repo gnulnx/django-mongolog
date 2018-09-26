@@ -106,7 +106,7 @@ class Command(BaseCommand):
         handler = get_mongolog_handler(logger_name=options['logger'])
         client = MongoClient(handler.connection)
         db = client.mongolog
-        self.collection = getattr(db, handler.collectionoption)
+        self.collection = getattr(db, handler.collection)
 
         raise Exception(type(self.collection), type(handler.collection)) 
         self.collection = handler.collection
