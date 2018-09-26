@@ -108,9 +108,6 @@ class Command(BaseCommand):
         db = client.mongolog
         self.collection = getattr(db, handler.collection)
 
-        raise Exception(type(self.collection), type(handler.collection)) 
-        self.collection = handler.collection
-
         if options['backup']:
             self.backup()
 
