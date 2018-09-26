@@ -10,7 +10,6 @@ Usage Examples:
 from __future__ import print_function
 import sys
 import logging
-import subprocess
 from pymongo import MongoClient
 
 from mongolog.handlers import get_mongolog_handler
