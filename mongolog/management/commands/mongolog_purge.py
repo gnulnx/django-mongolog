@@ -73,7 +73,7 @@ class Command(BaseCommand):
         console.warn("You are about to delete all mongolog documents!!!")
 
         if self.confirm(**options):
-            total = self.collection.find({}).count()
+            total = self.collection.find().count()
             self.collection.delete_many({})
             console.warn("Total docs to remove: %s", total)
 
@@ -103,8 +103,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """ Main processing handle """
-
         handler = get_mongolog_handler(logger_name=options['logger'])
+        client = MongoClient(handler.connection)
+        db = client.mongolog
+        self.collection = getattr(db, options['collection'])
+
+        raise Exception(type(self.collection), type(handler.collection)) 
         self.collection = handler.collection
 
         if options['backup']:
