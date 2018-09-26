@@ -73,7 +73,7 @@ class Command(BaseCommand):
         console.warn("You are about to delete all mongolog documents!!!")
 
         if self.confirm(**options):
-            total = self.collection.find().count()
+            total = self.collection.find({}).count()
             self.collection.delete_many({})
             console.warn("Total docs to remove: %s", total)
 
