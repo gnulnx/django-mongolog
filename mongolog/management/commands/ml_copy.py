@@ -31,6 +31,14 @@ class Command(BaseCommand):
             '-t', '--to', default='', type=str, action='store', dest='to',
             help='To Collection',
         )
+        parser.add_argument(
+            '-d', '--delete', default=False, action='store_true', dest='delete',
+            help='Delete the from collection',
+        )
+        parser.add_argument(
+            '-f', '--force', default=False, action='store_true', dest='force',
+            help='Force delete "from" collection without prompt',
+        )
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
@@ -51,17 +59,16 @@ class Command(BaseCommand):
 
         return True
 
-    def backup(self):
-        """ Backup the collection before deleting """
-        console.info("Backing up your documents...")
-        cmd = 'mongodump --db mongolog'
-        subprocess.check_call([cmd], shell=True)
-
     def handle(self, *args, **options):
         """ Main processing handle """
         handler = get_mongolog_handler()
         client = MongoClient(handler.connection)
         db = client.mongolog
 
-        from_collection = getattr(db, options['from_collection'])
-        from_collection.copyTo(options['to_collection'])
+        from_collection = getattr(db, options['from'])
+        from_collection.copyTo(options['to'])
+
+        if options['delete']:
+            console.warn("Deleting from collection")
+            if self.confirm():
+                form_collection.delete_many({})
