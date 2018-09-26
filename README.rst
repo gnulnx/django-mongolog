@@ -231,7 +231,7 @@ Quick start
 Management Commands (Django Only)
 ---------------------------------
 
-1) ml_purge::
+1) ml_purge
 
 The ml_urge command is used to clean up mongo collections. The command has two basic modes:  --purge and --delete. Purge will remove all documents and delete will remove documents older than {n} day's.
 

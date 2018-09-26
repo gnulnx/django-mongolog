@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+V0.9.1
+------
+    * Fixed syntax error in README>rst
+
 v0.9.0
 ------
     * Removed support for pymongo < 3.0
