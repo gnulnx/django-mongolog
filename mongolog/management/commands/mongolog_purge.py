@@ -24,10 +24,6 @@ from django.core.management.base import BaseCommand
 
 console = logging.getLogger('mongolog-int')
 
-handler = get_mongolog_handler()
-client = MongoClient(handler.connection)
-db = client.mongolog
-
 
 class Command(BaseCommand):
 
@@ -49,8 +45,8 @@ class Command(BaseCommand):
             help='Backup collection before deleting',
         )
         parser.add_argument(
-            '-c', '--collection', default='mongolog', type=str, action='store', dest='collection',
-            help='Which mongolog collection to use',
+            '-l', '--logger', default='mongolog', type=str, action='store', dest='logger',
+            help='Which mongolog logger to use.  The collection defined in the log handler will be used.',
         )
 
     def __init__(self, *args, **kwargs):
@@ -77,7 +73,7 @@ class Command(BaseCommand):
         console.warn("You are about to delete all mongolog documents!!!")
 
         if self.confirm(**options):
-            total = self.collection.find(query).count()
+            total = self.collection.find({}).count()
             self.collection.delete_many({})
             console.warn("Total docs to remove: %s", total)
 
@@ -107,7 +103,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """ Main processing handle """
-        self.collection = getattr(db, options['collection'])
+
+        handler = get_mongolog_handler(logger_name=options['logger'])
+        self.collection = handler.collection
+
         if options['backup']:
             self.backup()
 
