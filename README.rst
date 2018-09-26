@@ -38,9 +38,16 @@ Quick start
                 'mongolog': {
                     'level': 'DEBUG',
                     'class': 'mongolog.SimpleMongoLogHandler',
-                    'connection': 'mongodb://localhost:27017'
+                    
+                    # Set the connection string to the mongo instance.  
+                    'connection': 'mongodb://localhost:27017',
+                    
+                    # define mongo collection the log handler should use.  Default is mongolog
+                    # This is useful if you want different handlers to use different collections
+                    'collection': 'mongolog' 
                 },
             },
+            # Define a logger for your handler.  We are using the root '' logger in this case
             'loggers': {
                 '': {
                     'handlers': ['mongolog'],
@@ -220,6 +227,20 @@ Quick start
             "trace" :
              null
         }
+        
+Management Commands (Django Only)
+---------------------------------
+
+1) ml_purge::
+
+The ml_urge command is used to clean up mongo collections. The command has two basic modes:  --purge and --delete. Purge will remove all documents and delete will remove documents older than {n} day's.
+
+To backup and PURGE all documents from the collection defined in mongolog handler
+    ./manage.py ml_purge --purge --backup -logger mongolog
+
+To remove all documents older than 14 days without backing up first
+    ./manage.py ml_purge --delete 14 -logger mongolog
+
 
 Future  Roadmap
 ---------------

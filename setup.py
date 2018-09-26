@@ -1,7 +1,7 @@
 import os
 from setuptools import setup
 
-VERSION = "0.8.1"
+VERSION = "0.9.0"
 
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
     README = readme.read()
@@ -15,8 +15,8 @@ setup(
     packages=['mongolog'],
     install_requires=(
         # TODO Can this actually work with a lower django version?
-        'django>=1.7',
-        'pymongo>=2.4',
+        'django>=1.9.8',
+        'pymongo>=3.0',
         'requests>=2.8',
         'coverage',
     ),
@@ -36,19 +36,13 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.0',
-        'Programming Language :: Python :: 3.1',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Framework :: Django',
-        'Framework :: Django :: 1.4',
-        'Framework :: Django :: 1.5',
-        'Framework :: Django :: 1.6',
-        'Framework :: Django :: 1.7',
-        'Framework :: Django :: 1.8',
         'Framework :: Django :: 1.9',
+        'Framework :: Django :: 2.0',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
