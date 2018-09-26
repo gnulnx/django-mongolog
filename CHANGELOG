@@ -4,7 +4,8 @@ Change Log
 v0.9.0
 ------
     * Removed support for pymongo < 3.0
-    * Added ml_purge command
+    * Removed support for Django < 1.9.8
+    * Added ml_purge command for cleaning out log documents
 
 v0.8.0
 ------
