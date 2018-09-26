@@ -36,7 +36,7 @@ class Command(BaseCommand):
             help='Delete the from collection',
         )
         parser.add_argument(
-            '-f', '--force', default=False, action='store_true', dest='force',
+            '--force', default=False, action='store_true', dest='force',
             help='Force delete "from" collection without prompt',
         )
 
