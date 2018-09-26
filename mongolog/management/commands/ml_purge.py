@@ -78,7 +78,7 @@ class Command(BaseCommand):
             console.warn("Total docs to remove: %s", total)
 
     def delete(self, **options):
-        """ Delete all records older than --days={n} """
+        """ Delete all records older than --delete={n} """
         days = options['delete']
         console.warn("Looking for documents older than %s day's", days)
 
