@@ -4,20 +4,17 @@
 # https://docs.djangoproject.com/en/1.9/releases/1.9/#django-1-9-release-notes
 language: python
 python:
-#  - "2.6"  # Just to old to support 
   - "2.7"
-  - "3.4"
-  - "3.5"
+  #- "3.4"
+  #- "3.5"
   - "3.6"
   - "3.7-dev"
-#  - "3.5-dev" # 3.5 development branch
-#  - "nightly" # currently points to 3.6-dev
 env:
   # Test out support for lowest/highest pymongo/django combos
   #- PYMONGO="==2.4" DJANGO="==1.8"
   #- PYMONGO=">=3.0" DJANGO=">=1.9" 
-  - PYMONGO="==2.4"
-  - PYMONGO=">=3.0"
+  - PYMONGO=">=3.0" DJANGO="==1.9.4"
+  - PYMONGO=">=3.0" DJANGO=">=2.0"
 # command to install dependencies
 services:
   - mongodb
