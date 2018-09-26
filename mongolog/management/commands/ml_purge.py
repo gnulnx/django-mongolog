@@ -5,10 +5,10 @@ Management command to handle deletion of previous mongolog records.
 Usage Examples:
 
 # Delete all records alder than 54 day's AFTER backing up the current collection 'bulkupload'
- ./manage.py mongolog_purge -d 54 -b -c bulkupload
+ ./manage.py ml_purge -d 54 -b -c bulkupload
 
  # Delete all entries
-./manage.py mongolog_purge -p -c bulkupload
+./manage.py ml_purge -p -c bulkupload
 """
 from __future__ import print_function
 import sys
