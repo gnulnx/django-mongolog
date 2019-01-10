@@ -71,7 +71,10 @@ def get_mongolog_handler(logger_name=None, show_logger_names=False):
             break
 
     if not handler:
-        raise ValueError("No BaseMongoLogHandler could be found.  Did you add on to youy logging config?")
+        if logger_name:
+            raise ValueError("logger '%s' does not have a mongolog based handler associated with it.")
+            
+        raise ValueError("There are no loggers with a mongolog based handler.  Please see documentation about setting up LOGGING.")
     return handler
 
 
