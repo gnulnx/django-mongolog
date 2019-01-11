@@ -231,13 +231,22 @@ class BaseMongoLogHandler(Handler):
             return record
 
         for k, v in record['msg'].items():
-            record['msg'][self.new_key(k)] = record['msg'].pop(k)
+            self._check_keys(k, v, record['msg'])
 
-            if isinstance(v, dict):
-                for old_key in record['msg'][k].keys():
-                    record['msg'][k][self.new_key(old_key)] = record['msg'][k].pop(old_key)
+            # if isinstance(v, dict):
+            #    for old_key in record['msg'][k].keys():
+            #        record['msg'][k][self.new_key(old_key)] = record['msg'][k].pop(old_key)
 
         return record
+
+    def _check_keys(self, k, v, _dict):
+        _dict[self.new_key(k)] = _dict.pop(k)
+
+        if isinstance(v, dict):
+            for nk, vk in v.items():
+                self._check_keys(nk, vk, v)
+            # for  in _dict[k].items():
+            #    _dict[k][self.new_key(old_key)] = _dict[k].pop(old_key)
 
     def create_log_record(self, record):
         """
