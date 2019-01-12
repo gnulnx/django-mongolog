@@ -227,6 +227,7 @@ class BaseMongoLogHandler(Handler):
         TODO:   Make this a recursive function that looks for these keys
                 n levels deep
         """
+        return record
         if not isinstance(record['msg'], dict):
             return record
 
