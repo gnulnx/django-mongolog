@@ -9,25 +9,25 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
-  - "3.7"
+  - "3.7-dev"
 
 env:
 
   matrix:
-    - MONGODB=2.6.12 PYMONGO=">=3.0" DJANGO="==1.9.8"
-    - MONGODB=2.6.12 PYMONGO=">=3.0" DJANGO=">=2.0"
+    - MONGODB=2.6.12 DJANGO="==1.9.8"
+    - MONGODB=2.6.12 DJANGO=">=2.0"
 
-    - MONGODB=3.0.15
-    - MONGODB=3.2.20
-    - MONGODB=3.4.16
+    # - MONGODB=3.0.15
+    # - MONGODB=3.2.20
+    # - MONGODB=3.4.16
 
-    - MONGODB=3.6.6 PYMONGO=">=3.0" DJANGO="==1.9.8"
-    - MONGODB=3.6.6 PYMONGO=">=3.0" DJANGO=">=2.0"
+    - MONGODB=3.6.6 DJANGO="==1.9.8"
+    - MONGODB=3.6.6 DJANGO=">=2.0"
 
-    - MONGODB=4.0.0
+    # - MONGODB=4.0.0
 
-    - MONGODB=4.1.1 PYMONGO=">=3.0" DJANGO="==1.9.8"
-    - MONGODB=4.1.1 PYMONGO=">=3.0" DJANGO=">=2.0"
+    - MONGODB=4.1.1 DJANGO="==1.9.8"
+    - MONGODB=4.1.1 DJANGO=">=2.0"
 
 matrix:
   fast_finish: true
@@ -37,6 +37,8 @@ install:
   - pip install coveralls
   - pip install pymongo$PYMONGO
   - pip freeze
+  # Insteall django version from matrix
+  - pip install django$DJANGO
 
   - wget http://fastdl.mongodb.org/linux/mongodb-linux-x86_64-${MONGODB}.tgz
   - tar xzf mongodb-linux-x86_64-${MONGODB}.tgz
