@@ -13,45 +13,23 @@ env:
   # Test out support for lowest/highest pymongo/django combos
   - PYMONGO=">=3.0" DJANGO="==1.9.8"
   - PYMONGO=">=3.0" DJANGO=">=2.0"
-
-  matrix:
-    - MONGODB=2.6.12
-    - MONGODB=3.0.15
-    - MONGODB=3.2.20
-    - MONGODB=3.4.16
-    - MONGODB=3.6.6
-    - MONGODB=4.0.0
-    - MONGODB=4.1.1
-
-matrix:
-  fast_finish: true
-
-
 # command to install dependencies
+services:
+  - mongodb
+addons:
+  apt:
+    sources:
+    - mongodb-3.4-precise
+    packages:
+    - mongodb-org-server
 install: 
   - pip install -r requirements.txt
   - pip install coveralls
   - pip install pymongo$PYMONGO
   - pip freeze
-
-  - wget http://fastdl.mongodb.org/linux/mongodb-linux-x86_64-${MONGODB}.tgz
-  - tar xzf mongodb-linux-x86_64-${MONGODB}.tgz
-  - ${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/mongod --version
-  - pip install Pillow
-  - python setup.py install
-
-before_script:
-  - mkdir ${PWD}/mongodb-linux-x86_64-${MONGODB}/data
-  - ${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/mongod --dbpath ${PWD}/mongodb-linux-x86_64-${MONGODB}/data --logpath ${PWD}/mongodb-linux-x86_64-${MONGODB}/mongodb.log --fork
-
 # command to run tests
 script: coverage run --source=mongolog/ manage.py test
-
-after_script:
-  - pkill mongod
-
 after_success: 
   - coverage report
   - coveralls
   - pip freeze
-
