@@ -3,12 +3,14 @@
 # Support for python 3.2 and 3.3 discontinued because django officially dropped support in 1.8
 # https://docs.djangoproject.com/en/1.9/releases/1.9/#django-1-9-release-notes
 language: python
+
 python:
   - "2.7"
   - "3.4"
   - "3.5"
   - "3.6"
   - "3.7-dev"
+
 env:
   # Test out support for lowest/highest pymongo/django combos
   - PYMONGO=">=3.0" DJANGO="==1.9.8"
@@ -26,8 +28,6 @@ env:
 matrix:
   fast_finish: true
 
-
-# command to install dependencies
 install: 
   - pip install -r requirements.txt
   - pip install coveralls
