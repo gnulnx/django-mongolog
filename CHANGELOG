@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+V0.9.3
+------
+    * Bumped minimum django verion: 1.11.18 (last python2.7 version)
+    * Test more mongo version
+
 V0.9.2
 ------
     * Better misconfiguration exception messages and exception classes.
