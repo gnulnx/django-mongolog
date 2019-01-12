@@ -167,18 +167,18 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
         self.logger.info({
             'META': {
                 'user.name': 'jfurr',
-                'user$name': 'jfurr',
+                '$user$name': 'jfurr',
                 'META2': {
                     'blah.blah': 'blah',
-                    'blah$blah': 'blah',
+                    '$blah$blah': 'blah',
                     'META3': {
                         'meta3.meta3': 'meta3',
-                        'meta$meta': 'meta3',
+                        '$meta$meta': 'meta3',
                     }
                 }
             },
-            'user.name': 'jfurr',
-            'user$name': 'jfurr'
+            'user.name': 'janedoe',
+            '$user$name': 'joeblow'
         })
 
     def test_write_concern(self):

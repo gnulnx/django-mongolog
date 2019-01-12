@@ -210,44 +210,39 @@ class BaseMongoLogHandler(Handler):
         self.client.server_info()
         return self.client
 
-    def new_key(self, old_key):
-        """
-        Repalce . and $ with Unicode full width equivalents
-        """
-        if "." in old_key:
-            return old_key.replace(u".", u"．")
-        elif "$" in old_key:
-            return old_key.replace(u"$", u"＄")
-        else:
-            return old_key
-
     def check_keys(self, record):
         """
         Check for . and $ in two levels of keys below msg.
         TODO:   Make this a recursive function that looks for these keys
                 n levels deep
         """
-        return record
         if not isinstance(record['msg'], dict):
             return record
 
         for k, v in record['msg'].items():
             self._check_keys(k, v, record['msg'])
 
-            # if isinstance(v, dict):
-            #    for old_key in record['msg'][k].keys():
-            #        record['msg'][k][self.new_key(old_key)] = record['msg'][k].pop(old_key)
-
         return record
 
     def _check_keys(self, k, v, _dict):
+        """
+        Recursively check key's for special characters.
+        """
         _dict[self.new_key(k)] = _dict.pop(k)
 
         if isinstance(v, dict):
             for nk, vk in v.items():
                 self._check_keys(nk, vk, v)
-            # for  in _dict[k].items():
-            #    _dict[k][self.new_key(old_key)] = _dict[k].pop(old_key)
+
+    def new_key(self, key):
+        """
+        Repalce . and $ with Unicode full width equivalents
+        As of mongo 3.6 . and $ are permitted in keys.  But keys may not start with $
+        If we encounter a key that starts with a $ we replace it with it's unicode equivalent.
+        """
+        if key[0] == "$":
+            key = u"＄" + key[1:]
+        return key
 
     def create_log_record(self, record):
         """
