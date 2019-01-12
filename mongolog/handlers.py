@@ -240,8 +240,16 @@ class BaseMongoLogHandler(Handler):
         As of mongo 3.6 . and $ are permitted in keys.  But keys may not start with $
         If we encounter a key that starts with a $ we replace it with it's unicode equivalent.
         """
-        if key[0] == "$":
-            key = u"＄" + key[1:]
+        if pymongo_version >= 3:
+            if key[0] == "$":
+                key = u"＄" + key[1:]
+        else:
+            # Older mongo doesn't support $ or . in keys
+            if "." in key:
+                key = key.replace(u".", u"．")
+            elif "$" in key:
+                key = key.replace(u"$", u"＄")
+
         return key
 
     def create_log_record(self, record):
