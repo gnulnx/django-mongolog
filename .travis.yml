@@ -21,8 +21,6 @@ env:
     - MONGODB=3.6.6
     - MONGODB=4.0.0
     - MONGODB=4.1.1
-
-    # Test out support for lowest/highest pymongo/django combos
     - PYMONGO=">=3.0" DJANGO="==1.9.8"
     - PYMONGO=">=3.0" DJANGO=">=2.0"
 
