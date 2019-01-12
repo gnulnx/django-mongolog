@@ -32,7 +32,7 @@ import json
 import uuid
 import pymongo
 import requests
-pymongo_version = int(pymongo.version.split(".")[0])
+pymongo_version = float('.'.join(pymongo.version.split(".")[:2]))
 if pymongo_version >= 3:
     from pymongo.collection import ReturnDocument
 
@@ -155,9 +155,9 @@ class BaseMongoLogHandler(Handler):
 
     def connect(self, test=False):
 
-        if pymongo_version == 3:
+        if pymongo_version >= 3:
             self.client = self.connect_pymongo3(test)
-        elif pymongo_version == 2:
+        elif pymongo_version >= 2:
             self.client = self.connect_pymongo2()
 
         # The mongolog database
@@ -313,11 +313,10 @@ class BaseMongoLogHandler(Handler):
             self.insert_embedded(log_record)
 
         elif self.record_type == self.REFERENCE:
-            if pymongo_version == 2:
-                self.reference_log_pymongo_2(log_record)
-
-            elif pymongo_version == 3:
+            if pymongo_version >= 3:
                 self.reference_log_pymongo_3(log_record)
+            elif pymongo_version >= 2:
+                self.reference_log_pymongo_2(log_record)
 
     def insert_embedded(self, log_record):
         """
@@ -332,10 +331,10 @@ class BaseMongoLogHandler(Handler):
             # First time this record has been seen add a created field and insert it
             log_record['created'] = log_record.pop('time')
             log_record['counter'] = 1
-            if pymongo_version == 2:
-                self.mongolog.insert(log_record)
-            elif pymongo_version == 3:
+            if pymongo_version >= 3:
                 self.mongolog.insert_one(log_record)
+            elif pymongo_version == 2:
+                self.mongolog.insert(log_record)
         else:
             # record has been seen before so we update the counter and push/pop
             # the log record time.  We keep the 'n' latest log record
@@ -350,10 +349,10 @@ class BaseMongoLogHandler(Handler):
                 "$inc": {'counter': 1}
             }
 
-            if pymongo_version == 2:
-                self.mongolog.update(query, update)
-            elif pymongo_version == 3:
+            if pymongo_version >= 3:
                 self.mongolog.update_one(query, update)
+            elif pymongo_version >= 2:
+                self.mongolog.update(query, update)
 
     def reference_log_pymongo_2(self, log_record):
         query = {'uuid': log_record['uuid']}
