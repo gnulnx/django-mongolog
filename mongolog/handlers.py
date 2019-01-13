@@ -36,6 +36,9 @@ pymongo_version = float('.'.join(pymongo.version.split(".")[:2]))
 if pymongo_version >= 3:
     from pymongo.collection import ReturnDocument
 
+from pymongo import MongoClient
+mongo_version = float(".".join(map(str, MongoClient().server_info()['versionArray'][:2])))
+
 from mongolog.models import LogRecord
 from mongolog.exceptions import MissingConnectionError, LogConfigError
 
@@ -240,7 +243,7 @@ class BaseMongoLogHandler(Handler):
         As of mongo 3.6 . and $ are permitted in keys.  But keys may not start with $
         If we encounter a key that starts with a $ we replace it with it's unicode equivalent.
         """
-        if pymongo_version >= 3:
+        if mongo_version >= 3.6:
             if key[0] == "$":
                 key = u"＄" + key[1:]
         else:
