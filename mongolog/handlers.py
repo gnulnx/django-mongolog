@@ -239,9 +239,11 @@ class BaseMongoLogHandler(Handler):
 
     def new_key(self, key):
         """
-        Repalce . and $ with Unicode full width equivalents
-        As of mongo 3.6 . and $ are permitted in keys.  But keys may not start with $
-        If we encounter a key that starts with a $ we replace it with it's unicode equivalent.
+        mongo < 3.6
+            Repalce . and $ with Unicode full width equivalents
+        mongo >= 3.6
+            As of mongo 3.6 . and $ are permitted in keys.  But keys may not start with $
+            If we encounter a key that starts with a $ we replace it with it's unicode full width equivalent.
         """
         if mongo_version >= 3.6:
             if key[0] == "$":
