@@ -4,8 +4,10 @@ Change Log
 V0.9.3
 ------
     * Bumped minimum django verion: 1.11.18 (last python2.7 version)
-    * Test more mongo version
+    * Test more mongo versions
     * Recursivly check for keys that start with $ and replace with unicode equivalent
+    * check mongoversion before modifying keys with '$' and '.'.  
+    * above check makes mongo 3.6+ faster to check and fix.
 
 V0.9.2
 ------
