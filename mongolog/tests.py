@@ -36,10 +36,8 @@ except ImportError:
 import pymongo
 pymongo_major_version = int(pymongo.version.split(".")[0])
 
-from mongolog.handlers import (
-    get_mongolog_handler, SimpleMongoLogHandler
-)
-from mongolog.models import Mongolog
+from mongolog.handlers import SimpleMongoLogHandler
+from mongolog.models import Mongolog, get_mongolog_handler
 
 import django
 django_version = django.VERSION[0]
