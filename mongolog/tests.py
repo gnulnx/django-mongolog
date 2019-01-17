@@ -169,6 +169,9 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
                 'META2': {
                     'blah.blah': 'blah',
                     '$blah$blah': 'blah',
+                    'array': [
+                        {'$test': 'test'}
+                    ],
                     'META3': {
                         'meta3.meta3': 'meta3',
                         '$meta$meta': 'meta3',
