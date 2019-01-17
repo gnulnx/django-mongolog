@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+V0.9.4
+------
+    * Minor fix for ml_purge command
+
 V0.9.3
 ------
     * Bumped minimum django verion: 1.11.18 (last python2.7 version)

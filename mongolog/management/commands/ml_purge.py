@@ -17,7 +17,7 @@ from datetime import timedelta
 import subprocess
 from pymongo import MongoClient
 
-from mongolog.handlers import get_mongolog_handler
+from mongolog.models import get_mongolog_handler
 
 from django.utils import timezone
 from django.core.management.base import BaseCommand
