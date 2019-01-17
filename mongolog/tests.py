@@ -36,10 +36,8 @@ except ImportError:
 import pymongo
 pymongo_major_version = int(pymongo.version.split(".")[0])
 
-from mongolog.handlers import (
-    get_mongolog_handler, SimpleMongoLogHandler
-)
-from mongolog.models import Mongolog
+from mongolog.handlers import SimpleMongoLogHandler
+from mongolog.models import Mongolog, get_mongolog_handler
 
 import django
 django_version = django.VERSION[0]
@@ -162,15 +160,30 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
         response = c.get(reverse("home"))
         self.assertContains(response, "HERE YOU ARE ON monglog/home.html")
 
-    def test_dot_in_key(self):
+    def test_special_chars_in_key(self):
         console.debug(self)
         self.logger.info({
             'META': {
                 'user.name': 'jfurr',
-                'user$name': 'jfurr'
+                '$user$name': 'jfurr',
+                'META2': {
+                    'blah.blah': 'blah',
+                    '$blah$blah': 'blah',
+                    'array': [
+                        {
+                            '$test': 'test',
+                            'test$test': 'test',
+                            '.test.test': 'test',
+                        }
+                    ],
+                    'META3': {
+                        'meta3.meta3': 'meta3',
+                        '$meta$meta': 'meta3',
+                    }
+                }
             },
-            'user.name': 'jfurr',
-            'user$name': 'jfurr'
+            'user.name': 'janedoe',
+            '$user$name': 'joeblow'
         })
 
     def test_write_concern(self):

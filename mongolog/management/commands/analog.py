@@ -10,7 +10,7 @@ pymongo_version = int(pymongo.version.split(".")[0])
 if pymongo_version >= 3:
     from pymongo.collection import ReturnDocument  # noqa: F40
 
-from mongolog.handlers import get_mongolog_handler
+from mongolog.models import get_mongolog_handler
 
 from django.core.management.base import BaseCommand
 

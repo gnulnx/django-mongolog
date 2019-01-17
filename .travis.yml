@@ -3,33 +3,61 @@
 # Support for python 3.2 and 3.3 discontinued because django officially dropped support in 1.8
 # https://docs.djangoproject.com/en/1.9/releases/1.9/#django-1-9-release-notes
 language: python
+
 python:
   - "2.7"
   - "3.4"
   - "3.5"
   - "3.6"
-  - "3.7-dev"
+  # - "3.7-dev"  Started failing..
+
 env:
-  # Test out support for lowest/highest pymongo/django combos
-  - PYMONGO=">=3.0" DJANGO="==1.9.8"
-  - PYMONGO=">=3.0" DJANGO=">=2.0"
-# command to install dependencies
-services:
-  - mongodb
-addons:
-  apt:
-    sources:
-    - mongodb-3.4-precise
-    packages:
-    - mongodb-org-server
+
+  matrix:
+    # Older django version that supports python 2.7
+    # Django 1.11.18 was last version to support python 2.7
+    - MONGODB=2.6.12 DJANGO="==1.11.18"
+    - MONGODB=3.6.6 DJANGO="==1.11.18"
+    - MONGODB=4.1.1 DJANGO="==1.11.18"
+
+    # These will all use the latest version of django.
+    - MONGODB=2.6.12
+    - MONGODB=3.0.15
+    - MONGODB=3.2.20
+    - MONGODB=3.4.16
+    - MONGODB=3.6.6
+    - MONGODB=4.0.0
+    - MONGODB=4.1.1
+
+matrix:
+  fast_finish: true
+
 install: 
   - pip install -r requirements.txt
   - pip install coveralls
   - pip install pymongo$PYMONGO
   - pip freeze
+  # Install django version from matrix
+  - pip install django$DJANGO
+
+  - wget http://fastdl.mongodb.org/linux/mongodb-linux-x86_64-${MONGODB}.tgz
+  - tar xzf mongodb-linux-x86_64-${MONGODB}.tgz
+  - ${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/mongod --version
+  - pip install Pillow
+  - python setup.py install
+
+before_script:
+  - mkdir ${PWD}/mongodb-linux-x86_64-${MONGODB}/data
+  - ${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/mongod --dbpath ${PWD}/mongodb-linux-x86_64-${MONGODB}/data --logpath ${PWD}/mongodb-linux-x86_64-${MONGODB}/mongodb.log --fork
+
 # command to run tests
 script: coverage run --source=mongolog/ manage.py test
+
+after_script:
+  - pkill mongod
+
 after_success: 
   - coverage report
   - coveralls
   - pip freeze
+

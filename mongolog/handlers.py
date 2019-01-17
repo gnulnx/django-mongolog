@@ -1,27 +1,12 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python
-"""
-    django-mongolog.  Simple Mongo based logger for Django
-    Copyright (C) 2015 - John Furr
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
 from __future__ import print_function
 import logging
 from logging import Handler, NOTSET
 from datetime import datetime as dt
 import sys
+import warnings
+
 try:
     from cStringIO import StringIO  # noqa
 except ImportError:
@@ -29,71 +14,26 @@ except ImportError:
 
 import traceback
 import json
+import requests
 import uuid
 import pymongo
-import requests
-pymongo_version = int(pymongo.version.split(".")[0])
+pymongo_version = float('.'.join(pymongo.version.split(".")[:2]))
 if pymongo_version >= 3:
     from pymongo.collection import ReturnDocument
+else:
+    warnings.warn("pymongo version 2 is deprecated", DeprecationWarning)
+
 
 from mongolog.models import LogRecord
-from mongolog.exceptions import MissingConnectionError, LogConfigError
+from mongolog.exceptions import (
+    MissingConnectionError,
+    UnsupportedVersionError
+)
 
 logger = logging.getLogger('')
 console = logging.getLogger('mongolog-int')
 
 uuid_namespace = uuid.UUID('8296424f-28b7-5982-a434-e6ec8ef529b3')
-
-
-# TODO Move to mongolog.models.Mongolog
-def get_mongolog_handler(logger_name=None, show_logger_names=False):
-    """
-    Return the first MongoLogHander found in the list of defined loggers.
-    NOTE: If more than one is defined, only the first one is used.
-    """
-    if logger_name:
-        logger_names = [logger_name]
-    else:
-        logger_names = [''] + list(logging.Logger.manager.loggerDict)
-
-    if show_logger_names:
-        console.info("get_mongolog_handler(): Logger_names: %s", json.dumps(logger_names, indent=4, sort_keys=True, default=str))
-
-    for name in logger_names:
-        logger = logging.getLogger(name)
-        handler = None
-        for _handler in logger.handlers:
-            if isinstance(_handler, BaseMongoLogHandler):
-                handler = _handler
-                break
-        if handler:
-            console.debug("found handler: %s", handler)
-            break
-
-    if not handler:
-        if logger_name:
-            raise LogConfigError("logger '%s' does not have a mongolog based handler associated with it." % logger_name)
-
-        raise LogConfigError("There are no loggers with a mongolog based handler.  Please see documentation about setting up LOGGING.")
-    return handler
-
-
-# Copied directly from python Formatter class
-def formatException(ei):
-    """
-    Format and return the specified exception information as a string.
-
-    This default implementation just uses
-    traceback.print_exception()
-    """
-    sio = StringIO()
-
-    traceback.print_exception(ei[0], ei[1], ei[2], None, sio)
-    s = sio.getvalue()
-    sio.close()
-    if s[-1:] == "\n":
-        s = s[:-1]
-    return s
 
 
 class BaseMongoLogHandler(Handler):
@@ -103,8 +43,8 @@ class BaseMongoLogHandler(Handler):
 
     def __init__(
             self, level=NOTSET, connection=None, database='mongolog', collection='mongolog', w=1, j=False, verbose=None,
-            time_zone="local", record_type="embedded", max_keep=25, *args, **kwargs
-        ):  # noqa
+            time_zone="local", record_type="embedded", max_keep=25, *args, **kwargs):  # noqa
+
         super(BaseMongoLogHandler, self).__init__(level)
         self.connection = connection
         self.database = database
@@ -155,10 +95,12 @@ class BaseMongoLogHandler(Handler):
 
     def connect(self, test=False):
 
-        if pymongo_version == 3:
+        if pymongo_version >= 3:
             self.client = self.connect_pymongo3(test)
-        elif pymongo_version == 2:
+        elif pymongo_version >= 2:
             self.client = self.connect_pymongo2()
+
+        self.mongo_version = float(".".join(map(str, self.client.server_info()['versionArray'][:2])))
 
         # The mongolog database
         self.db = self.client[self.database]
@@ -210,17 +152,6 @@ class BaseMongoLogHandler(Handler):
         self.client.server_info()
         return self.client
 
-    def new_key(self, old_key):
-        """
-        Repalce . and $ with Unicode full width equivalents
-        """
-        if "." in old_key:
-            return old_key.replace(u".", u"．")
-        elif "$" in old_key:
-            return old_key.replace(u"$", u"＄")
-        else:
-            return old_key
-
     def check_keys(self, record):
         """
         Check for . and $ in two levels of keys below msg.
@@ -230,14 +161,47 @@ class BaseMongoLogHandler(Handler):
         if not isinstance(record['msg'], dict):
             return record
 
-        for k, v in record['msg'].items():
-            record['msg'][self.new_key(k)] = record['msg'].pop(k)
-
-            if isinstance(v, dict):
-                for old_key in record['msg'][k].keys():
-                    record['msg'][k][self.new_key(old_key)] = record['msg'][k].pop(old_key)
+        for k, v in list(record['msg'].items()):
+            self._check_keys(k, v, record['msg'])
 
         return record
+
+    def _check_keys(self, k, v, _dict):
+        """
+        Recursively check key's for special characters.
+        """
+        _dict[self.new_key(k)] = _dict.pop(k)
+
+        if isinstance(v, dict):
+            for nk, vk in list(v.items()):
+                self._check_keys(nk, vk, v)
+
+        # We could also have an array of dictionaries so we check those as well.
+        if isinstance(v, list):
+            for l in v:
+                if isinstance(l, dict):
+                    for nk, vk in list(l.items()):
+                        self._check_keys(nk, vk, l)
+
+    def new_key(self, key):
+        """
+        mongo < 3.6
+            Repalce . and $ with Unicode full width equivalents
+        mongo >= 3.6
+            As of mongo 3.6 . and $ are permitted in keys.  But keys may not start with $
+            If we encounter a key that starts with a $ we replace it with it's unicode full width equivalent.
+        """
+        if self.mongo_version >= 3.6:
+            if key[0] == "$":
+                key = u"＄" + key[1:]
+        else:
+            # Older mongo doesn't support $ or . in keys
+            if "." in key:
+                key = key.replace(u".", u"．")
+            elif "$" in key:
+                key = key.replace(u"$", u"＄")
+
+        return key
 
     def create_log_record(self, record):
         """
@@ -249,7 +213,7 @@ class BaseMongoLogHandler(Handler):
         """
         # This is still a python LogRecord Object that we are manipulating
         if record.exc_info:
-            record.exc_text = formatException(record.exc_info)
+            record.exc_text = self.formatException(record.exc_info)
 
         record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
         if "mongolog.management.commands" in record['name']:
@@ -277,6 +241,22 @@ class BaseMongoLogHandler(Handler):
             record['dates'] = [record['time']]
 
         return record
+
+    def formatException(self, ei):
+        """
+        Format and return the specified exception information as a string.
+
+        This default implementation just uses
+        traceback.print_exception()
+        """
+        sio = StringIO()
+
+        traceback.print_exception(ei[0], ei[1], ei[2], None, sio)
+        s = sio.getvalue()
+        sio.close()
+        if s[-1:] == "\n":
+            s = s[:-1]
+        return s
 
     def ensure_collections_indexed(self):
         """
@@ -308,11 +288,10 @@ class BaseMongoLogHandler(Handler):
             self.insert_embedded(log_record)
 
         elif self.record_type == self.REFERENCE:
-            if pymongo_version == 2:
-                self.reference_log_pymongo_2(log_record)
-
-            elif pymongo_version == 3:
+            if pymongo_version >= 3:
                 self.reference_log_pymongo_3(log_record)
+            elif pymongo_version >= 2:
+                self.reference_log_pymongo_2(log_record)
 
     def insert_embedded(self, log_record):
         """
@@ -327,10 +306,12 @@ class BaseMongoLogHandler(Handler):
             # First time this record has been seen add a created field and insert it
             log_record['created'] = log_record.pop('time')
             log_record['counter'] = 1
-            if pymongo_version == 2:
-                self.mongolog.insert(log_record)
-            elif pymongo_version == 3:
+            if pymongo_version >= 3:
                 self.mongolog.insert_one(log_record)
+            elif pymongo_version == 2:
+                self.mongolog.insert(log_record)
+            else:
+                raise UnsupportedVersionError("mongolog currently on supports pymongo >= 2")
         else:
             # record has been seen before so we update the counter and push/pop
             # the log record time.  We keep the 'n' latest log record
@@ -345,10 +326,10 @@ class BaseMongoLogHandler(Handler):
                 "$inc": {'counter': 1}
             }
 
-            if pymongo_version == 2:
-                self.mongolog.update(query, update)
-            elif pymongo_version == 3:
+            if pymongo_version >= 3:
                 self.mongolog.update_one(query, update)
+            elif pymongo_version >= 2:
+                self.mongolog.update(query, update)
 
     def reference_log_pymongo_2(self, log_record):
         query = {'uuid': log_record['uuid']}

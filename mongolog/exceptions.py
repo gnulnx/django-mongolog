@@ -8,3 +8,7 @@ class MissingConnectionError(ValueError):
 
 class LogConfigError(ValueError):
     pass
+
+
+class UnsupportedVersionError(ValueError):
+    pass
