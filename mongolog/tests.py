@@ -160,7 +160,7 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
         response = c.get(reverse("home"))
         self.assertContains(response, "HERE YOU ARE ON monglog/home.html")
 
-    def test_dot_in_key(self):
+    def test_special_chars_in_key(self):
         console.debug(self)
         self.logger.info({
             'META': {
@@ -170,7 +170,11 @@ class TestBaseMongoLogHandler(TestCase, TestRemoveEntriesMixin):
                     'blah.blah': 'blah',
                     '$blah$blah': 'blah',
                     'array': [
-                        {'$test': 'test'}
+                        {
+                            '$test': 'test',
+                            'test$test': 'test',
+                            '.test.test': 'test',
+                        }
                     ],
                     'META3': {
                         'meta3.meta3': 'meta3',

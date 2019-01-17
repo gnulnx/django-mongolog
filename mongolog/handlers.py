@@ -153,7 +153,7 @@ class BaseMongoLogHandler(Handler):
         if not isinstance(record['msg'], dict):
             return record
 
-        for k, v in record['msg'].items():
+        for k, v in list(record['msg'].items()):
             self._check_keys(k, v, record['msg'])
 
         return record
@@ -165,8 +165,15 @@ class BaseMongoLogHandler(Handler):
         _dict[self.new_key(k)] = _dict.pop(k)
 
         if isinstance(v, dict):
-            for nk, vk in v.items():
+            for nk, vk in list(v.items()):
                 self._check_keys(nk, vk, v)
+
+        # We could also have an array of dictionaries so we check those as well.
+        if isinstance(v, list):
+            for l in v:
+                if isinstance(l, dict):
+                    for nk, vk in list(l.items()):
+                        self._check_keys(nk, vk, l)
 
     def new_key(self, key):
         """
