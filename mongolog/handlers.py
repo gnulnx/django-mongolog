@@ -20,6 +20,9 @@ import pymongo
 pymongo_version = float('.'.join(pymongo.version.split(".")[:2]))
 if pymongo_version >= 3:
     from pymongo.collection import ReturnDocument
+else:
+    warnings.warn("pymongo version 2 is deprecated", DeprecationWarning)
+
 
 from mongolog.models import LogRecord
 from mongolog.exceptions import (
@@ -307,7 +310,6 @@ class BaseMongoLogHandler(Handler):
                 self.mongolog.insert_one(log_record)
             elif pymongo_version == 2:
                 self.mongolog.insert(log_record)
-                warnings.warn("pymongo version 2 is deprecated", DeprecationWarning)
             else:
                 raise UnsupportedVersionError("mongolog currently on supports pymongo >= 2")
         else:
